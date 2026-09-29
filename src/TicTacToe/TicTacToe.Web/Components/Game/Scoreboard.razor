@@ -8,13 +8,6 @@
     var target = series ? Game.SeriesTarget : 0;
 
     <div class="contents">
-        @if (series)
-        {
-            <p data-series-header class="col-span-2 text-center font-numeric text-label-badge uppercase text-ink-muted lg:col-span-3">
-                Melhor de 5 • Rodada @Math.Min(DisplayedRound, 5) de 5
-            </p>
-        }
-
         <PlayerCard Player="Player.X" Name="@Game.GetPlayerName(Player.X)" Score="@Game.GetScore(Player.X)" SeriesWins="@Game.GetScore(Player.X)" SeriesTarget="@target" MatchPoint="@Game.IsMatchPoint(Player.X)"
                     IsMe="@(MyPlayer == Player.X)" IsActive="@(running && Game.CurrentTurn == Player.X)"
                     Class="lg:col-start-1 lg:row-start-2" />
@@ -22,12 +15,19 @@
                     IsMe="@(MyPlayer == Player.O)" IsActive="@(running && Game.CurrentTurn == Player.O)"
                     Class="lg:col-start-3 lg:row-start-2" />
 
-        <p aria-live="polite" class="col-span-2 text-center text-title-sm lg:col-span-1 lg:col-start-2 lg:row-start-1">@StatusText()</p>
-
-        @if (series && SeriesNotice() is { } notice)
-        {
-            <p data-series-notice aria-live="polite" class="col-span-2 text-center text-body-md text-ink-muted lg:col-span-1 lg:col-start-2">@notice</p>
-        }
+        <div class="col-span-2 flex flex-col items-center gap-1 text-center lg:col-span-1 lg:col-start-2 lg:row-start-1">
+            @if (series)
+            {
+                <p data-series-header class="font-numeric text-label-badge uppercase text-ink-muted">
+                    Melhor de 5 • Rodada @Math.Min(DisplayedRound, 5) de 5
+                </p>
+            }
+            <p aria-live="polite" class="text-title-sm">@StatusText()</p>
+            @if (series)
+            {
+                <p data-series-notice aria-live="polite" class="min-h-6 text-body-md text-ink-muted">@SeriesNotice()</p>
+            }
+        </div>
     </div>
 }
 

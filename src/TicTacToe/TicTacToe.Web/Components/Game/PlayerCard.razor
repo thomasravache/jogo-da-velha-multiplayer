@@ -11,7 +11,7 @@
         }
         @if (SeriesTarget > 0)
         {
-            <span role="img" aria-label="@($"{SeriesWins} de {SeriesTarget} vitórias")" class="flex gap-1.5">
+            <span role="img" aria-label="@($"{SeriesWins} de {SeriesTarget} vitórias")" data-series-wins class="flex gap-1.5">
                 @for (var i = 0; i < SeriesTarget; i++)
                 {
                     var filled = i < SeriesWins;
