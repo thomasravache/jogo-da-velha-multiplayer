@@ -30,12 +30,13 @@ else if (IsWaiting)
 else
 {
     <div class="mx-auto flex w-full max-w-[var(--size-frame)] flex-col gap-6 py-4">
-        <PageHeader Eyebrow="XO Arena" Title="Arena de Batalhas XO" Subtitle="Escolha seu modo de combate e desafie um oponente." />
+        <PageHeader Eyebrow="XO Arena" Title="Arena de Batalhas XO" Subtitle="@WelcomeText" />
 
         <NeonCard Class="flex flex-col gap-3 p-5 md:flex-row md:items-end">
             <div class="flex-1">
                 <NeonInput Id="playerName" Label="Seu apelido" Placeholder="Ex: Thomas" MaxLength="20" ShowCounter="true"
                            Value="@PlayerName" ValueChanged="HandleNameInput" />
+                <p class="mt-2 text-body-md text-ink-muted">Seu identificador de jogador fica salvo neste navegador.</p>
             </div>
             <StatusChip Tone="@(HasName ? ChipTone.Online : ChipTone.Neutral)" Dot="@HasName">
                 @(HasName ? "Pronto para jogar" : "Informe seu apelido")
@@ -113,6 +114,8 @@ else
     private RoomTab _tab = RoomTab.Create;
     private CopyState _copy = CopyState.None;
 
+    [Parameter] public string? ReturningPlayerName { get; set; }
+
     [Parameter] public string PlayerName { get; set; } = "";
     [Parameter] public EventCallback<string> PlayerNameChanged { get; set; }
 
@@ -141,6 +144,10 @@ else
             _copiedFor = CreatedRoomCode;
         }
     }
+
+    private string WelcomeText => string.IsNullOrWhiteSpace(ReturningPlayerName)
+        ? "Escolha seu modo de combate e desafie um oponente."
+        : $"Bem-vindo de volta, {ReturningPlayerName}. Escolha seu modo de combate.";
 
     private bool HasName => !string.IsNullOrWhiteSpace(PlayerName);
 

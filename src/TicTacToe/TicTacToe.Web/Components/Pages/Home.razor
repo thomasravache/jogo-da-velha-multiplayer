@@ -8,12 +8,14 @@
 @inject ConcurrentDictionary<Guid, GameSession> Games
 @inject GameResultService GameResultService
 @inject IJSRuntime JS
+@inject TicTacToe.Web.Services.PlayerIdentity.PlayerIdentityService Identity
 
 <PageTitle>XO Arena</PageTitle>
 
 @if (MatchId == null)
 {
-    <Lobby PlayerName="@PlayerName"
+    <Lobby ReturningPlayerName="@ReturningName"
+           PlayerName="@PlayerName"
            PlayerNameChanged="v => PlayerName = v"
            SelectedDifficulty="@SelectedDifficulty"
            DifficultyChanged="d => SelectedDifficulty = d"

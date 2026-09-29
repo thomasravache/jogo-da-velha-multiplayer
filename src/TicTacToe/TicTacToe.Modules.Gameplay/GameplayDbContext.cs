@@ -25,6 +25,8 @@ public class GameplayDbContext(DbContextOptions<GameplayDbContext> options) : Db
             e.Property(m => m.WinningLine).HasMaxLength(5);
             e.Property(m => m.FinalBoard).HasMaxLength(9);
             e.Property(m => m.Mode).HasConversion<string>().HasMaxLength(8);
+            e.HasIndex(m => m.PlayerXId);
+            e.HasIndex(m => m.PlayerOId);
         });
     }
 }

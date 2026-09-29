@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TicTacToe.Modules.Gameplay;
 
@@ -11,9 +12,11 @@ using TicTacToe.Modules.Gameplay;
 namespace TicTacToe.Modules.Gameplay.Migrations
 {
     [DbContext(typeof(GameplayDbContext))]
-    partial class GameplayDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260929172457_AddPlayerIdentity")]
+    partial class AddPlayerIdentity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

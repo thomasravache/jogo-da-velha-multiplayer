@@ -6,6 +6,7 @@ using Microsoft.JSInterop;
 using TicTacToe.Modules.Gameplay;
 using TicTacToe.Modules.Matchmaking;
 using TicTacToe.Web.Components.Ui;
+using TicTacToe.Web.Services.PlayerIdentity;
 
 namespace TicTacToe.Web.Components.Pages;
 
@@ -13,6 +14,8 @@ public partial class Home : IDisposable
 {
     [Inject] private ShellState Shell { get; set; } = default!;
 
+    private PlayerProfile? _profile;
+    private string? ReturningName;
     private string ConnectionId = Guid.NewGuid().ToString();
     private string PlayerName = "";
     private Guid? MatchId;
@@ -29,14 +32,16 @@ public partial class Home : IDisposable
     {
         if (string.IsNullOrWhiteSpace(PlayerName)) return;
         RoomErrorMessage = null;
-        CreatedRoomCode = Matchmaking.CreatePrivateRoom(ConnectionId, PlayerName.Trim());
+        RememberNickname();
+        CreatedRoomCode = Matchmaking.CreatePrivateRoom(ConnectionId, PlayerName.Trim(), _profile?.PlayerId);
     }
 
     private void JoinRoom()
     {
         if (string.IsNullOrWhiteSpace(PlayerName) || string.IsNullOrWhiteSpace(InputRoomCode)) return;
         RoomErrorMessage = null;
-        var matchId = Matchmaking.JoinPrivateRoom(InputRoomCode, ConnectionId, PlayerName.Trim());
+        RememberNickname();
+        var matchId = Matchmaking.JoinPrivateRoom(InputRoomCode, ConnectionId, PlayerName.Trim(), _profile?.PlayerId);
         if (matchId != null)
         {
             MatchId = matchId;
@@ -54,7 +59,8 @@ public partial class Home : IDisposable
         if (string.IsNullOrWhiteSpace(PlayerName)) return;
 
         IsWaiting = true;
-        MatchId = Matchmaking.JoinQueue(ConnectionId, PlayerName.Trim());
+        RememberNickname();
+        MatchId = Matchmaking.JoinQueue(ConnectionId, PlayerName.Trim(), _profile?.PlayerId);
 
         if (MatchId != null)
         {
@@ -63,6 +69,26 @@ public partial class Home : IDisposable
             EnsureGameExists();
         }
     }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        // O localStorage só existe depois da primeira renderização interativa.
+        _profile = await Identity.LoadAsync();
+        if (!string.IsNullOrWhiteSpace(_profile.Nickname))
+        {
+            ReturningName = _profile.Nickname;
+            if (string.IsNullOrWhiteSpace(PlayerName))
+            {
+                PlayerName = _profile.Nickname;
+            }
+        }
+
+        StateHasChanged();
+    }
+
+    private void RememberNickname() => _ = Identity.SaveNicknameAsync(PlayerName).AsTask();
 
     protected override void OnAfterRender(bool firstRender)
     {
@@ -114,6 +140,13 @@ public partial class Home : IDisposable
                 MyPlayer = matchPlayers.Value.PlayerX == ConnectionId ? Player.X : Player.O;
             }
 
+            var ids = Matchmaking.GetMatchPlayerIds(MatchId.Value);
+            if (ids != null)
+            {
+                existingGame.SetPlayerId(Player.X, ids.Value.X);
+                existingGame.SetPlayerId(Player.O, ids.Value.O);
+            }
+
             var names = Matchmaking.GetMatchPlayerNames(MatchId.Value);
             if (names != null)
             {
@@ -146,12 +179,14 @@ public partial class Home : IDisposable
     {
         if (string.IsNullOrWhiteSpace(PlayerName)) return;
 
+        RememberNickname();
         IsSoloGame = true;
         MatchId = Guid.NewGuid();
         MyPlayer = Player.X;
 
         var game = new GameSession { Mode = GameMode.Solo };
         game.SetPlayerName(Player.X, PlayerName.Trim());
+        game.SetPlayerId(Player.X, _profile?.PlayerId);
         game.SetPlayerName(Player.O, AiPlayer.GetBotName(SelectedDifficulty));
         game.OnStateChanged += OnGameStateChanged;
         Games.TryAdd(MatchId.Value, game);

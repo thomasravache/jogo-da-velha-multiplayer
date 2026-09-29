@@ -244,6 +244,8 @@ public class ArenaCyberArenaTests
         ctx.Services.AddSingleton(games);
         shell = new ShellState();
         ctx.Services.AddSingleton(shell);
+        ctx.Services.AddSingleton<TicTacToe.Web.Services.PlayerIdentity.IPlayerStorage>(new InMemoryPlayerStorage());
+        ctx.Services.AddScoped<TicTacToe.Web.Services.PlayerIdentity.PlayerIdentityService>();
         ctx.Services.AddTransient(_ => new GameplayDbContext(options));
         ctx.Services.AddTransient(sp => new GameResultService(sp.GetRequiredService<GameplayDbContext>(), NullLogger<GameResultService>.Instance));
         return ctx;

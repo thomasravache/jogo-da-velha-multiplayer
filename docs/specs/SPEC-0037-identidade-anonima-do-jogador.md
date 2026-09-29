@@ -4,13 +4,13 @@ title: Identidade anônima do jogador
 tier: full
 type: feature
 user_facing: true
-status: approved
+status: in-progress
 created: 2026-09-29
 parent: SPEC-0035
 depends_on: [SPEC-0036]
 consumes_contract: []
 contract_version: 1
-touches: [src/TicTacToe/TicTacToe.Modules.Gameplay/MatchResult.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/GameSession.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/GameResultService.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/GameplayDbContext.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/Migrations/**, src/TicTacToe/TicTacToe.Modules.Matchmaking/MatchmakingService.cs, src/TicTacToe/TicTacToe.Web/Services/PlayerIdentity/**, src/TicTacToe/TicTacToe.Web/Program.cs, src/TicTacToe/TicTacToe.Web/Components/Pages/Home.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/Home.razor.cs, src/TicTacToe/TicTacToe.Web/Components/Game/Lobby.razor, tests/TicTacToe.Tests/PlayerIdentityTests.cs, tests/TicTacToe.Tests/PlayerIdentityPersistenceTests.cs]
+touches: [src/TicTacToe/TicTacToe.Modules.Gameplay/MatchResult.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/GameSession.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/GameResultService.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/GameplayDbContext.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/Migrations/**, src/TicTacToe/TicTacToe.Modules.Matchmaking/MatchmakingService.cs, src/TicTacToe/TicTacToe.Web/Services/PlayerIdentity/**, src/TicTacToe/TicTacToe.Web/Program.cs, src/TicTacToe/TicTacToe.Web/Components/Pages/Home.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/Home.razor.cs, src/TicTacToe/TicTacToe.Web/Components/Game/Lobby.razor, tests/TicTacToe.Tests/PlayerIdentityTests.cs, tests/TicTacToe.Tests/PlayerIdentityPersistenceTests.cs, tests/TicTacToe.Tests/SingleResultRecordingTests.cs, tests/TicTacToe.Tests/ArenaCyberArenaTests.cs, tests/TicTacToe.Tests/LobbyCyberArenaTests.cs]
 adrs: [ADR-0009]
 external: []
 size: M
@@ -183,10 +183,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | Gate | Status | Evidência | Data |
 |---|---|---|---|
 | G0 Spec | PASS | `spec_graph.py validate` das 18 specs: 0 erros, 0 avisos | 2026-09-29 |
-| G1 Red | PENDING | | |
-| G2 Green | PENDING | | |
-| G3 Arquitetura | PENDING | | |
-| G4 Review | PENDING | | |
+| G1 Red | PASS | `verify SPEC-0037`: CH-01 e Red antes do Green; 10/10 testes rastreados; 9 falhas iniciais pelos motivos esperados | 2026-09-29 |
+| G2 Green | PASS | `dotnet test` 174/174; `dotnet format --verify-no-changes` limpo; migration com 2 AddColumn anuláveis e 2 CreateIndex | 2026-09-29 |
+| G3 Arquitetura | N/A | sem suíte `Category=Architecture`; PlayerId fora de markup verificado por SPEC-0037:UT-06 | 2026-09-29 |
+| G4 Review | PASS | Reviewer independente: CHANGES_REQUESTED em d0829a9 (1 major corrigido), APPROVED em b7f9c3a (0 blocker, 0 major) | 2026-09-29 |
 | G5 Integração & CI | PENDING | | |
 | H2 Integração aprovada | PENDING | | |
 | G6 Deploy | PENDING | | |
@@ -236,3 +236,4 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 <!-- Mudança em spec aprovada: uma linha por emenda. Mudou o contrato? Incremente `contract_version` e rode `spec_graph.py impacted SPEC-0037`. -->
 | Versão do contrato | Data | Mudança | Motivo | Specs impactadas | Aprovado por |
 |---|---|---|---|---|---|
+| 1 (contrato inalterado) | 2026-09-29 | `touches` inclui `SingleResultRecordingTests.cs`, `ArenaCyberArenaTests.cs` e `LobbyCyberArenaTests.cs` | A `Home` passa a injetar `PlayerIdentityService` (os contextos de teste da `Home` precisam registrá-lo) e o `Lobby` ganha o parâmetro `ReturningPlayerName`, que o guarda `SPEC-0030:CH-01` precisa listar | SPEC-0045, SPEC-0031, SPEC-0030 (testes) | thomas (autorização permanente, 2026-09-29) |
