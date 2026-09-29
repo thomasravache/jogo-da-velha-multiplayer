@@ -2,6 +2,17 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using Bunit;
+using Microsoft.AspNetCore.Components;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
+using TicTacToe.Modules.Gameplay;
+using TicTacToe.Web.Components.Game;
+using TicTacToe.Web.Components.Layout;
+using TicTacToe.Web.Components.Pages;
+using TicTacToe.Web.Components.Ui;
 using Xunit;
 
 namespace TicTacToe.Tests;
@@ -128,5 +139,165 @@ public class TailwindDesignSystemTests
         Assert.Contains("hashFiles('tools/tailwind/version.txt')", workflow);
         Assert.Contains("tools/tailwind/install.sh", workflow);
         Assert.Contains("tools/tailwind/build.sh --check", workflow);
+    }
+
+    // ---- SPEC-0034: remoção do MudBlazor e do Bootstrap ----
+
+    private static IEnumerable<string> WebSourceFiles(params string[] extensions) =>
+        Directory.EnumerateFiles(Web(""), "*", SearchOption.AllDirectories)
+            .Where(f => extensions.Contains(Path.GetExtension(f)))
+            .Where(f => !f.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}")
+                        && !f.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}")
+                        && !f.Contains($"{Path.DirectorySeparatorChar}Migrations{Path.DirectorySeparatorChar}"));
+
+    private static DbContextOptions<GameplayDbContext> NewDb() =>
+        new DbContextOptionsBuilder<GameplayDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options;
+
+    private static BunitContext NewContextWithoutMud(DbContextOptions<GameplayDbContext> options)
+    {
+        var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        ctx.Services.AddSingleton(new ShellState());
+        ctx.Services.AddTransient(_ => new GameplayDbContext(options));
+        ctx.Services.AddTransient(sp => new GameResultService(sp.GetRequiredService<GameplayDbContext>(), NullLogger<GameResultService>.Instance));
+        return ctx;
+    }
+
+    [Fact(DisplayName = "SPEC-0034:CH-01 — Lobby, arena, histórico e ranking renderizam seus elementos-chave (rede de segurança)")]
+    [Trait("Category", "SPEC-0034:CH-01")]
+    public async Task FourScreens_ShouldRenderKeyElements()
+    {
+        var options = NewDb();
+        await using (var db = new GameplayDbContext(options))
+        {
+            db.MatchResults.Add(new MatchResult { PlayerXName = "A", PlayerOName = "B", WinnerName = "A" });
+            await db.SaveChangesAsync();
+        }
+        await using var ctx = NewContextWithoutMud(options);
+
+        var lobby = ctx.Render<Lobby>(p => p.Add(l => l.PlayerName, "Thomas"));
+        Assert.Contains("Procurar oponente", lobby.Markup);
+
+        using var game = new GameSession(enableBackgroundTimer: false);
+        game.SetPlayerName(Player.X, "A");
+        game.SetPlayerName(Player.O, "B");
+        var arena = ctx.Render<GameBoard>(p => p.Add(b => b.Game, game).Add(b => b.MyPlayer, Player.X));
+        Assert.Equal(9, arena.FindAll("[data-cell]").Count);
+
+        var history = ctx.Render<History>();
+        history.WaitForAssertion(() => Assert.Single(history.FindAll("tbody tr")));
+
+        var leaderboard = ctx.Render<Leaderboard>();
+        leaderboard.WaitForAssertion(() => Assert.Single(leaderboard.FindAll("tbody tr")));
+    }
+
+    [Fact(DisplayName = "SPEC-0034:UT-01 — Projetos Web e de testes sem PackageReference a MudBlazor")]
+    [Trait("Category", "SPEC-0034:UT-01")]
+    public void Csprojs_ShouldNotReferenceMudBlazor()
+    {
+        Assert.DoesNotContain("MudBlazor", Read(Web("TicTacToe.Web.csproj")));
+        Assert.DoesNotContain("MudBlazor", Read(Path.Combine(RootDir, "tests/TicTacToe.Tests/TicTacToe.Tests.csproj")));
+    }
+
+    [Fact(DisplayName = "SPEC-0034:UT-02 — Código-fonte da Web sem MudBlazor, mud- ou Bootstrap")]
+    [Trait("Category", "SPEC-0034:UT-02")]
+    public void WebSources_ShouldNotMentionLegacyLibraries()
+    {
+        var pattern = new Regex(@"MudBlazor|\bMud[A-Z]\w*|mud-|bootstrap", RegexOptions.IgnoreCase);
+        var offenders = WebSourceFiles(".razor", ".cs", ".css", ".js")
+            .Where(f => !f.EndsWith("cyber-arena.css", StringComparison.Ordinal) || pattern.IsMatch(File.ReadAllText(f)))
+            .Where(f => pattern.IsMatch(File.ReadAllText(f)))
+            .Select(f => Path.GetRelativePath(RootDir, f))
+            .ToList();
+
+        Assert.True(offenders.Count == 0, "Referências legadas em: " + string.Join(", ", offenders));
+    }
+
+    [Fact(DisplayName = "SPEC-0034:UT-03 — Nenhum .razor com tag <style>")]
+    [Trait("Category", "SPEC-0034:UT-03")]
+    public void Razor_ShouldNotContainInlineStyleTags()
+    {
+        var offenders = WebSourceFiles(".razor").Where(f => File.ReadAllText(f).Contains("<style", StringComparison.OrdinalIgnoreCase))
+            .Select(f => Path.GetRelativePath(RootDir, f)).ToList();
+
+        Assert.True(offenders.Count == 0, "<style> em: " + string.Join(", ", offenders));
+    }
+
+    [Fact(DisplayName = "SPEC-0034:UT-04 — Preflight habilitado no CSS de entrada e presente no CSS gerado")]
+    [Trait("Category", "SPEC-0034:UT-04")]
+    public void Preflight_ShouldBeEnabled()
+    {
+        var input = Read(Web("Styles/cyber-arena.input.css"));
+        var generated = Read(Web("wwwroot/css/cyber-arena.css")).Replace(" ", "");
+
+        Assert.Contains("tailwindcss/preflight.css", input);
+        Assert.Contains("box-sizing:border-box", generated);
+    }
+
+    [Fact(DisplayName = "SPEC-0034:UT-05 — App.razor só com CSS Cyber Arena, sem Mud, Bootstrap ou fontes remotas")]
+    [Trait("Category", "SPEC-0034:UT-05")]
+    public void AppRazor_ShouldOnlyReferenceCyberArenaAssets()
+    {
+        var app = Read(Web("Components/App.razor"));
+
+        Assert.Contains("css/cyber-arena.css", app);
+        foreach (var forbidden in new[] { "MudBlazor", "bootstrap", "fonts.googleapis.com", "fonts.gstatic.com" })
+            Assert.DoesNotContain(forbidden, app, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact(DisplayName = "SPEC-0034:UT-06 — Bootstrap, Counter e NavMenu removidos")]
+    [Trait("Category", "SPEC-0034:UT-06")]
+    public void LegacyFiles_ShouldBeRemoved()
+    {
+        Assert.False(Directory.Exists(Web("wwwroot/lib/bootstrap")));
+        Assert.False(File.Exists(Web("Components/Pages/Counter.razor")));
+        Assert.False(File.Exists(Web("Components/Layout/NavMenu.razor")));
+    }
+
+    [Fact(DisplayName = "SPEC-0034:UT-07 — Página de erro e aviso de erro do Blazor usam os tokens")]
+    [Trait("Category", "SPEC-0034:UT-07")]
+    public void ErrorUi_ShouldUseTokens()
+    {
+        var error = Read(Web("Components/Pages/Error.razor"));
+        Assert.DoesNotContain("text-danger", error);
+        Assert.Contains("text-primary", error);
+
+        var css = Read(Web("Components/Layout/MainLayout.razor.css"));
+        Assert.Contains("var(--color-", css);
+    }
+
+    [Fact(DisplayName = "SPEC-0034:IT-01 — Layout e telas renderizam sem serviços do MudBlazor")]
+    [Trait("Category", "SPEC-0034:IT-01")]
+    public async Task Layout_AndScreens_ShouldRenderWithoutMudServices()
+    {
+        await using var ctx = NewContextWithoutMud(NewDb());
+
+        var layout = ctx.Render<MainLayout>(p => p.Add(l => l.Body, (RenderFragment)(b => b.AddMarkupContent(0, "<p>ok</p>"))));
+        Assert.Equal(2, layout.FindAll("nav").Count);
+
+        ctx.Render<Lobby>();
+        ctx.Render<History>();
+        ctx.Render<Leaderboard>();
+    }
+
+    [Fact(DisplayName = "SPEC-0034:E2E-01 — Jornada completa: shell e conteúdo de cada tela sem Mud")]
+    [Trait("Category", "SPEC-0034:E2E-01")]
+    public async Task FullJourney_ShouldRenderShellAndContent_WithoutMud()
+    {
+        var options = NewDb();
+        await using var ctx = NewContextWithoutMud(options);
+
+        foreach (var (name, body) in new (string, Type)[] { ("lobby", typeof(Lobby)), ("history", typeof(History)), ("leaderboard", typeof(Leaderboard)) })
+        {
+            var layout = ctx.Render<MainLayout>(p => p.Add(l => l.Body, (RenderFragment)(b =>
+            {
+                b.OpenComponent(0, body);
+                b.CloseComponent();
+            })));
+
+            Assert.NotEmpty(layout.FindAll("header"));
+            Assert.DoesNotContain("mud-", layout.Markup);
+            Assert.True(layout.Markup.Length > 1000, $"{name} deveria renderizar conteúdo");
+        }
     }
 }

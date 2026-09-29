@@ -6,7 +6,6 @@ using Bunit;
 using Bunit.TestDoubles;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
-using MudBlazor.Services;
 using TicTacToe.Web.Components.Game;
 using TicTacToe.Web.Components.Layout;
 using TicTacToe.Web.Components.Ui;
@@ -26,7 +25,6 @@ public class ShellLayoutTests
     {
         var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-        ctx.Services.AddMudServices();
         shell = new ShellState();
         ctx.Services.AddSingleton(shell);
         return ctx;
