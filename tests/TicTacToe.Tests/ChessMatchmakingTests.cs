@@ -7,6 +7,8 @@ namespace TicTacToe.Tests;
 
 public class ChessMatchmakingTests
 {
+    private static readonly string[] Connections = ["a", "b", "h", "g"];
+
     [Fact(DisplayName = "SPEC-0053:UT-01 — Só se pareiam jogadores com o mesmo controle; sala privada herda a chave")]
     [Trait("Category", "SPEC-0053:UT-01")]
     public void Queue_ShouldPairOnlySameTimeControl()
@@ -115,5 +117,40 @@ public class ChessMatchmakingTests
         Assert.Equal("velha:5", mm.GetMatchQueueKey(series!.Value));
         Assert.Equal(5, mm.GetMatchBestOf(series.Value));
         Assert.Equal(("a", "c"), mm.GetMatchPlayers(series.Value));
+    }
+
+    [Fact(DisplayName = "SPEC-0053:UT-03 — LeaveQueue e CancelPrivateRoom limpam a preferência da conexão")]
+    [Trait("Category", "SPEC-0053:UT-03")]
+    public void Preference_ShouldBeClearedWhenLeavingQueueOrRoom()
+    {
+        var mm = new MatchmakingService();
+        mm.SetMatchPreference("a", "White");
+        mm.SetMatchPreference("h", "Black");
+        mm.JoinQueue("a", "A", queueKey: "xadrez:blitz5+0");
+        mm.CreatePrivateRoom("h", "H", queueKey: "xadrez:blitz5+0");
+
+        mm.LeaveQueue("a");
+        mm.CancelPrivateRoom("h");
+
+        Assert.Null(mm.GetPreference("a"));
+        Assert.Null(mm.GetPreference("h"));
+    }
+
+    [Fact(DisplayName = "SPEC-0053:UT-03 — Após o pareamento (fila e sala) as preferências são descartadas")]
+    [Trait("Category", "SPEC-0053:UT-03")]
+    public void Preference_ShouldBeClearedAfterPairing()
+    {
+        var mm = new MatchmakingService();
+        foreach (var id in Connections)
+        {
+            mm.SetMatchPreference(id, "White");
+        }
+
+        mm.JoinQueue("a", "A", queueKey: "xadrez:blitz5+0");
+        mm.JoinQueue("b", "B", queueKey: "xadrez:blitz5+0");
+        var code = mm.CreatePrivateRoom("h", "H", queueKey: "xadrez:blitz5+0");
+        mm.JoinPrivateRoom(code, "g", "G", game: "xadrez");
+
+        Assert.All(Connections, id => Assert.Null(mm.GetPreference(id)));
     }
 }

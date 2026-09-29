@@ -268,4 +268,35 @@ public class ChessResultRecorderTests
         Assert.Contains(logger.Entries, e => e.Level == LogLevel.Error);
         Assert.Empty(await db.MatchResults.ToListAsync());
     }
+
+    [Fact(DisplayName = "SPEC-0053:IT-03 — Bandeira caída ainda não observada é lida antes da marca e a partida é gravada")]
+    [Trait("Category", "SPEC-0053:IT-03")]
+    public async Task SaveOnce_WhenFlagFellUnobserved_ShouldStillRecord()
+    {
+        var (db, recorder) = Build();
+        await using var _ = db;
+        var time = new ManualTime();
+        using var session = ChessSessionTests.New(time);
+        ChessSessionTests.Line(session, "e2e4");
+        time.Advance(TimeControl.Blitz.Initial + Second);
+
+        Assert.True(await recorder.SaveOnceAsync(session));
+
+        Assert.Equal(EndReason.Timeout, (await db.MatchResults.SingleAsync()).EndReason);
+    }
+
+    [Fact(DisplayName = "SPEC-0053:IT-03 — Chamada com a partida em andamento não consome a marca de gravação")]
+    [Trait("Category", "SPEC-0053:IT-03")]
+    public async Task SaveOnce_WhileRunning_ShouldNotConsumeMark()
+    {
+        var (db, recorder) = Build();
+        await using var _ = db;
+        using var session = ChessSessionTests.New();
+
+        Assert.False(await recorder.SaveOnceAsync(session));
+        ChessSessionLeaveTests.FoolsMate(session);
+
+        Assert.True(await recorder.SaveOnceAsync(session));
+        Assert.Single(await db.MatchResults.ToListAsync());
+    }
 }

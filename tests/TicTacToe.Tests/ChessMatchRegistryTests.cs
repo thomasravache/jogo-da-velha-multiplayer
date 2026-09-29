@@ -93,4 +93,68 @@ public class ChessMatchRegistryTests
         Assert.False(registry.Remove(matchId));
         Assert.False(registry.TryGet(matchId, out _));
     }
+
+    private sealed class TrackingTime : TimeProvider
+    {
+        public bool TimerDisposed { get; private set; }
+
+        public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period) => new TrackingTimer(this);
+
+        private sealed class TrackingTimer(TrackingTime owner) : ITimer
+        {
+            public bool Change(TimeSpan dueTime, TimeSpan period) => true;
+
+            public void Dispose() => owner.TimerDisposed = true;
+
+            public ValueTask DisposeAsync()
+            {
+                Dispose();
+                return ValueTask.CompletedTask;
+            }
+        }
+    }
+
+    [Fact(DisplayName = "SPEC-0053:UT-05 — Factory que lança não fica cacheado: a próxima chamada com factory bom funciona")]
+    [Trait("Category", "SPEC-0053:UT-05")]
+    public void GetOrCreate_WhenFactoryThrows_ShouldNotCacheFailure()
+    {
+        var registry = new ChessMatchRegistry();
+        var matchId = Guid.NewGuid();
+
+        Assert.Throws<InvalidOperationException>(() => registry.GetOrCreate(matchId, () => throw new InvalidOperationException("falha")));
+        Assert.False(registry.TryGet(matchId, out _));
+
+        var match = registry.GetOrCreate(matchId, () => new ChessMatch(ChessSessionTests.New()));
+
+        Assert.NotNull(match);
+        Assert.True(registry.TryGet(matchId, out var found));
+        Assert.Same(match, found);
+    }
+
+    [Fact(DisplayName = "SPEC-0053:UT-05 — Remove com o factory em execução espera e descarta a sessão criada")]
+    [Trait("Category", "SPEC-0053:UT-05")]
+    public async Task Remove_WhileFactoryRuns_ShouldDisposeCreatedSession()
+    {
+        var registry = new ChessMatchRegistry();
+        var matchId = Guid.NewGuid();
+        var time = new TrackingTime();
+        var inFactory = new ManualResetEventSlim();
+        var release = new ManualResetEventSlim();
+
+        var creator = Task.Run(() => registry.GetOrCreate(matchId, () =>
+        {
+            inFactory.Set();
+            release.Wait();
+            return new ChessMatch(new ChessSession(TimeControl.Blitz, time));
+        }));
+        inFactory.Wait();
+        var remover = Task.Run(() => registry.Remove(matchId));
+        await Task.Delay(50);
+        release.Set();
+
+        Assert.True(await remover);
+        await creator;
+        Assert.True(time.TimerDisposed);
+        Assert.False(registry.TryGet(matchId, out _));
+    }
 }
