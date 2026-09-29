@@ -4,7 +4,7 @@ title: "Motor de xadrez: tabuleiro, lances legais e perft"
 tier: full
 type: foundation
 user_facing: false
-status: proposed
+status: approved
 created: 2026-09-29
 parent: SPEC-0046
 depends_on: []
@@ -14,8 +14,8 @@ touches: [src/TicTacToe/TicTacToe.Modules.Chess/TicTacToe.Modules.Chess.csproj, 
 adrs: [ADR-0010]
 external: []
 size: M
-approved_by:
-approved_at:
+approved_by: thomas
+approved_at: 2026-09-29
 ---
 
 # SPEC-0049 — Motor de xadrez: tabuleiro, lances legais e perft
@@ -174,6 +174,21 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 
 ## 11. Checklist de Implementação
 <!-- Preenchido na fase PLAN, após a aprovação. Cada fase começa pelos testes. -->
+**Fase 0: Scaffold**
+- [ ] Commit `chore(...)` só com assinaturas/tipos vazios do contrato (sem lógica), compilando
+
+**Fase 1: Testes (Red)**
+- [ ] Escrever `SPEC-0049:IT-01`, `SPEC-0049:IT-02`, `SPEC-0049:UT-01`, `SPEC-0049:UT-02`, `SPEC-0049:UT-03`, `SPEC-0049:UT-04`, `SPEC-0049:UT-05`, `SPEC-0049:UT-06`, `SPEC-0049:UT-07`, `SPEC-0049:UT-08`, `SPEC-0049:UT-09` com a tag `SPEC-0049:<ID>` em commits `test(...)` com `Refs: SPEC-0049` e confirmar que falham pelo motivo certo
+
+**Fase 2: Implementação (Green)**
+- [ ] Implementar o mínimo para passar, seguindo o padrão de referência e o `touches` da spec
+- [ ] Refactor mantendo tudo verde
+- [ ] Validar: `dotnet build`, suíte completa, `dotnet format --verify-no-changes` e `verify SPEC-0049 --base origin/main`
+
+**Fase final: Integração, entrega e documentação**
+- [ ] Review independente (G4)
+- [ ] Integração + CI verde (G5) e aprovação (H2)
+- [ ] Relatório de Entrega, docs raiz e CHANGELOG (G7)
 
 ## 12. Registro de Gates
 <!-- Status: PENDING | PASS | FAIL | N/A. PASS e N/A exigem evidência (comando + resultado, SHA, execução de CI, veredito). -->

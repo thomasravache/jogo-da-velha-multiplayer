@@ -1,7 +1,7 @@
 ---
 id: ADR-0011
 title: Robô de xadrez próprio atrás de uma abstração IChessBot
-status: proposed
+status: accepted
 origin: decision
 date: 2026-09-29
 decision_makers: [thomas]

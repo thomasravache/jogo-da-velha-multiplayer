@@ -4,7 +4,7 @@ title: Relógio de xadrez com incremento
 tier: full
 type: feature
 user_facing: false
-status: proposed
+status: approved
 created: 2026-09-29
 parent: SPEC-0046
 depends_on: [SPEC-0049]
@@ -14,8 +14,8 @@ touches: [src/TicTacToe/TicTacToe.Modules.Chess/Clock/**, tests/TicTacToe.Tests/
 adrs: []
 external: []
 size: S
-approved_by:
-approved_at:
+approved_by: thomas
+approved_at: 2026-09-29
 ---
 
 # SPEC-0051 — Relógio de xadrez com incremento
@@ -142,6 +142,21 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 
 ## 11. Checklist de Implementação
 <!-- Preenchido na fase PLAN, após a aprovação. Cada fase começa pelos testes. -->
+**Fase 0: Scaffold**
+- [ ] Commit `chore(...)` só com assinaturas/tipos vazios do contrato (sem lógica), compilando
+
+**Fase 1: Testes (Red)**
+- [ ] Escrever `SPEC-0051:IT-01`, `SPEC-0051:UT-01`, `SPEC-0051:UT-02`, `SPEC-0051:UT-03`, `SPEC-0051:UT-04`, `SPEC-0051:UT-05`, `SPEC-0051:UT-06` com a tag `SPEC-0051:<ID>` em commits `test(...)` com `Refs: SPEC-0051` e confirmar que falham pelo motivo certo
+
+**Fase 2: Implementação (Green)**
+- [ ] Implementar o mínimo para passar, seguindo o padrão de referência e o `touches` da spec
+- [ ] Refactor mantendo tudo verde
+- [ ] Validar: `dotnet build`, suíte completa, `dotnet format --verify-no-changes` e `verify SPEC-0051 --base origin/main`
+
+**Fase final: Integração, entrega e documentação**
+- [ ] Review independente (G4)
+- [ ] Integração + CI verde (G5) e aprovação (H2)
+- [ ] Relatório de Entrega, docs raiz e CHANGELOG (G7)
 
 ## 12. Registro de Gates
 <!-- Status: PENDING | PASS | FAIL | N/A. PASS e N/A exigem evidência (comando + resultado, SHA, execução de CI, veredito). -->

@@ -3,13 +3,13 @@ id: SPEC-0046
 title: Xadrez multiplayer
 tier: epic
 type: feature
-status: proposed
+status: approved
 created: 2026-09-29
 depends_on: []
 adrs: [ADR-0010, ADR-0011, ADR-0012]
 external: []
-approved_by:
-approved_at:
+approved_by: thomas
+approved_at: 2026-09-29
 ---
 
 # SPEC-0046 — Xadrez multiplayer (Épico)

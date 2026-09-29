@@ -4,7 +4,7 @@ title: "Arena de xadrez: relógios, lances e fim de partida"
 tier: full
 type: feature
 user_facing: true
-status: proposed
+status: approved
 created: 2026-09-29
 parent: SPEC-0046
 depends_on: [SPEC-0052, SPEC-0055]
@@ -14,8 +14,8 @@ touches: [src/TicTacToe/TicTacToe.Web/Components/Chess/ChessArena.razor, src/Tic
 adrs: [ADR-0008]
 external: []
 size: M
-approved_by:
-approved_at:
+approved_by: thomas
+approved_at: 2026-09-29
 ---
 
 # SPEC-0057 — Arena de xadrez: relógios, lances e fim de partida
@@ -155,6 +155,21 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 
 ## 11. Checklist de Implementação
 <!-- Preenchido na fase PLAN, após a aprovação. Cada fase começa pelos testes. -->
+**Fase 0: Scaffold**
+- [ ] Commit `chore(...)` só com assinaturas/tipos vazios do contrato (sem lógica), compilando
+
+**Fase 1: Testes (Red)**
+- [ ] Escrever `SPEC-0057:E2E-01`, `SPEC-0057:IT-01`, `SPEC-0057:UT-01`, `SPEC-0057:UT-02`, `SPEC-0057:UT-03`, `SPEC-0057:UT-04`, `SPEC-0057:UT-05`, `SPEC-0057:UT-06`, `SPEC-0057:UT-07`, `SPEC-0057:UT-08`, `SPEC-0057:UT-09`, `SPEC-0057:UT-10` com a tag `SPEC-0057:<ID>` em commits `test(...)` com `Refs: SPEC-0057` e confirmar que falham pelo motivo certo
+
+**Fase 2: Implementação (Green)**
+- [ ] Implementar o mínimo para passar, seguindo o padrão de referência e o `touches` da spec
+- [ ] Refactor mantendo tudo verde
+- [ ] Validar: `dotnet build`, suíte completa, `dotnet format --verify-no-changes`, `tools/tailwind/build.sh --check` e `verify SPEC-0057 --base origin/main`
+
+**Fase final: Integração, entrega e documentação**
+- [ ] Review independente (G4)
+- [ ] Integração + CI verde (G5) e aprovação (H2)
+- [ ] Relatório de Entrega, docs raiz e CHANGELOG (G7)
 
 ## 12. Registro de Gates
 <!-- Status: PENDING | PASS | FAIL | N/A. PASS e N/A exigem evidência (comando + resultado, SHA, execução de CI, veredito). -->

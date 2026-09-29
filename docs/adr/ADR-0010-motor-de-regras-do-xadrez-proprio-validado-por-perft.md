@@ -1,7 +1,7 @@
 ---
 id: ADR-0010
 title: Motor de regras do xadrez próprio validado por perft
-status: proposed
+status: accepted
 origin: decision
 date: 2026-09-29
 decision_makers: [thomas]

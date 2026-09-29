@@ -1,7 +1,7 @@
 ---
 id: ADR-0012
 title: Generalização multi-jogo do modelo de partidas
-status: proposed
+status: accepted
 origin: decision
 date: 2026-09-29
 decision_makers: [thomas]

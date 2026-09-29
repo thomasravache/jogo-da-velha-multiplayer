@@ -4,7 +4,7 @@ title: Robô de xadrez com níveis de dificuldade
 tier: full
 type: feature
 user_facing: false
-status: proposed
+status: approved
 created: 2026-09-29
 parent: SPEC-0046
 depends_on: [SPEC-0050]
@@ -14,8 +14,8 @@ touches: [src/TicTacToe/TicTacToe.Modules.Chess/Bots/**, tests/TicTacToe.Tests/C
 adrs: [ADR-0011]
 external: []
 size: M
-approved_by:
-approved_at:
+approved_by: thomas
+approved_at: 2026-09-29
 ---
 
 # SPEC-0054 — Robô de xadrez com níveis de dificuldade
@@ -145,6 +145,21 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 
 ## 11. Checklist de Implementação
 <!-- Preenchido na fase PLAN, após a aprovação. Cada fase começa pelos testes. -->
+**Fase 0: Scaffold**
+- [ ] Commit `chore(...)` só com assinaturas/tipos vazios do contrato (sem lógica), compilando
+
+**Fase 1: Testes (Red)**
+- [ ] Escrever `SPEC-0054:IT-01`, `SPEC-0054:IT-02`, `SPEC-0054:UT-01`, `SPEC-0054:UT-02`, `SPEC-0054:UT-03`, `SPEC-0054:UT-04`, `SPEC-0054:UT-05` com a tag `SPEC-0054:<ID>` em commits `test(...)` com `Refs: SPEC-0054` e confirmar que falham pelo motivo certo
+
+**Fase 2: Implementação (Green)**
+- [ ] Implementar o mínimo para passar, seguindo o padrão de referência e o `touches` da spec
+- [ ] Refactor mantendo tudo verde
+- [ ] Validar: `dotnet build`, suíte completa, `dotnet format --verify-no-changes` e `verify SPEC-0054 --base origin/main`
+
+**Fase final: Integração, entrega e documentação**
+- [ ] Review independente (G4)
+- [ ] Integração + CI verde (G5) e aprovação (H2)
+- [ ] Relatório de Entrega, docs raiz e CHANGELOG (G7)
 
 ## 12. Registro de Gates
 <!-- Status: PENDING | PASS | FAIL | N/A. PASS e N/A exigem evidência (comando + resultado, SHA, execução de CI, veredito). -->

@@ -4,7 +4,7 @@ title: Treino solo de xadrez contra o robô
 tier: full
 type: feature
 user_facing: true
-status: proposed
+status: approved
 created: 2026-09-29
 parent: SPEC-0046
 depends_on: [SPEC-0054, SPEC-0056, SPEC-0057]
@@ -14,8 +14,8 @@ touches: [src/TicTacToe/TicTacToe.Modules.Chess/Bots/ChessBotTurnRunner.cs, src/
 adrs: [ADR-0008, ADR-0011]
 external: []
 size: M
-approved_by:
-approved_at:
+approved_by: thomas
+approved_at: 2026-09-29
 ---
 
 # SPEC-0058 — Treino solo de xadrez contra o robô
@@ -142,6 +142,21 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 
 ## 11. Checklist de Implementação
 <!-- Preenchido na fase PLAN, após a aprovação. Cada fase começa pelos testes. -->
+**Fase 0: Scaffold**
+- [ ] Commit `chore(...)` só com assinaturas/tipos vazios do contrato (sem lógica), compilando
+
+**Fase 1: Testes (Red)**
+- [ ] Escrever `SPEC-0058:E2E-01`, `SPEC-0058:IT-01`, `SPEC-0058:IT-02`, `SPEC-0058:UT-01`, `SPEC-0058:UT-02`, `SPEC-0058:UT-03`, `SPEC-0058:UT-04`, `SPEC-0058:UT-05`, `SPEC-0058:UT-06` com a tag `SPEC-0058:<ID>` em commits `test(...)` com `Refs: SPEC-0058` e confirmar que falham pelo motivo certo
+
+**Fase 2: Implementação (Green)**
+- [ ] Implementar o mínimo para passar, seguindo o padrão de referência e o `touches` da spec
+- [ ] Refactor mantendo tudo verde
+- [ ] Validar: `dotnet build`, suíte completa, `dotnet format --verify-no-changes`, `tools/tailwind/build.sh --check` e `verify SPEC-0058 --base origin/main`
+
+**Fase final: Integração, entrega e documentação**
+- [ ] Review independente (G4)
+- [ ] Integração + CI verde (G5) e aprovação (H2)
+- [ ] Relatório de Entrega, docs raiz e CHANGELOG (G7)
 
 ## 12. Registro de Gates
 <!-- Status: PENDING | PASS | FAIL | N/A. PASS e N/A exigem evidência (comando + resultado, SHA, execução de CI, veredito). -->
