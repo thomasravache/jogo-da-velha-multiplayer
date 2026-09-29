@@ -400,8 +400,15 @@ public class ChessBoardTests
             Board.Find($"button[data-square='{square}']").Click();
         }
 
-        public void ChoosePromotion(string label) =>
-            _picker!.FindAll("button").Single(b => b.TextContent.Contains(label, StringComparison.Ordinal)).Click();
+        public void ChoosePromotion(string label)
+        {
+            // O anfitrião real exibiria o seletor ao ver a promoção pendente.
+            Assert.NotNull(_pendingTo);
+            _picker = ctx.Render<PromotionPicker>(p => p
+                .Add(c => c.Color, Game.Position.SideToMove)
+                .Add(c => c.OnChosen, EventCallback.Factory.Create<PieceType>(this, OnPromotionChosen)));
+            _picker.FindAll("button").Single(b => b.TextContent.Contains(label, StringComparison.Ordinal)).Click();
+        }
 
         private void Refresh() => Board.Render(p => Fill(p));
 
@@ -442,9 +449,6 @@ public class ChessBoardTests
                     {
                         _pendingFrom = from;
                         _pendingTo = square;
-                        _picker = ctx.Render<PromotionPicker>(p => p
-                            .Add(c => c.Color, Game.Position.SideToMove)
-                            .Add(c => c.OnChosen, EventCallback.Factory.Create<PieceType>(this, OnPromotionChosen)));
                         return;
                     }
 
