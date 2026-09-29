@@ -15,6 +15,7 @@ public partial class ChessHome : IDisposable
 {
     private const string QueuePrefix = "xadrez:";
 
+    private readonly Lock _gate = new();
     private readonly string _connectionId = Guid.NewGuid().ToString();
     private PlayerProfile? _profile;
     private string? _returningName;
@@ -104,6 +105,11 @@ public partial class ChessHome : IDisposable
     // A preferência precisa estar registrada antes de entrar: o pareamento dispara dentro de JoinQueue/JoinPrivateRoom.
     private void Prepare()
     {
+        // Fila e sala são exclusivas: cancela o que estiver pendente antes de uma nova ação.
+        Matchmaking.LeaveQueue(_connectionId);
+        Matchmaking.CancelPrivateRoom(_connectionId);
+        _isWaiting = false;
+        _createdRoomCode = null;
         _roomError = null;
         RememberNickname();
         Matchmaking.SetMatchPreference(_connectionId, _color.ToString());
@@ -118,11 +124,7 @@ public partial class ChessHome : IDisposable
 
         Prepare();
         _isWaiting = true;
-        var matchId = Matchmaking.JoinQueue(_connectionId, TrimmedName, _profile?.PlayerId, queueKey: QueueKey);
-        if (matchId is { } id)
-        {
-            EnterMatch(id);
-        }
+        Matchmaking.JoinQueue(_connectionId, TrimmedName, _profile?.PlayerId, queueKey: QueueKey); // o pareamento chega por OnPlayerMatched
     }
 
     private void CreateRoom()
@@ -145,11 +147,7 @@ public partial class ChessHome : IDisposable
 
         Prepare();
         var matchId = Matchmaking.JoinPrivateRoom(_inputRoomCode, _connectionId, TrimmedName, _profile?.PlayerId, game: "xadrez");
-        if (matchId is { } id)
-        {
-            EnterMatch(id);
-        }
-        else
+        if (matchId is null)
         {
             Matchmaking.LeaveQueue(_connectionId); // descarta a preferência da tentativa inválida
             _roomError = "Sala inválida ou já iniciada!";
@@ -173,67 +171,82 @@ public partial class ChessHome : IDisposable
 
         try
         {
-            EnterMatch(matchId);
-            _ = InvokeAsync(StateHasChanged);
+            // O serviço limpa as preferências logo depois dos handlers: leia tudo AGORA, de forma síncrona.
+            if (ReadMatch(matchId) is not { } snapshot)
+            {
+                return;
+            }
+
+            _ = InvokeAsync(() =>
+            {
+                EnterMatch(snapshot);
+                StateHasChanged();
+            });
         }
-        catch (ObjectDisposedException)
+        catch (Exception ex)
         {
-            // Página descartada durante o pareamento: nada a fazer.
+            // Não propaga ao JoinQueue do oponente.
+            if (Logger.IsEnabled(LogLevel.Warning))
+            {
+                Logger.LogWarning(ex, "Falha ao tratar o pareamento de xadrez {MatchId}.", matchId);
+            }
         }
     }
 
-    // Idempotente: chamado pelo evento de pareamento e pelo retorno de JoinQueue/JoinPrivateRoom.
-    private void EnterMatch(Guid matchId)
+    private MatchSnapshot? ReadMatch(Guid matchId)
     {
-        if (_matchId is not null)
-        {
-            return;
-        }
-
-        // O serviço limpa as preferências logo depois dos handlers: leia tudo AGORA, de forma síncrona.
         if (Matchmaking.GetMatchPlayers(matchId) is not { } players)
         {
-            return;
+            return null;
         }
 
-        var first = new MatchSeatInfo(players.PlayerX, ParsePreference(Matchmaking.GetPreference(players.PlayerX)));
-        var second = new MatchSeatInfo(players.PlayerO, ParsePreference(Matchmaking.GetPreference(players.PlayerO)));
         var names = Matchmaking.GetMatchPlayerNames(matchId);
         var ids = Matchmaking.GetMatchPlayerIds(matchId);
-        var control = ControlOf(Matchmaking.GetMatchQueueKey(matchId));
-        var mode = Matchmaking.IsPrivateMatch(matchId) ? ChessMode.Private : ChessMode.Online;
-        var coinFlip = CoinFlip;
-        var clock = Clock;
+        return new MatchSnapshot(
+            matchId,
+            new MatchSeatInfo(players.PlayerX, ParsePreference(Matchmaking.GetPreference(players.PlayerX)), names?.PlayerXName ?? "Jogador 1", ids?.X),
+            new MatchSeatInfo(players.PlayerO, ParsePreference(Matchmaking.GetPreference(players.PlayerO)), names?.PlayerOName ?? "Jogador 2", ids?.O),
+            ControlOf(Matchmaking.GetMatchQueueKey(matchId)),
+            Matchmaking.IsPrivateMatch(matchId) ? ChessMode.Private : ChessMode.Online);
+    }
 
-        var match = Registry.GetOrCreate(matchId, () =>
+    // Roda no dispatcher do circuito; o lock serializa com Dispose/LeaveMatch para não registrar assento em página morta.
+    private void EnterMatch(MatchSnapshot m)
+    {
+        lock (_gate)
         {
-            var session = new ChessSession(control, clock) { Mode = mode };
-            var firstColor = ColorAssignment.AssignFirst(first.Preference, second.Preference, coinFlip);
-            session.SetSeat(0, names?.PlayerXName ?? "Jogador 1", ids?.X, firstColor);
-            session.SetSeat(1, names?.PlayerOName ?? "Jogador 2", ids?.O, firstColor == PieceColor.White ? PieceColor.Black : PieceColor.White);
-            var created = new ChessMatch(session);
-            created.Seats[first.ConnectionId] = 0;
-            created.Seats[second.ConnectionId] = 1;
-            if (Logger.IsEnabled(LogLevel.Information))
+            if (_disposed || _matchId is not null)
             {
-                Logger.LogInformation("Partida de xadrez {SessionId} criada. Control={Control} Mode={Mode}", session.Id, control.Id, mode);
+                return;
             }
 
-            return created;
-        });
+            var coinFlip = CoinFlip;
+            var clock = Clock;
+            var match = Registry.GetOrCreate(m.MatchId, () =>
+            {
+                var session = new ChessSession(m.Control, clock) { Mode = m.Mode };
+                var firstColor = ColorAssignment.AssignFirst(m.First.Preference, m.Second.Preference, coinFlip);
+                session.SetSeat(0, m.First.Name, m.First.PlayerId, firstColor);
+                session.SetSeat(1, m.Second.Name, m.Second.PlayerId, firstColor == PieceColor.White ? PieceColor.Black : PieceColor.White);
+                if (Logger.IsEnabled(LogLevel.Information))
+                {
+                    Logger.LogInformation("Partida de xadrez {SessionId} criada. Control={Control} Mode={Mode}", session.Id, m.Control.Id, m.Mode);
+                }
 
-        if (Registry.SeatOf(matchId, _connectionId) is not { } seat)
-        {
-            return;
+                return new ChessMatch(session);
+            });
+
+            // Cada página registra só o próprio assento: quem foi descartado antes não segura a sessão.
+            var seat = m.First.ConnectionId == _connectionId ? 0 : 1;
+            match.Seats[_connectionId] = seat;
+            _matchId = m.MatchId;
+            _seat = seat;
+            Session = match.Session;
+            _isWaiting = false;
+            _createdRoomCode = null;
+            Session.OnStateChanged += OnSessionChanged;
+            // Gancho SPEC-0060: presença, abandono e revanche entram aqui.
         }
-
-        _matchId = matchId;
-        _seat = seat;
-        Session = match.Session;
-        _isWaiting = false;
-        _createdRoomCode = null;
-        Session.OnStateChanged += OnSessionChanged;
-        // Gancho SPEC-0060: presença, abandono e revanche entram aqui.
     }
 
     private static ColorPreference ParsePreference(string? raw) =>
@@ -277,6 +290,14 @@ public partial class ChessHome : IDisposable
     // Solta a partida; a última pessoa a sair remove a sessão do registro (e para o relógio).
     private void LeaveMatch()
     {
+        lock (_gate)
+        {
+            LeaveMatchCore();
+        }
+    }
+
+    private void LeaveMatchCore()
+    {
         if (_matchId is { } id)
         {
             if (Session is not null)
@@ -304,14 +325,20 @@ public partial class ChessHome : IDisposable
 
     public void Dispose()
     {
-        _disposed = true;
+        lock (_gate)
+        {
+            _disposed = true;
+            LeaveMatchCore();
+        }
+
         Shell.Reset();
         Matchmaking.OnPlayerMatched -= OnMatchedReceived;
         Matchmaking.LeaveQueue(_connectionId);
         Matchmaking.CancelPrivateRoom(_connectionId);
-        LeaveMatch();
         GC.SuppressFinalize(this);
     }
 
-    private readonly record struct MatchSeatInfo(string ConnectionId, ColorPreference Preference);
+    private readonly record struct MatchSeatInfo(string ConnectionId, ColorPreference Preference, string Name, Guid? PlayerId);
+
+    private sealed record MatchSnapshot(Guid MatchId, MatchSeatInfo First, MatchSeatInfo Second, TimeControl Control, ChessMode Mode);
 }

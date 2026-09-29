@@ -55,7 +55,7 @@
             }
             else
             {
-                <PillButton Size="PillSize.Lg" Icon="globe" Class="mt-auto" Disabled="@(!HasName)" OnClick="OnPlayOnline">Procurar oponente</PillButton>
+                <PillButton Size="PillSize.Lg" Icon="globe" Class="mt-auto" Disabled="@(!HasName || HasRoom)" OnClick="OnPlayOnline">Procurar oponente</PillButton>
             }
         </NeonCard>
 
@@ -83,14 +83,15 @@
             else if (_tab == RoomTab.Create)
             {
                 <p class="text-body-md text-ink-muted">Crie uma sala e compartilhe o código com um amigo.</p>
-                <PillButton Variant="PillVariant.Outline" Size="PillSize.Lg" Icon="lock" Class="mt-auto" Disabled="@(!HasName)" OnClick="OnCreateRoom">Criar sala 🔒</PillButton>
+                <PillButton Variant="PillVariant.Outline" Size="PillSize.Lg" Icon="lock" Class="mt-auto" Disabled="@(!HasName || IsWaiting)" OnClick="OnCreateRoom">Criar sala 🔒</PillButton>
             }
             else
             {
                 <NeonInput Id="roomCode" Label="Código da sala" Placeholder="Ex: SALA-ABCD" MaxLength="20"
                            Value="@InputRoomCode" ValueChanged="HandleRoomCodeInput" />
+                <p class="text-body-md text-ink-muted">O controle de tempo da sala é o do anfitrião.</p>
                 <PillButton Variant="PillVariant.Outline" Size="PillSize.Lg" Icon="key" Class="mt-auto"
-                            Disabled="@(!HasName || string.IsNullOrWhiteSpace(InputRoomCode))" OnClick="OnJoinRoom">Entrar 🔑</PillButton>
+                            Disabled="@(!HasName || IsWaiting || string.IsNullOrWhiteSpace(InputRoomCode))" OnClick="OnJoinRoom">Entrar 🔑</PillButton>
             }
             @if (!string.IsNullOrEmpty(RoomErrorMessage))
             {
@@ -162,6 +163,8 @@
     private string WelcomeText => string.IsNullOrWhiteSpace(ReturningPlayerName)
         ? "Escolha o controle de tempo e desafie um oponente."
         : $"Bem-vindo de volta, {ReturningPlayerName}. Escolha o controle de tempo.";
+
+    private bool HasRoom => CreatedRoomCode != null;
 
     private bool HasName => !string.IsNullOrWhiteSpace(PlayerName);
 
