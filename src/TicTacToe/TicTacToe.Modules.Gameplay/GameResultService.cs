@@ -35,6 +35,7 @@ public class GameResultService(GameplayDbContext db, ILogger<GameResultService> 
                 SeriesId = game.SeriesId,
                 RoundNumber = game.Format == SeriesFormat.BestOf5 ? (game.Winner == Player.None ? game.RoundNumber : game.RoundNumber - 1) : null,
                 BestOf = game.Format == SeriesFormat.BestOf5 ? 5 : null,
+                GameType = GameType.TicTacToe,
             };
 
             db.MatchResults.Add(result);
@@ -73,8 +74,8 @@ public class GameResultService(GameplayDbContext db, ILogger<GameResultService> 
 
         var me = query.PlayerId;
         IQueryable<MatchResult> scope = mine
-            ? db.MatchResults.Where(m => m.PlayerXId == me || m.PlayerOId == me)
-            : db.MatchResults;
+            ? db.MatchResults.Where(m => m.GameType == query.Game && (m.PlayerXId == me || m.PlayerOId == me))
+            : db.MatchResults.Where(m => m.GameType == query.Game);
 
         var term = query.Opponent?.Trim();
         if (!string.IsNullOrEmpty(term))
@@ -125,10 +126,10 @@ public class GameResultService(GameplayDbContext db, ILogger<GameResultService> 
         return new HistoryPage(items, total, page, pageCount, counts);
     }
 
-    public virtual async Task<PlayerSummary> GetPlayerSummaryAsync(Guid playerId)
+    public virtual async Task<PlayerSummary> GetPlayerSummaryAsync(Guid playerId, GameType game = GameType.TicTacToe)
     {
         var rows = await db.MatchResults
-            .Where(m => m.PlayerXId == playerId || m.PlayerOId == playerId)
+            .Where(m => m.GameType == game && (m.PlayerXId == playerId || m.PlayerOId == playerId))
             .Select(m => new { IAmX = m.PlayerXId == playerId, m.WinnerSide, m.EndReason, m.DurationSeconds, m.MoveCount, m.PlayedAt })
             .ToListAsync();
 
@@ -168,6 +169,7 @@ public class GameResultService(GameplayDbContext db, ILogger<GameResultService> 
 
     public async Task<List<MatchResult>> GetRecentAsync(int count = 10) =>
         await db.MatchResults
+            .Where(m => m.GameType == GameType.TicTacToe)
             .OrderByDescending(m => m.PlayedAt)
             .Take(count)
             .ToListAsync();
@@ -175,6 +177,7 @@ public class GameResultService(GameplayDbContext db, ILogger<GameResultService> 
     public virtual async Task<LeaderboardPage> GetLeaderboardPageAsync(LeaderboardQuery query)
     {
         var rows = await db.MatchResults
+            .Where(m => m.GameType == query.Game)
             .Select(m => new { m.PlayerXName, m.PlayerOName, m.PlayerXId, m.PlayerOId, m.WinnerName, m.WinnerSide, m.Mode, m.PlayedAt })
             .ToListAsync();
 
@@ -187,7 +190,7 @@ public class GameResultService(GameplayDbContext db, ILogger<GameResultService> 
     public async Task<List<PlayerRank>> GetLeaderboardAsync(int top = 10)
     {
         var rawWins = await db.MatchResults
-            .Where(m => m.WinnerName != null)
+            .Where(m => m.GameType == GameType.TicTacToe && m.WinnerName != null)
             .Select(m => new { WinnerName = m.WinnerName!, m.PlayedAt })
             .ToListAsync();
 

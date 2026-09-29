@@ -4,7 +4,7 @@ title: Generalização multi-jogo (GameType, filtros e fila por chave)
 tier: full
 type: migration
 user_facing: false
-status: approved
+status: in-progress
 created: 2026-09-29
 parent: SPEC-0046
 depends_on: []
@@ -171,10 +171,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | Gate | Status | Evidência | Data |
 |---|---|---|---|
 | G0 Spec | PASS | `spec_graph.py validate` limpo (0 erro, 0 aviso); checklist de julgamento do G0 feito pelo Architect | 2026-09-29 |
-| G1 Red | PENDING | | |
-| G2 Green | PENDING | | |
-| G3 Arquitetura | PENDING | | |
-| G4 Review | PENDING | | |
+| G1 Red | PASS | verify SPEC-0047: Red antes do Green (60abe86), 7 testes do plano rastreados; 11 falhas iniciais pelo motivo esperado | 2026-09-29 |
+| G2 Green | PASS | dotnet test 335/335 local; format limpo; verify PASS | 2026-09-29 |
+| G3 Arquitetura | N/A | sem suíte Category=Architecture (a fronteira dos módulos entra com a SPEC-0049) | 2026-09-29 |
+| G4 Review | PASS | Review independente (subagente): PASS, 0 bloqueantes/maiores. Dívidas menores: filas vazias não removidas do dicionário, _matchQueueKey só cresce, JoinQueue não barra conexão já pareada; SQL da migration conferido por leitura (dotnet-ef indisponível) | 2026-09-29 |
 | G5 Integração & CI | PENDING | | |
 | H2 Integração aprovada | PENDING | | |
 | G6 Deploy | PENDING | | |
