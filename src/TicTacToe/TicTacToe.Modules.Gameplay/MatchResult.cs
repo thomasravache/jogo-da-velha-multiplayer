@@ -26,4 +26,9 @@ public class MatchResult
     // Identidade anônima dos jogadores (SPEC-0037): nula em partidas antigas e para o robô.
     public Guid? PlayerXId { get; set; }
     public Guid? PlayerOId { get; set; }
+
+    // Série melhor de 5 (SPEC-0040): nulos em partida única e em partidas antigas.
+    public Guid? SeriesId { get; set; }
+    public int? RoundNumber { get; set; }
+    public int? BestOf { get; set; }
 }

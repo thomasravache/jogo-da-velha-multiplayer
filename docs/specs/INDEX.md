@@ -5,18 +5,18 @@
 ## Saúde
 
 - Validação (G0): **0 erro(s), 0 aviso(s)**
-- Specs: approved 4, implemented 35
+- Specs: approved 3, in-progress 1, implemented 35
 - Impedimentos: **0 aberto(s)**, 0 resolvido(s)
 
 ## Plano de Execução
 
-**Em andamento:** —  
+**Em andamento:** SPEC-0040  
 **Paradas por impedimento:** —  
-**Próximo lote:** SPEC-0040
+**Próximo lote:** —
 
 | Onda | Spec | Título | Tier/Tam. | Status | Prontidão | Observação |
 |---|---|---|---|---|---|---|
-| 1 | SPEC-0040 | Série melhor de 5 (MD5) | full/M | approved | ✅ pronta |  |
+| 1 | SPEC-0040 | Série melhor de 5 (MD5) | full/M | in-progress | 🔄 em andamento |  |
 | 2 | SPEC-0044 | Série melhor de 5: interface no lobby e na arena | full/M | approved | ⛔ aguarda implementação de SPEC-0040 |  |
 | 3 | SPEC-0041 | Abandonar partida e pedir revanche | full/M | approved | ⛔ aguarda implementação de SPEC-0044 |  |
 | 4 | SPEC-0042 | W.O. por desconexão do oponente | full/M | approved | ⛔ aguarda implementação de SPEC-0041 |  |
@@ -44,7 +44,7 @@ flowchart LR
   end
   subgraph E0035["SPEC-0035 · Evolução funcional a partir do Stitch (Fase 2)"]
     S0036["SPEC-0036<br/>Persistência enriquecida de partidas"]:::implemented
-    S0040["SPEC-0040<br/>Série melhor de 5 (MD5)"]:::approved
+    S0040["SPEC-0040<br/>Série melhor de 5 (MD5)"]:::inprogress
     S0041["SPEC-0041<br/>Abandonar partida e pedir revanche"]:::approved
     S0042["SPEC-0042<br/>W.O. por desconexão do oponente"]:::approved
     S0044["SPEC-0044<br/>Série melhor de 5: interface no lobby e…"]:::approved
@@ -109,7 +109,7 @@ flowchart LR
 | [SPEC-0037](SPEC-0037-identidade-anonima-do-jogador.md) | Identidade anônima do jogador | full | feature | implemented | 2026-09-29 | SPEC-0035 | SPEC-0036 | — |
 | [SPEC-0038](SPEC-0038-historico-avancado.md) | Histórico avançado | full | feature | implemented | 2026-09-29 | SPEC-0035 | SPEC-0032, SPEC-0036, SPEC-0037 | — |
 | [SPEC-0039](SPEC-0039-ranking-avancado.md) | Ranking avançado | full | feature | implemented | 2026-09-29 | SPEC-0035 | SPEC-0033, SPEC-0037, SPEC-0038 | — |
-| [SPEC-0040](SPEC-0040-serie-melhor-de-5-md5.md) | Série melhor de 5 (MD5) | full | feature | approved | 2026-09-29 | SPEC-0035 | SPEC-0031, SPEC-0036 | — |
+| [SPEC-0040](SPEC-0040-serie-melhor-de-5-md5.md) | Série melhor de 5 (MD5) | full | feature | in-progress | 2026-09-29 | SPEC-0035 | SPEC-0031, SPEC-0036 | — |
 | [SPEC-0041](SPEC-0041-abandonar-partida-e-pedir-revanche.md) | Abandonar partida e pedir revanche | full | feature | approved | 2026-09-29 | SPEC-0035 | SPEC-0044, SPEC-0045 | — |
 | [SPEC-0042](SPEC-0042-w-o-por-desconexao-do-oponente.md) | W.O. por desconexão do oponente | full | feature | approved | 2026-09-29 | SPEC-0035 | SPEC-0041 | — |
 | [SPEC-0043](SPEC-0043-shell-e-primitivos-de-ui-cyber-arena.md) | Shell e primitivos de UI Cyber Arena | full | feature | implemented | 2026-09-29 | SPEC-0028 | SPEC-0029 | — |

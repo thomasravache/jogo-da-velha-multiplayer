@@ -4,7 +4,7 @@ title: Série melhor de 5 (MD5)
 tier: full
 type: feature
 user_facing: false
-status: approved
+status: in-progress
 created: 2026-09-29
 parent: SPEC-0035
 depends_on: [SPEC-0031, SPEC-0036]
@@ -143,7 +143,7 @@ MatchResult   Guid? SeriesId · int? RoundNumber · int? BestOf          // migr
 N/A — sem contrato entre specs (a SPEC-0044 consome a API pública de `GameSession`, coberta por UT-02 a UT-07).
 
 ### 7.5 Testes E2E
-N/A — `user_facing: false`; a jornada do usuário é a `SPEC-0044:E2E-01`.
+N/A — `user_facing: false`; a jornada do usuário é o teste E2E da SPEC-0044.
 
 ### 7.6 Outros
 - SQL da migration conferido (`ADD` apenas).
@@ -198,10 +198,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | Gate | Status | Evidência | Data |
 |---|---|---|---|
 | G0 Spec | PASS | `spec_graph.py validate` das 18 specs: 0 erros, 0 avisos | 2026-09-29 |
-| G1 Red | PENDING | | |
-| G2 Green | PENDING | | |
-| G3 Arquitetura | PENDING | | |
-| G4 Review | PENDING | | |
+| G1 Red | PASS | verify SPEC-0040: Red antes do Green, testes do plano rastreados | 2026-09-29 |
+| G2 Green | PASS | dotnet test 276/276 local; format limpo; verify PASS | 2026-09-29 |
+| G3 Arquitetura | N/A | sem suíte Category=Architecture; Matchmaking não referencia Gameplay (bestOf inteiro) | 2026-09-29 |
+| G4 Review | PASS | Review independente (subagente): PASS sem bloqueantes/maiores; ajustes aplicados (RoundStarter antecipado, ResetScores, token do robô). Dívida: bestOf sem validação, dicionários de partida nunca limpos, corrida da fila preexistente, migration escrita à mão (sem dotnet-ef) e não aplicada a SQL Server | 2026-09-29 |
 | G5 Integração & CI | PENDING | | |
 | H2 Integração aprovada | PENDING | | |
 | G6 Deploy | PENDING | | |

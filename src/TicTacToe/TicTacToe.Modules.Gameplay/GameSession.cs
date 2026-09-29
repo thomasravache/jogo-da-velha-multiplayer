@@ -7,6 +7,10 @@ namespace TicTacToe.Modules.Gameplay;
 
 public enum Player { None, X, O }
 
+#pragma warning disable CA1720 // nome definido pelo contrato da SPEC-0040
+public enum SeriesFormat { Single = 0, BestOf5 = 1 }
+#pragma warning restore CA1720
+
 public class GameSession : IDisposable
 {
     public const int DefaultTurnTimeSeconds = 15;
@@ -28,8 +32,10 @@ public class GameSession : IDisposable
 
     public event Action? OnStateChanged;
 
-    public GameSession(bool enableBackgroundTimer = true, TimeProvider? timeProvider = null)
+    public GameSession(bool enableBackgroundTimer = true, TimeProvider? timeProvider = null, SeriesFormat format = SeriesFormat.Single)
     {
+        _format = format;
+        _seriesId = format == SeriesFormat.BestOf5 ? Guid.NewGuid() : null;
         _time = timeProvider ?? TimeProvider.System;
         _startedAt = _time.GetUtcNow();
         if (enableBackgroundTimer)
@@ -144,6 +150,24 @@ public class GameSession : IDisposable
         }
     }
 
+    // Série melhor de 5 (SPEC-0040). Scaffold: as regras da série ainda não estão implementadas.
+    private readonly SeriesFormat _format;
+    private Guid? _seriesId;
+
+    public SeriesFormat Format => _format;
+    public Guid? SeriesId => _seriesId;
+    private int RoundsDecided { get; set; }
+    private bool SeriesOver { get; set; }
+    private Player _seriesWinner = Player.None;
+    private Player _roundStarter = Player.X;
+
+    public int RoundNumber => RoundsDecided + 1;
+    public int SeriesTarget => _format == SeriesFormat.BestOf5 ? 3 : 1;
+    public bool IsSeriesOver => SeriesOver;
+    public Player SeriesWinner => _seriesWinner;
+    public Player RoundStarter => _roundStarter;
+    public bool IsMatchPoint(Player player) => !SeriesOver && _format == SeriesFormat.BestOf5 && GetScore(player) == SeriesTarget - 1;
+
     public void SetPlayerName(Player player, string name) =>
         _playerNames[player] = name;
 
@@ -153,7 +177,17 @@ public class GameSession : IDisposable
     public int GetScore(Player player) =>
         _scores.TryGetValue(player, out var score) ? score : 0;
 
-    public void ResetScores() => _scores.Clear();
+    public void ResetScores()
+    {
+        lock (_lock)
+        {
+            _scores.Clear();
+            RoundsDecided = 0;
+            SeriesOver = false;
+            _seriesWinner = Player.None;
+            _roundStarter = Player.X;
+        }
+    }
 
     public void Tick()
     {
@@ -171,6 +205,7 @@ public class GameSession : IDisposable
                 _endReason = Gameplay.EndReason.Timeout;
                 Winner = CurrentTurn == Player.X ? Player.O : Player.X;
                 _scores[Winner] = GetScore(Winner) + 1;
+                RegisterRoundWon(Winner);
             }
         }
 
@@ -181,19 +216,58 @@ public class GameSession : IDisposable
     {
         lock (_lock)
         {
-            Array.Clear(Board, 0, Board.Length);
-            _resultRecorded = false;
-            _winningLine = null;
-            _startedAt = _time.GetUtcNow();
-            _endedAt = null;
-            _endReason = null;
-            _moveCount = 0;
-            Winner = Player.None;
-            IsTimedOut = false;
-            CurrentTurn = Player.X;
-            RemainingSeconds = DefaultTurnTimeSeconds;
+            if (_format == SeriesFormat.BestOf5)
+            {
+                if (SeriesOver)
+                {
+                    // Série encerrada: nova série com placar zerado, novo id e X abrindo.
+                    _scores.Clear();
+                    RoundsDecided = 0;
+                    SeriesOver = false;
+                    _seriesWinner = Player.None;
+                    _seriesId = Guid.NewGuid();
+                }
+                else if (Winner == Player.None && !IsDraw)
+                {
+                    return; // rodada em andamento: nada a fazer
+                }
+
+                _roundStarter = RoundsDecided % 2 == 0 ? Player.X : Player.O;
+            }
+
+            ResetRound();
         }
         OnStateChanged?.Invoke();
+    }
+
+    // Chamado com o lock adquirido: reinicia o tabuleiro da rodada.
+    private void ResetRound()
+    {
+        Array.Clear(Board, 0, Board.Length);
+        _resultRecorded = false;
+        _winningLine = null;
+        _startedAt = _time.GetUtcNow();
+        _endedAt = null;
+        _endReason = null;
+        _moveCount = 0;
+        Winner = Player.None;
+        IsTimedOut = false;
+        CurrentTurn = _format == SeriesFormat.BestOf5 ? _roundStarter : Player.X;
+        RemainingSeconds = DefaultTurnTimeSeconds;
+    }
+
+    // Chamado com o lock adquirido, após somar o ponto da rodada.
+    private void RegisterRoundWon(Player winner)
+    {
+        if (_format != SeriesFormat.BestOf5) return;
+
+        RoundsDecided++;
+        _roundStarter = RoundsDecided % 2 == 0 ? Player.X : Player.O;
+        if (GetScore(winner) >= SeriesTarget)
+        {
+            SeriesOver = true;
+            _seriesWinner = winner;
+        }
     }
 
     public bool MakeMove(int index, Player player)
@@ -214,6 +288,7 @@ public class GameSession : IDisposable
                 _scores[player] = GetScore(player) + 1;
                 _endedAt = _time.GetUtcNow();
                 _endReason = Gameplay.EndReason.Line;
+                RegisterRoundWon(player);
             }
             else
             {
