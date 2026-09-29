@@ -27,6 +27,8 @@ public static class AiPlayer
         _ => "Robô Minimax 🤖"
     };
 
+    public static bool IsBotName(string? name) => throw new NotImplementedException();
+
     public static int GetBestMove(GameSession game, Player aiPlayer, AiDifficulty difficulty)
     {
         var freeCells = new List<int>();

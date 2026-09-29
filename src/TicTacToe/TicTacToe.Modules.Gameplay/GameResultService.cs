@@ -169,6 +169,8 @@ public class GameResultService(GameplayDbContext db, ILogger<GameResultService> 
             .Take(count)
             .ToListAsync();
 
+    public virtual Task<LeaderboardPage> GetLeaderboardPageAsync(LeaderboardQuery query) => throw new NotImplementedException();
+
     public async Task<List<PlayerRank>> GetLeaderboardAsync(int top = 10)
     {
         var rawWins = await db.MatchResults
