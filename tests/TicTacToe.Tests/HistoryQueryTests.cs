@@ -284,9 +284,15 @@ public class HistoryQueryTests
         var options = HistoryData.NewOptions();
         var data = Enumerable.Range(0, 1000).Select(i => new MatchResult
         {
-            PlayerXName = "Eu", PlayerOName = $"R{i % 7}", PlayerXId = HistoryData.Me, PlayerOId = Guid.NewGuid(),
-            WinnerSide = i % 3 == 0 ? "X" : i % 3 == 1 ? "O" : null, EndReason = i % 3 == 2 ? EndReason.Draw : EndReason.Line,
-            DurationSeconds = 30 + i % 50, MoveCount = 5 + i % 4, PlayedAt = Now.AddMinutes(-i),
+            PlayerXName = "Eu",
+            PlayerOName = $"R{i % 7}",
+            PlayerXId = HistoryData.Me,
+            PlayerOId = Guid.NewGuid(),
+            WinnerSide = i % 3 == 0 ? "X" : i % 3 == 1 ? "O" : null,
+            EndReason = i % 3 == 2 ? EndReason.Draw : EndReason.Line,
+            DurationSeconds = 30 + i % 50,
+            MoveCount = 5 + i % 4,
+            PlayedAt = Now.AddMinutes(-i),
         }).ToList();
         await HistoryData.Seed(options, data);
         await using var db = new GameplayDbContext(options);

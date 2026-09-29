@@ -9,8 +9,8 @@ created: 2026-09-29
 parent: SPEC-0035
 depends_on: [SPEC-0032, SPEC-0036, SPEC-0037]
 consumes_contract: []
-contract_version: 3
-touches: [src/TicTacToe/TicTacToe.Modules.Gameplay/GameResultService.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/HistoryModels.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/HistoryAnalysis.cs, src/TicTacToe/TicTacToe.Web/Components/Pages/History.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/History.razor.css, src/TicTacToe/TicTacToe.Web/Components/Ui/StatTile.razor, src/TicTacToe/TicTacToe.Web/Components/Ui/Pager.razor, tests/TicTacToe.Tests/HistoryAnalysisTests.cs, tests/TicTacToe.Tests/HistoryQueryTests.cs, tests/TicTacToe.Tests/HistoryAdvancedUiTests.cs, tests/TicTacToe.Tests/HistoryCyberArenaTests.cs]
+contract_version: 4
+touches: [src/TicTacToe/TicTacToe.Modules.Gameplay/GameResultService.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/HistoryModels.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/HistoryAnalysis.cs, src/TicTacToe/TicTacToe.Web/Components/Pages/History.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/History.razor.css, src/TicTacToe/TicTacToe.Web/Components/Ui/StatTile.razor, src/TicTacToe/TicTacToe.Web/Components/Ui/Pager.razor, tests/TicTacToe.Tests/HistoryAnalysisTests.cs, tests/TicTacToe.Tests/HistoryQueryTests.cs, tests/TicTacToe.Tests/HistoryAdvancedUiTests.cs, tests/TicTacToe.Tests/HistoryCyberArenaTests.cs, tests/TicTacToe.Tests/TailwindDesignSystemTests.cs]
 adrs: [ADR-0009]
 external: []
 size: M
@@ -253,3 +253,4 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 |---|---|---|---|---|---|
 | 2 | 2026-09-29 | `HistoryItem` ganha `WinnerSide` (string?), `Outcome` e `IAmX` passam a anuláveis; `touches` inclui `HistoryCyberArenaTests.cs` | O escopo global precisa exibir o vencedor (como na SPEC-0032) sem depender do nome; os testes da SPEC-0032 precisam registrar a identidade e ajustar o escopo padrão | SPEC-0032 (testes); sem consumidores do contrato | thomas (autorização permanente, 2026-09-29) |
 | 3 | 2026-09-29 | `HistoryItem` ganha `WinnerName`; contagens passam a respeitar a busca (não o filtro); filtros de resultado pessoal não se aplicam ao escopo Todos | Partidas antigas com homônimos precisam do nome do vencedor para o chip; abas com contagem incoerente com a lista confundem | sem consumidores do contrato | thomas (autorização permanente, 2026-09-29) |
+| 4 | 2026-09-29 | `touches` inclui `TailwindDesignSystemTests.cs` (testes da SPEC-0034 que renderizam a página) | A página passa a depender de `PlayerIdentityService` e abre no escopo pessoal; os testes de renderização da SPEC-0034 precisam registrar a identidade e alternar para "Todos" | SPEC-0034 (testes); sem consumidores do contrato | thomas (autorização permanente, 2026-09-29) |

@@ -80,6 +80,10 @@ public class HistoryAdvancedUiTests
         cut.Find($"[role='radiogroup'][aria-label='{group}']").QuerySelectorAll("[role='radio']")
             .Single(r => r.TextContent.Trim().StartsWith(startsWith, StringComparison.Ordinal));
 
+    // Renderizações assíncronas em segundo plano trocam os handlers entre o Find e o clique; repete até assentar.
+    private static void Retry(IRenderedComponent<History> cut, Action action) =>
+        cut.WaitForAssertion(action, TimeSpan.FromSeconds(3));
+
     private static string[] Cells(IRenderedComponent<History> cut, string cell) =>
         cut.FindAll($"tbody tr [data-cell='{cell}']").Select(c => c.TextContent.Trim()).ToArray();
 
@@ -106,31 +110,30 @@ public class HistoryAdvancedUiTests
         Assert.Null(first.Opponent);
 
         cut.WaitForAssertion(() => Assert.Equal("true", Radio(cut, "Filtrar por resultado", "Todas").GetAttribute("aria-checked")));
-        Radio(cut, "Filtrar por resultado", "Vitórias").Click();
+        Retry(cut, () => Radio(cut, "Filtrar por resultado", "Vitórias").Click());
         cut.WaitForAssertion(() => Assert.Equal(HistoryFilter.Wins, svc.Queries[^1].Filter), TimeSpan.FromSeconds(3));
         Assert.Equal("true", Radio(cut, "Filtrar por resultado", "Vitórias").GetAttribute("aria-checked"));
         Assert.Equal("false", Radio(cut, "Filtrar por resultado", "Todas").GetAttribute("aria-checked"));
 
-        cut.Find("nav[aria-label='Paginação'] button[data-action='next']").Click();
+        Retry(cut, () => cut.Find("nav[aria-label='Paginação'] button[data-action='next']").Click());
         cut.WaitForAssertion(() => Assert.Equal(2, svc.Queries[^1].Page), TimeSpan.FromSeconds(3));
         Assert.Equal(HistoryFilter.Wins, svc.Queries[^1].Filter);
 
         var before = svc.Queries.Count;
-        var search = cut.Find("input#busca-adversario");
-        search.Input("a");
-        search.Input("an");
-        search.Input("ana");
+        Retry(cut, () => cut.Find("input#busca-adversario").Input("a"));
+        cut.Find("input#busca-adversario").Input("an");
+        cut.Find("input#busca-adversario").Input("ana");
         Assert.Equal(before, svc.Queries.Count); // debounce: nada foi consultado ainda
         cut.WaitForAssertion(() => Assert.Equal("ana", svc.Queries[^1].Opponent), TimeSpan.FromSeconds(3));
         Assert.Equal(1, svc.Queries.Count - before);
         Assert.Equal(1, svc.Queries[^1].Page); // buscar volta à primeira página
 
-        Radio(cut, "Ordenar por", "Mais rápidas").Click();
+        Retry(cut, () => Radio(cut, "Ordenar por", "Mais rápidas").Click());
         cut.WaitForAssertion(() => Assert.Equal(HistorySort.ShortestDuration, svc.Queries[^1].Sort), TimeSpan.FromSeconds(3));
-        Radio(cut, "Ordenar por", "Resultado").Click();
+        Retry(cut, () => Radio(cut, "Ordenar por", "Resultado").Click());
         cut.WaitForAssertion(() => Assert.Equal(HistorySort.Result, svc.Queries[^1].Sort), TimeSpan.FromSeconds(3));
 
-        Radio(cut, "Escopo", "Todos").Click();
+        Retry(cut, () => Radio(cut, "Escopo", "Todos").Click());
         cut.WaitForAssertion(() => Assert.Equal(HistoryScope.All, svc.Queries[^1].Scope), TimeSpan.FromSeconds(3));
         var all = svc.Queries[^1];
         Assert.Null(all.PlayerId);
@@ -157,11 +160,11 @@ public class HistoryAdvancedUiTests
 
         var cut = ctx.Render<History>();
         cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll("tbody tr")), TimeSpan.FromSeconds(3));
-        Radio(cut, "Filtrar por resultado", "Derrotas").Click();
+        Retry(cut, () => Radio(cut, "Filtrar por resultado", "Derrotas").Click());
         cut.WaitForAssertion(() => Assert.Contains("Nenhuma partida com estes filtros", cut.Markup), TimeSpan.FromSeconds(3));
         Assert.DoesNotContain("Nenhuma partida registrada ainda", cut.Markup);
 
-        cut.FindAll("button").Single(b => b.TextContent.Contains("Limpar filtros")).Click();
+        Retry(cut, () => cut.FindAll("button").Single(b => b.TextContent.Contains("Limpar filtros")).Click());
         cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll("tbody tr")), TimeSpan.FromSeconds(3));
         Assert.Equal(HistoryFilter.All, svc.Queries[^1].Filter);
         Assert.Null(svc.Queries[^1].Opponent);
@@ -178,7 +181,7 @@ public class HistoryAdvancedUiTests
 
         var cut = ctx.Render<History>();
         cut.WaitForAssertion(() => Assert.Equal(1, svc.Calls), TimeSpan.FromSeconds(3));
-        Radio(cut, "Ordenar por", "Mais rápidas").Click(); // segunda consulta responde rápido
+        Retry(cut, () => Radio(cut, "Ordenar por", "Mais rápidas").Click()); // segunda consulta responde rápido
         cut.WaitForAssertion(() => Assert.Contains("rápida", cut.Markup), TimeSpan.FromSeconds(3));
         gate.SetResult(); // a primeira (lenta) responde depois e não pode sobrescrever
         await Task.Delay(100);
@@ -213,7 +216,7 @@ public class HistoryAdvancedUiTests
 
         var cut = ctx.Render<History>();
         cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll("[role='radiogroup'][aria-label='Escopo']")), TimeSpan.FromSeconds(3));
-        Radio(cut, "Escopo", "Todos").Click();
+        Retry(cut, () => Radio(cut, "Escopo", "Todos").Click());
         WaitRows(cut, 1);
 
         Assert.Equal(["—"], Cells(cut, "duracao"));
@@ -317,23 +320,23 @@ public class HistoryAdvancedUiTests
         Assert.Contains("12", cut.Find("[data-stat='total']").TextContent);
         Assert.Contains("Página 1 de 2", cut.Find("nav[aria-label='Paginação']").TextContent);
 
-        Radio(cut, "Filtrar por resultado", "Vitórias").Click();
+        Retry(cut, () => Radio(cut, "Filtrar por resultado", "Vitórias").Click());
         WaitRows(cut, 6);
         Assert.Contains("(6)", Radio(cut, "Filtrar por resultado", "Vitórias").TextContent);
         Assert.Empty(cut.FindAll("nav[aria-label='Paginação'] button"));
 
-        cut.Find("input#busca-adversario").Input("rival1");
+        Retry(cut, () => cut.Find("input#busca-adversario").Input("rival1"));
         WaitRows(cut, 2); // vitórias contra Rival1: partidas 1 e 10
 
-        Radio(cut, "Filtrar por resultado", "Todas").Click();
+        Retry(cut, () => Radio(cut, "Filtrar por resultado", "Todas").Click());
         WaitRows(cut, 4); // 1, 4, 7 e 10
-        Radio(cut, "Ordenar por", "Mais rápidas").Click();
+        Retry(cut, () => Radio(cut, "Ordenar por", "Mais rápidas").Click());
         cut.WaitForAssertion(() => Assert.Equal(["1m 30s", "1m 33s", "1m 36s", "1m 39s"], Cells(cut, "duracao")), TimeSpan.FromSeconds(3));
 
-        cut.Find("input#busca-adversario").Input("");
-        Radio(cut, "Ordenar por", "Mais recentes").Click();
+        Retry(cut, () => cut.Find("input#busca-adversario").Input(""));
+        Retry(cut, () => Radio(cut, "Ordenar por", "Mais recentes").Click());
         WaitRows(cut, 10);
-        cut.Find("nav[aria-label='Paginação'] button[data-action='next']").Click();
+        Retry(cut, () => cut.Find("nav[aria-label='Paginação'] button[data-action='next']").Click());
         WaitRows(cut, 2);
         Assert.Contains("Página 2 de 2", cut.Find("nav[aria-label='Paginação']").TextContent);
     }
