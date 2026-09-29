@@ -1,6 +1,134 @@
 @using TicTacToe.Modules.Chess
+@using TicTacToe.Web.Components.Ui
+@inject IJSRuntime JS
+
+<div class="mx-auto flex w-full max-w-[var(--size-frame)] flex-col gap-6 py-4">
+    <PageHeader Eyebrow="XO Arena" Title="Lobby de Xadrez" Subtitle="@WelcomeText" />
+
+    <NeonCard Class="flex flex-col gap-3 p-5 md:flex-row md:items-end">
+        <div class="flex-1">
+            <NeonInput Id="playerName" Label="Identificação no tabuleiro" Placeholder="Ex: Thomas" MaxLength="20" ShowCounter="true"
+                       Value="@PlayerName" ValueChanged="HandleNameInput" />
+            <p class="mt-2 text-body-md text-ink-muted">Seu identificador de jogador fica salvo neste navegador.</p>
+        </div>
+        <StatusChip Tone="@(HasName ? ChipTone.Online : ChipTone.Neutral)" Dot="@HasName">
+            @(HasName ? "Pronto para jogar" : "Informe seu apelido")
+        </StatusChip>
+    </NeonCard>
+
+    <NeonCard Class="flex flex-col gap-5 p-5">
+        <div>
+            <h2 class="text-headline-md">Configuração da Partida</h2>
+            <p class="text-body-md text-ink-muted">Ajuste o tempo de reflexo e a alocação de peças</p>
+        </div>
+        <div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
+            <div class="flex flex-col gap-3">
+                <span class="font-numeric text-label-badge uppercase text-ink-muted">Controle de tempo</span>
+                <SegmentedControl TValue="TimeControl" AriaLabel="Controle de tempo" Items="_controlItems" Value="SelectedControl" ValueChanged="SetControl" />
+                <p data-control-description aria-live="polite" class="rounded-cell bg-surface-high/60 px-4 py-3 text-body-md text-secondary">@ControlDescription</p>
+            </div>
+            <div class="flex flex-col gap-3">
+                <span class="font-numeric text-label-badge uppercase text-ink-muted">Sua cor</span>
+                <SegmentedControl TValue="ColorPreference" AriaLabel="Sua cor" Items="_colorItems" Value="SelectedColor" ValueChanged="SetColor" />
+                <p data-color-description aria-live="polite" class="rounded-cell bg-surface-high/60 px-4 py-3 text-body-md text-ink-muted">@ColorDescription</p>
+            </div>
+        </div>
+    </NeonCard>
+
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <NeonCard Accent="CardAccent.O" Class="flex flex-col gap-4 p-5">
+            <StatusChip Tone="ChipTone.Waiting">Fila global</StatusChip>
+            <h2 class="text-headline-md">Duelo Online 1v1</h2>
+            <p class="text-body-md text-ink-muted">Encontre um jogador humano aleatório com o mesmo controle de tempo. O confronto começa imediatamente após a conexão.</p>
+            @if (IsWaiting)
+            {
+                <div class="mt-auto flex flex-col gap-3 rounded-cell bg-surface-high/60 p-4">
+                    <div class="flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-3">
+                            <span class="size-8 animate-spin motion-reduce:animate-none rounded-full border-4 border-secondary border-t-transparent" aria-hidden="true"></span>
+                            <p class="text-title-sm" role="status" aria-live="polite">Procurando oponente para @PlayerName…</p>
+                        </div>
+                        <StatusChip Tone="ChipTone.Waiting" Dot="true">Na fila</StatusChip>
+                    </div>
+                    <PillButton Variant="PillVariant.Outline" OnClick="OnCancelSearch">Cancelar busca</PillButton>
+                </div>
+            }
+            else
+            {
+                <PillButton Size="PillSize.Lg" Icon="globe" Class="mt-auto" Disabled="@(!HasName)" OnClick="OnPlayOnline">Procurar oponente</PillButton>
+            }
+        </NeonCard>
+
+        <NeonCard Class="flex flex-col gap-4 p-5">
+            <StatusChip Tone="ChipTone.Neutral">Confronto amigável</StatusChip>
+            <h2 class="text-headline-md">Sala Privada</h2>
+            <SegmentedControl TValue="RoomTab" AriaLabel="Ação da sala privada" Items="_roomItems" Value="_tab" ValueChanged="SetTab" />
+            @if (CreatedRoomCode != null)
+            {
+                <div class="flex flex-col items-center gap-3 rounded-cell bg-surface-high/60 p-4 text-center">
+                    <StatusChip Tone="ChipTone.Waiting" Dot="true">Aguardando amigo</StatusChip>
+                    <p class="font-numeric text-headline-lg tracking-[0.15em] text-secondary" aria-label="Código da sala">@CreatedRoomCode</p>
+                    <PillButton Variant="PillVariant.Outline" Icon="@(_copy == CopyState.Copied ? "check" : "copy")" OnClick="CopyCode">Copiar</PillButton>
+                    <p data-copy-status class="text-body-md text-ink-muted" role="status" aria-live="polite">
+                        @(_copy switch
+                        {
+                            CopyState.Copied => "Código copiado!",
+                            CopyState.Failed => "Não foi possível copiar. Selecione o código acima e copie manualmente.",
+                            _ => "Envie este código para o seu oponente. A partida inicia assim que ele aceitar o convite.",
+                        })
+                    </p>
+                    <PillButton Variant="PillVariant.Ghost" OnClick="OnCancelSearch">Cancelar sala</PillButton>
+                </div>
+            }
+            else if (_tab == RoomTab.Create)
+            {
+                <p class="text-body-md text-ink-muted">Crie uma sala e compartilhe o código com um amigo.</p>
+                <PillButton Variant="PillVariant.Outline" Size="PillSize.Lg" Icon="lock" Class="mt-auto" Disabled="@(!HasName)" OnClick="OnCreateRoom">Criar sala 🔒</PillButton>
+            }
+            else
+            {
+                <NeonInput Id="roomCode" Label="Código da sala" Placeholder="Ex: SALA-ABCD" MaxLength="20"
+                           Value="@InputRoomCode" ValueChanged="HandleRoomCodeInput" />
+                <PillButton Variant="PillVariant.Outline" Size="PillSize.Lg" Icon="key" Class="mt-auto"
+                            Disabled="@(!HasName || string.IsNullOrWhiteSpace(InputRoomCode))" OnClick="OnJoinRoom">Entrar 🔑</PillButton>
+            }
+            @if (!string.IsNullOrEmpty(RoomErrorMessage))
+            {
+                <p role="alert" class="rounded-cell bg-primary/15 px-4 py-2 text-body-md text-primary">@RoomErrorMessage</p>
+            }
+        </NeonCard>
+    </div>
+</div>
 
 @code {
+    private enum RoomTab { Create, Join }
+
+    private enum CopyState { None, Copied, Failed }
+
+    private static readonly IReadOnlyList<(TimeControl Value, string Label)> _controlItems =
+    [
+        (TimeControl.Bullet, TimeControl.Bullet.Name),
+        (TimeControl.Blitz, TimeControl.Blitz.Name),
+        (TimeControl.Rapid, TimeControl.Rapid.Name),
+    ];
+
+    private static readonly IReadOnlyList<(ColorPreference Value, string Label)> _colorItems =
+    [
+        (ColorPreference.White, "Brancas"),
+        (ColorPreference.Black, "Pretas"),
+        (ColorPreference.Random, "Aleatória"),
+    ];
+
+    private static readonly IReadOnlyList<(RoomTab Value, string Label)> _roomItems =
+    [
+        (RoomTab.Create, "Criar sala"),
+        (RoomTab.Join, "Entrar com código"),
+    ];
+
+    private RoomTab _tab = RoomTab.Create;
+    private CopyState _copy = CopyState.None;
+    private string? _copiedFor;
+
     [Parameter] public string PlayerName { get; set; } = "";
     [Parameter] public EventCallback<string> PlayerNameChanged { get; set; }
     [Parameter] public string? ReturningPlayerName { get; set; }
@@ -21,4 +149,67 @@
     [Parameter] public EventCallback OnCancelSearch { get; set; }
     [Parameter] public EventCallback OnCreateRoom { get; set; }
     [Parameter] public EventCallback OnJoinRoom { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        if (_copiedFor != CreatedRoomCode)
+        {
+            _copy = CopyState.None;
+            _copiedFor = CreatedRoomCode;
+        }
+    }
+
+    private string WelcomeText => string.IsNullOrWhiteSpace(ReturningPlayerName)
+        ? "Escolha o controle de tempo e desafie um oponente."
+        : $"Bem-vindo de volta, {ReturningPlayerName}. Escolha o controle de tempo.";
+
+    private bool HasName => !string.IsNullOrWhiteSpace(PlayerName);
+
+    private string ControlDescription =>
+        SelectedControl.Id == TimeControl.Bullet.Id ? "1 minuto para cada jogador, sem acréscimo"
+        : SelectedControl.Id == TimeControl.Rapid.Id ? "10 minutos para cada jogador, com 5 segundos por lance"
+        : "5 minutos para cada jogador, sem acréscimo de tempo por lance";
+
+    private string ColorDescription => SelectedColor == ColorPreference.Random
+        ? "O sorteio de cores ocorrerá automaticamente no início da partida"
+        : "Sua preferência é atendida quando possível; se os dois pedirem a mesma cor, as cores são sorteadas";
+
+    private async Task HandleNameInput(string value)
+    {
+        PlayerName = value;
+        await PlayerNameChanged.InvokeAsync(value);
+    }
+
+    private async Task HandleRoomCodeInput(string value)
+    {
+        InputRoomCode = value;
+        await InputRoomCodeChanged.InvokeAsync(value);
+    }
+
+    private async Task SetControl(TimeControl control)
+    {
+        SelectedControl = control;
+        await ControlChanged.InvokeAsync(control);
+    }
+
+    private async Task SetColor(ColorPreference color)
+    {
+        SelectedColor = color;
+        await ColorChanged.InvokeAsync(color);
+    }
+
+    private void SetTab(RoomTab tab) => _tab = tab;
+
+    private async Task CopyCode()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", CreatedRoomCode);
+            _copy = CopyState.Copied;
+        }
+        catch (Exception ex) when (ex is JSException or JSDisconnectedException or InvalidOperationException)
+        {
+            _copy = CopyState.Failed;
+        }
+    }
 }

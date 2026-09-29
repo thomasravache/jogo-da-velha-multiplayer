@@ -1,2 +1,38 @@
 @page "/xadrez"
+@using TicTacToe.Web.Components.Chess
+@using TicTacToe.Web.Components.Ui
 @rendermode InteractiveServer
+
+<PageTitle>Xadrez · XO Arena</PageTitle>
+
+@if (Session is null)
+{
+    <ChessLobby ReturningPlayerName="@_returningName"
+                PlayerName="@_playerName"
+                PlayerNameChanged="v => _playerName = v"
+                SelectedControl="@_control"
+                ControlChanged="c => _control = c"
+                SelectedColor="@_color"
+                ColorChanged="c => _color = c"
+                InputRoomCode="@_inputRoomCode"
+                InputRoomCodeChanged="c => _inputRoomCode = c"
+                IsWaiting="@_isWaiting"
+                CreatedRoomCode="@_createdRoomCode"
+                RoomErrorMessage="@_roomError"
+                OnPlayOnline="FindMatch"
+                OnCancelSearch="CancelSearch"
+                OnCreateRoom="CreateRoom"
+                OnJoinRoom="JoinRoom" />
+}
+else
+{
+    <div class="mx-auto flex w-full max-w-[var(--size-frame)] flex-col gap-4">
+        <ChessArena Session="Session" MySeat="_seat" />
+        @if (Session.IsOver)
+        {
+            <div class="flex justify-center">
+                <PillButton Variant="PillVariant.Outline" Icon="play" OnClick="BackToLobby">Voltar ao lobby</PillButton>
+            </div>
+        }
+    </div>
+}
