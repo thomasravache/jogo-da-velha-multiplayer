@@ -4,7 +4,7 @@ title: Relógio de xadrez com incremento
 tier: full
 type: feature
 user_facing: false
-status: approved
+status: in-progress
 created: 2026-09-29
 parent: SPEC-0046
 depends_on: [SPEC-0049]
@@ -75,7 +75,7 @@ record TimeControl(string Id, string Name, TimeSpan Initial, TimeSpan Increment)
 
 sealed class ChessClock(TimeControl control, TimeProvider time)
   // o relógio começa parado: antes do primeiro lance das brancas nenhum tempo corre
-  void Press(PieceColor mover)              // `mover` terminou o lance: para o dele (se corria), soma o incremento (se não caiu), inicia o do outro; o primeiro Press (brancas) apenas inicia o relógio das pretas
+  void Press(PieceColor mover)              // `mover` terminou o lance: para o dele (se corria), soma o incremento (se não caiu), inicia o do outro; o primeiro Press (brancas) soma o incremento e inicia o relógio das pretas
   void Stop()                               // partida encerrada: congela
   TimeSpan Remaining(PieceColor color)      // inclui o tempo correndo agora
   PieceColor? Running { get; }
@@ -163,10 +163,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | Gate | Status | Evidência | Data |
 |---|---|---|---|
 | G0 Spec | PASS | `spec_graph.py validate` limpo (0 erro, 0 aviso); checklist de julgamento do G0 feito pelo Architect | 2026-09-29 |
-| G1 Red | PENDING | | |
-| G2 Green | PENDING | | |
-| G3 Arquitetura | PENDING | | |
-| G4 Review | PENDING | | |
+| G1 Red | PASS | verify SPEC-0051: Red antes do Green (a7bb7ef), 7/7 testes do plano rastreados | 2026-09-29 |
+| G2 Green | PASS | dotnet test 521 verdes (1 pulado: perft pesado); format limpo; verify PASS | 2026-09-29 |
+| G3 Arquitetura | N/A | fronteira de módulos já coberta por ChessModuleBoundaryTests (SPEC-0049) | 2026-09-29 |
+| G4 Review | PASS | Review independente (subagente): PASS; achado maior (sem lock) e menor (dois GetUtcNow por operação) corrigidos com refactor e 7 testes de casos-limite e concorrência. Texto do contrato alinhado ao UT-03 (primeiro lance soma incremento). Dívida: o teste de concorrência é guarda de regressão, não prova o lock | 2026-09-29 |
 | G5 Integração & CI | PENDING | | |
 | H2 Integração aprovada | PENDING | | |
 | G6 Deploy | PENDING | | |
