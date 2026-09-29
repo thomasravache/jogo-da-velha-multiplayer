@@ -1,88 +1,88 @@
 @page "/leaderboard"
+@using System.Globalization
 @using TicTacToe.Modules.Gameplay
+@using TicTacToe.Web.Components.Ui
 @rendermode InteractiveServer
 @inject GameResultService GameResultService
 
-<PageTitle>Classificação Geral - Ranking</PageTitle>
+<PageTitle>Ranking · XO Arena</PageTitle>
 
-<div class="leaderboard-container">
-    <div class="header">
-        <a href="/" class="back-link">← Jogar</a>
-        <h1>Classificação Geral 🏆</h1>
-    </div>
+<div class="mx-auto flex w-full max-w-[var(--size-frame)] flex-col gap-6 py-4">
+    <PageHeader Eyebrow="Classificação" Title="Classificação Global" Subtitle="Os melhores por vitórias">
+        <PillButton Href="/" Icon="play">Jogar agora</PillButton>
+    </PageHeader>
 
     @if (_loading)
     {
-        <div class="loading">Carregando ranking... ⏳</div>
+        <NeonCard Class="flex items-center justify-center gap-3 p-8">
+            <span class="size-6 animate-spin motion-reduce:animate-none rounded-full border-2 border-secondary border-t-transparent" aria-hidden="true"></span>
+            <p role="status" class="text-body-lg text-ink-muted">Carregando ranking…</p>
+        </NeonCard>
     }
     else if (_ranks.Count == 0)
     {
-        <div class="empty">
-            <p>🏆 Nenhum jogador pontuou ainda.</p>
-            <p><a href="/">Vença uma partida</a> para inaugurar o placar!</p>
-        </div>
+        <NeonCard Class="flex flex-col items-center gap-3 p-8 text-center">
+            <Icon Name="trophy" Size="24" />
+            <p class="text-title-sm">Nenhum jogador pontuou ainda.</p>
+            <p class="text-body-md text-ink-muted">Vença uma partida para inaugurar o placar!</p>
+        </NeonCard>
     }
     else
     {
-        <table class="leaderboard-table">
-            <thead>
-                <tr>
-                    <th scope="col" style="width: 70px;">Posição</th>
-                    <th scope="col">Jogador</th>
-                    <th scope="col" style="width: 110px;">Vitórias</th>
-                    <th scope="col">Último Triunfo</th>
-                </tr>
-            </thead>
-            <tbody>
-                @for (int i = 0; i < _ranks.Count; i++)
-                {
-                    var rank = _ranks[i];
-                    var pos = i + 1;
-                    string medal = pos switch
-                    {
-                        1 => "🥇",
-                        2 => "🥈",
-                        3 => "🥉",
-                        _ => $"#{pos}"
-                    };
+        <ol aria-label="Pódio" class="grid grid-cols-3 items-end gap-3">
+            @foreach (var i in PodiumOrder)
+            {
+                var rank = _ranks[i];
+                var first = i == 0;
+                <li data-podium="@(i + 1)" class="@PodiumCss(first)">
+                    <Icon Name="@(first ? "trophy" : "medal")" Size="24" />
+                    <span class="font-numeric text-label-badge uppercase text-gold">@(i + 1)º</span>
+                    <span class="w-full min-w-0 break-words text-title-sm">@rank.PlayerName</span>
+                    <span class="font-numeric text-label-numeric text-ink-muted">@rank.Wins @(rank.Wins == 1 ? "vitória" : "vitórias")</span>
+                </li>
+            }
+        </ol>
 
-                    <tr class="@(pos <= 3 ? "top-rank" : "")">
-                        <td class="pos">@medal</td>
-                        <td class="player-name">@rank.PlayerName</td>
-                        <td class="wins"><strong>@rank.Wins</strong></td>
-                        <td class="last-win">@rank.LastWinAt.ToLocalTime().ToString("dd/MM HH:mm")</td>
+        <NeonCard Class="overflow-hidden">
+            <table class="w-full border-collapse text-left">
+                <thead>
+                    <tr class="border-b border-stroke font-numeric text-label-badge uppercase text-ink-muted">
+                        <th scope="col" class="w-20 px-4 py-3">Posição</th>
+                        <th scope="col" class="px-4 py-3">Jogador</th>
+                        <th scope="col" class="px-4 py-3">Vitórias</th>
+                        <th scope="col" class="hidden px-4 py-3 md:table-cell">Último triunfo</th>
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @for (var i = 0; i < _ranks.Count; i++)
+                    {
+                        var rank = _ranks[i];
+                        <tr class="@(i < 3 ? "bg-gold/10 " : "")border-b border-stroke last:border-b-0">
+                            <td class="px-4 py-3 font-numeric text-label-numeric">@(i + 1)º</td>
+                            <td class="break-words px-4 py-3 text-body-lg">@rank.PlayerName</td>
+                            <td class="px-4 py-3 font-numeric text-label-numeric text-success">@rank.Wins</td>
+                            <td class="hidden px-4 py-3 font-numeric text-label-numeric text-ink-muted md:table-cell">@FormatDate(rank.LastWinAt)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </NeonCard>
     }
 </div>
-
-<style>
-    :root { --x-color: #e74c3c; --o-color: #3498db; --bg: #1a1a2e; --surface: #16213e; --surface2: #0f3460; --text: #e0e0e0; }
-    body { background: var(--bg); color: var(--text); margin: 0; }
-    .leaderboard-container { font-family: 'Segoe UI', sans-serif; max-width: 700px; margin: 0 auto; padding: 40px 20px; }
-    .header { display: flex; align-items: center; gap: 20px; margin-bottom: 32px; }
-    .back-link { color: #888; text-decoration: none; font-size: 1rem; }
-    .back-link:hover { color: var(--text); }
-    h1 { font-size: 1.6rem; margin: 0; }
-    .loading, .empty { text-align: center; padding: 60px; color: #888; font-size: 1.1rem; }
-    .empty a { color: #f1c40f; text-decoration: none; font-weight: bold; }
-    .leaderboard-table { width: 100%; border-collapse: collapse; }
-    .leaderboard-table th { background: var(--surface); padding: 12px 16px; text-align: left; font-size: .85rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
-    .leaderboard-table td { padding: 14px 16px; border-bottom: 1px solid #1f2a45; font-size: 1rem; }
-    .leaderboard-table tr:last-child td { border-bottom: none; }
-    .leaderboard-table tr:hover td { background: rgba(255,255,255,0.03); }
-    .pos { font-size: 1.2rem; }
-    .top-rank td { background: rgba(241, 196, 15, 0.04); }
-    .player-name { font-weight: 600; color: #fff; }
-    .wins strong { color: #2ecc71; font-size: 1.2rem; }
-    .last-win { color: #777; font-size: .85rem; }
-</style>
 
 @code {
     private List<PlayerRank> _ranks = [];
     private bool _loading = true;
+
+    // Ordem visual do pódio: 2º à esquerda, 1º ao centro, 3º à direita (só os que existem).
+    private IEnumerable<int> PodiumOrder => new[] { 1, 0, 2 }.Where(i => i < _ranks.Count);
+
+    private static string PodiumCss(bool first) =>
+        "flex min-w-0 flex-col items-center gap-1 rounded-card border bg-surface/80 p-4 text-center backdrop-blur-md " +
+        (first ? "min-h-56 border-gold shadow-[0_0_24px_rgb(243_156_18/0.35)]" : "min-h-44 border-stroke");
+
+    private static string FormatDate(DateTime lastWinUtc) =>
+        DateTime.SpecifyKind(lastWinUtc, DateTimeKind.Utc).ToLocalTime().ToString("dd/MM HH:mm", CultureInfo.InvariantCulture);
 
     protected override async Task OnInitializedAsync()
     {

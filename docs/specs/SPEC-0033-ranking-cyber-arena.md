@@ -4,7 +4,7 @@ title: Ranking Cyber Arena
 tier: full
 type: feature
 user_facing: true
-status: approved
+status: in-progress
 created: 2026-09-29
 parent: SPEC-0028
 depends_on: [SPEC-0043]
@@ -165,10 +165,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | Gate | Status | Evidência | Data |
 |---|---|---|---|
 | G0 Spec | PASS | `spec_graph.py validate` das 18 specs: 0 erros, 0 avisos | 2026-09-29 |
-| G1 Red | PENDING | | |
-| G2 Green | PENDING | | |
-| G3 Arquitetura | PENDING | | |
-| G4 Review | PENDING | | |
+| G1 Red | PASS | `verify SPEC-0033`: Red antes do Green; 8/8 testes rastreados; 6 falhas iniciais pelos motivos esperados (CH-01 e IT-01 guardas) | 2026-09-29 |
+| G2 Green | PASS | `dotnet test` 131/131; `dotnet format --verify-no-changes` limpo; `build.sh --check` sem drift | 2026-09-29 |
+| G3 Arquitetura | N/A | Sem suíte `Category=Architecture`; ausência de `mud-` e de `<style>` verificada por SPEC-0033:UT-05 | 2026-09-29 |
+| G4 Review | PASS | Reviewer independente APPROVED em fb6f68a (0 blocker, 0 major; minors de nomenclatura e transbordo corrigidos) | 2026-09-29 |
 | G5 Integração & CI | PENDING | | |
 | H2 Integração aprovada | PENDING | | |
 | G6 Deploy | PENDING | | |
