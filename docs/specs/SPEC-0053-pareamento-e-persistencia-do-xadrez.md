@@ -4,7 +4,7 @@ title: Pareamento e persistência do xadrez
 tier: full
 type: feature
 user_facing: false
-status: approved
+status: in-progress
 created: 2026-09-29
 parent: SPEC-0046
 depends_on: [SPEC-0047, SPEC-0052, SPEC-0055, SPEC-0061]
@@ -182,10 +182,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | Gate | Status | Evidência | Data |
 |---|---|---|---|
 | G0 Spec | PASS | `spec_graph.py validate` limpo (0 erro, 0 aviso); checklist de julgamento do G0 feito pelo Architect | 2026-09-29 |
-| G1 Red | PENDING | | |
-| G2 Green | PENDING | | |
-| G3 Arquitetura | PENDING | | |
-| G4 Review | PENDING | | |
+| G1 Red | PASS | verify SPEC-0053: Red antes do Green (51f641f), 10/10 testes do plano rastreados; 40 de 45 falharam por NotImplementedException ou migration ausente | 2026-09-29 |
+| G2 Green | PASS | dotnet test 816 verdes (1 pulado: perft pesado) em 3 execuções; format limpo; verify PASS | 2026-09-29 |
+| G3 Arquitetura | N/A | fronteira de módulos coberta por ChessModuleBoundaryTests (SPEC-0049) | 2026-09-29 |
+| G4 Review | PASS | Review independente (subagente): PASS com 2 maiores (registry: exceção cacheada no Lazy e Remove concorrente deixando sessão órfã; recorder: snapshot depois da marca) corrigidos com testes; preferências de cor limpas ao sair/parear. Dívidas: MapReason público (sem InternalsVisibleTo), IT-04 grava registro montado no teste, log de sucesso não distingue falha engolida, limpeza da preferência no pareamento exige leitura síncrona no handler de OnPlayerMatched (SPEC-0056), limite de 20 caracteres dos nomes no banco | 2026-09-29 |
 | G5 Integração & CI | PENDING | | |
 | H2 Integração aprovada | PENDING | | |
 | G6 Deploy | PENDING | | |
