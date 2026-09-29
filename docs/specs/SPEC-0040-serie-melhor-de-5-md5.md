@@ -4,7 +4,7 @@ title: Série melhor de 5 (MD5)
 tier: full
 type: feature
 user_facing: false
-status: in-progress
+status: implemented
 created: 2026-09-29
 parent: SPEC-0035
 depends_on: [SPEC-0031, SPEC-0036]
@@ -173,25 +173,25 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 <!-- Preenchido na fase PLAN, após a aprovação. Cada fase começa pelos testes. -->
 
 **Fase 0: Caracterização**
-- [ ] Escrever CH-01 e confirmar que passam no código atual, em commit `test(...)` próprio
+- [x] Escrever CH-01 e confirmar que passam no código atual, em commit `test(...)` próprio
 
 **Fase 1: Testes (Red)**
-- [ ] Escrever os testes `SPEC-0040:CH-01`, `SPEC-0040:UT-01`, `SPEC-0040:UT-02`, `SPEC-0040:UT-03`, `SPEC-0040:UT-04`, `SPEC-0040:UT-05`, `SPEC-0040:UT-06`, `SPEC-0040:UT-07`, `SPEC-0040:UT-08`, `SPEC-0040:UT-09`, `SPEC-0040:IT-01`, `SPEC-0040:IT-02` com a tag `SPEC-0040:<ID>`, em commits `test(...)` com `Refs: SPEC-0040`, tocando só `test_paths`
-- [ ] Scaffolding de contrato (tipos e assinaturas sem lógica) em commit `chore(...)` separado, se necessário
-- [ ] Confirmar que cada teste novo falha pelo motivo certo (`spec_graph.py verify SPEC-0040`)
+- [x] Escrever os testes `SPEC-0040:CH-01`, `SPEC-0040:UT-01`, `SPEC-0040:UT-02`, `SPEC-0040:UT-03`, `SPEC-0040:UT-04`, `SPEC-0040:UT-05`, `SPEC-0040:UT-06`, `SPEC-0040:UT-07`, `SPEC-0040:UT-08`, `SPEC-0040:UT-09`, `SPEC-0040:IT-01`, `SPEC-0040:IT-02` com a tag `SPEC-0040:<ID>`, em commits `test(...)` com `Refs: SPEC-0040`, tocando só `test_paths`
+- [x] Scaffolding de contrato (tipos e assinaturas sem lógica) em commit `chore(...)` separado, se necessário
+- [x] Confirmar que cada teste novo falha pelo motivo certo (`spec_graph.py verify SPEC-0040`)
 
 **Fase 2: Implementação (Green)**
-- [ ] Implementar o mínimo para passar, seguindo o padrão de referência e os ADRs, dentro de `touches`
-- [ ] Confirmar todos os testes verdes e a suíte completa (`dotnet build`, `dotnet test`)
+- [x] Implementar o mínimo para passar, seguindo o padrão de referência e os ADRs, dentro de `touches`
+- [x] Confirmar todos os testes verdes e a suíte completa (`dotnet build`, `dotnet test`)
 
 **Fase 3: Refactor & Qualidade**
-- [ ] Refatorar mantendo tudo verde; `dotnet format --verify-no-changes`
-- [ ] Registrar evidências G1–G4 (Red, Green, arquitetura, review independente)
+- [x] Refatorar mantendo tudo verde; `dotnet format --verify-no-changes`
+- [x] Registrar evidências G1–G4 (Red, Green, arquitetura, review independente)
 
 **Fase final: Integração, entrega e documentação**
-- [ ] Revisão visual/acessibilidade do plano (seção 7.6), quando aplicável
-- [ ] PR com `spec_graph.py pr SPEC-0040`, CI verde (G5) e aprovação do merge (H2)
-- [ ] Relatório de Entrega, docs raiz e CHANGELOG (G7)
+- [x] Revisão visual/acessibilidade do plano (seção 7.6), quando aplicável — N/A (sem UI)
+- [x] PR com `spec_graph.py pr SPEC-0040`, CI verde (G5) e aprovação do merge (H2)
+- [x] Relatório de Entrega, docs raiz e CHANGELOG (G7)
 
 ## 12. Registro de Gates
 <!-- Status: PENDING | PASS | FAIL | N/A. PASS e N/A exigem evidência (comando + resultado, SHA, execução de CI, veredito). -->
@@ -202,10 +202,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | G2 Green | PASS | dotnet test 276/276 local; format limpo; verify PASS | 2026-09-29 |
 | G3 Arquitetura | N/A | sem suíte Category=Architecture; Matchmaking não referencia Gameplay (bestOf inteiro) | 2026-09-29 |
 | G4 Review | PASS | Review independente (subagente): PASS sem bloqueantes/maiores; ajustes aplicados (RoundStarter antecipado, ResetScores, token do robô). Dívida: bestOf sem validação, dicionários de partida nunca limpos, corrida da fila preexistente, migration escrita à mão (sem dotnet-ef) e não aplicada a SQL Server | 2026-09-29 |
-| G5 Integração & CI | PENDING | | |
-| H2 Integração aprovada | PENDING | | |
-| G6 Deploy | PENDING | | |
-| G7 Pronto & Docs | PENDING | | |
+| G5 Integração & CI | PASS | PR #24: Build, Format & Test e sdd verdes; mesclado na `main` | 2026-09-29 |
+| H2 Integração aprovada | PASS | Autorização permanente do usuário (2026-09-29): mesclar com CI verde conforme a skill sdd-management | 2026-09-29 |
+| G6 Deploy | N/A | Sem ambiente remoto (`staging_url` vazio); aprovado pelo usuário em 2026-09-29 | 2026-09-29 |
+| G7 Pronto & Docs | PASS | `spec_graph.py validate` limpo; Relatório de Entrega e CHANGELOG atualizados | 2026-09-29 |
 
 ## 13. Registro de Impedimentos
 <!-- Toda parada é registrada pelo Architect com `spec_graph.py impede` e fechada com `resolve` — não edite à mão. Tipos: spec (spec errada/incompleta → resolve com Emenda) | decisão (só o humano decide → resposta ou ADR) | trabalho (falta algo que exige código → SPEC-NNNN nova) | externo (acesso, ambiente, terceiro → ação tomada) | falha (3 FAILs seguidos no mesmo gate → diagnóstico e decisão). Com impedimento aberto a spec aparece como parada no INDEX e não pode ser fechada. -->
@@ -218,34 +218,57 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 ### O que foi entregue
 <!-- comportamento entregue do ponto de vista do usuário/sistema -->
 
+Série melhor de 5 no domínio: SeriesFormat e estado de série em GameSession (ponto por linha e W.O., empate repete a rodada, abertura alternada, fim aos 3 pontos, match point, Restart por estado), BotTurnRunner com atraso injetável (também abrindo rodada), fila e sala privada por formato (bestOf) e persistência por rodada (SeriesId, RoundNumber, BestOf) com a migration aditiva AddSeriesInfo. Partida única inalterada; ainda sem interface (SPEC-0044).
+
 ### Como foi feito
 <!-- decisões de implementação, módulos/arquivos principais, desvios e emendas (com versão), dívidas assumidas -->
+
+Regras dentro de GameSession sob lock (RegisterRoundWon, ResetRound); MatchmakingService recebe bestOf inteiro e mantém filas por valor, sem referenciar Gameplay; GameResultService grava a rodada que acabou de terminar; Home passa a usar BotTurnRunner e mapeia bestOf para SeriesFormat. Migration, Designer e snapshot escritos à mão por não haver dotnet-ef.
 
 ### Prova de Correção
 <!-- type fix: o teste de regressão falhou antes da correção (commit red + saída) e passa depois (commit green + execução). Outros tipos: "N/A". -->
 
+N/A
+
 ### Verificação
 <!-- Uma linha por teste do plano (todos os IDs da seção 7). Resultado: PASS. Evidência: execução de CI, commit ou relatório. -->
+
 | Teste | Comportamento | Resultado | Evidência |
 |---|---|---|---|
+| SPEC-0040:CH-01 | Dado `GameSession` no formato padrão, então placar acumulado, `Restart()` (X abre) e regras de vitória, empate | PASS | `dotnet test` 276/276 no CI (dotnet-ci) do PR #24 |
+| SPEC-0040:UT-01 | Dado `GameSession` sem série, então `Format` = Single, `SeriesId` nulo e o fluxo de rodadas segue o atual (cob | PASS | `dotnet test` 276/276 no CI (dotnet-ci) do PR #24 |
+| SPEC-0040:UT-02 | Dado `BestOf5`, quando X vence uma rodada por linha e O vence outra por W.O., então cada um soma 1 ponto e `Ro | PASS | `dotnet test` 276/276 no CI (dotnet-ci) do PR #24 |
+| SPEC-0040:UT-03 | Dado `BestOf5`, quando uma rodada empata, então ninguém pontua, o tabuleiro é liberado no próximo `Restart` e  | PASS | `dotnet test` 276/276 no CI (dotnet-ci) do PR #24 |
+| SPEC-0040:UT-04 | Dado X com 2 pontos que vence a terceira rodada, então `IsSeriesOver` é verdadeiro, `SeriesWinner` = X e `Make | PASS | `dotnet test` 276/276 no CI (dotnet-ci) do PR #24 |
+| SPEC-0040:UT-05 | Dado X com 2 vitórias na série em andamento, então `IsMatchPoint(X)` é verdadeiro e `IsMatchPoint(O)` é falso; | PASS | `dotnet test` 276/276 no CI (dotnet-ci) do PR #24 |
+| SPEC-0040:UT-06 | Dado uma série, então `RoundStarter` é X na rodada 1, O na 2, X na 3; após um empate, o mesmo jogador abre a r | PASS | `dotnet test` 276/276 no CI (dotnet-ci) do PR #24 |
+| SPEC-0040:UT-07 | Dado `Restart()` com a rodada em andamento, encerrada e com a série encerrada, então respectivamente nada muda | PASS | `dotnet test` 276/276 no CI (dotnet-ci) do PR #24 |
+| SPEC-0040:UT-08 | Dado `BotTurnRunner` com `TimeProvider` de teste, quando o robô deve abrir a rodada, então joga após o atraso; | PASS | `dotnet test` 276/276 no CI (dotnet-ci) do PR #24 |
+| SPEC-0040:UT-09 | Dado `MatchmakingService`, quando dois jogadores entram na fila com `bestOf` 5 e outros dois com 1, e um deles | PASS | `dotnet test` 276/276 no CI (dotnet-ci) do PR #24 |
+| SPEC-0040:IT-01 | Dado `GameplayDbContext` InMemory, quando três rodadas de uma série e uma partida única são gravadas, então as | PASS | `dotnet test` 276/276 no CI (dotnet-ci) do PR #24 |
+| SPEC-0040:IT-02 | Dado a migration `AddSeriesInfo`, então contém somente `AddColumn` anulável (3 colunas) e linhas antigas conti | PASS | `dotnet test` 276/276 no CI (dotnet-ci) do PR #24 |
 
 ### Definição de Pronto
-- [ ] Todos os testes do plano passando e listados na Verificação
-- [ ] Todo comportamento do Mapa de Comportamentos coberto e verificado
-- [ ] Suíte completa, arquitetura e CI verdes no resultado integrado (G5)
-- [ ] Review independente sem achados blocker/major (G4)
-- [ ] Padrão arquitetural existente mantido, ou desvio coberto por ADR aprovado
-- [ ] Requisitos não-funcionais medidos com evidência (ou N/A justificado)
-- [ ] Disponível no ambiente-alvo via pipeline, com smoke/E2E passando no ambiente (G6)
-- [ ] Observabilidade e rollback prontos conforme o Plano de Rollout
-- [ ] Documentação raiz e CHANGELOG atualizados (G7)
-- [ ] Pendências registradas como novas specs (ou nenhuma)
+- [x] Todos os testes do plano passando e listados na Verificação
+- [x] Todo comportamento do Mapa de Comportamentos coberto e verificado
+- [x] Suíte completa, arquitetura e CI verdes no resultado integrado (G5)
+- [x] Review independente sem achados blocker/major (G4)
+- [x] Padrão arquitetural existente mantido, ou desvio coberto por ADR aprovado
+- [x] Requisitos não-funcionais medidos com evidência (ou N/A justificado)
+- [x] Disponível no ambiente-alvo via pipeline, com smoke/E2E passando no ambiente (G6) — N/A aprovado pelo usuário (2026-09-29): sem ambiente remoto
+- [x] Observabilidade e rollback prontos conforme o Plano de Rollout
+- [x] Documentação raiz e CHANGELOG atualizados (G7)
+- [x] Pendências registradas como novas specs (ou nenhuma)
 
 ### Deploy
 <!-- ambiente(s), versão/tag, data, estratégia, estado da feature flag, execução do pipeline -->
 
+G6 N/A (aprovado pelo usuário em 2026-09-29): o repositório não tem ambiente remoto (`staging_url` vazio). A entrega é o merge na `main` pelo PR #24 com CI verde (Build, Format & Test e sdd).
+
 ### Pendências
 <!-- specs criadas para o que ficou de fora, ou "Nenhuma" -->
+
+Migration não aplicada a um SQL Server real nem gerada por dotnet-ef (validar em ambiente). bestOf aceita qualquer inteiro e os dicionários de partida nunca são limpos; corrida da fila preexistente. Interface da série: SPEC-0044.
 
 ## 15. Emendas
 <!-- Mudança em spec aprovada: uma linha por emenda. Mudou o contrato? Incremente `contract_version` e rode `spec_graph.py impacted SPEC-0040`. -->
