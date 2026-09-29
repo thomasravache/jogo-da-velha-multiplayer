@@ -11,6 +11,9 @@
     [Parameter] public int MoveCount { get; set; }
     [Parameter] public TimeSpan Duration { get; set; }
 
+    /// <summary>Perspectiva de quem vê: true venceu, false perdeu, null neutro (empate ou sem perspectiva).</summary>
+    [Parameter] public bool? ViewerWon { get; set; }
+
     private string Title => Result.Reason switch
     {
         ChessEndReason.Checkmate => $"Xeque-mate — {WinnerName} venceu",
