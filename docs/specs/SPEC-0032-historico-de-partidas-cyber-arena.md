@@ -104,7 +104,7 @@ Estados: carregando · vazio ("Nenhuma partida registrada ainda." + "Jogar agora
 ## 7. Artefato B — Plano de Testes (TDD)
 
 ### 7.1 Testes de Caracterização
-- **CH-01** — Dado `GameResultService.GetRecentAsync(10)` com 11 partidas, então retorna 10 em ordem decrescente de `PlayedAt` (já coberto por `SPEC-0010:IT-02`; este teste fixa o contrato consumido pela página e passa antes da mudança).
+- **CH-01** — Dado `GameResultService.GetRecentAsync(10)` com 11 partidas, então retorna 10 em ordem decrescente de `PlayedAt` (a ordenação já é coberta pelos testes da SPEC-0010; este teste fixa o contrato consumido pela página e passa antes da mudança).
 
 **Testes existentes afetados:** nenhum (a página não tinha testes de UI; `MatchHistoryTests` cobre só o serviço).
 
