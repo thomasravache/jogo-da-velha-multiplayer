@@ -169,6 +169,18 @@ public class GameResultService(GameplayDbContext db, ILogger<GameResultService> 
             .Take(count)
             .ToListAsync();
 
+    public virtual async Task<LeaderboardPage> GetLeaderboardPageAsync(LeaderboardQuery query)
+    {
+        var rows = await db.MatchResults
+            .Select(m => new { m.PlayerXName, m.PlayerOName, m.PlayerXId, m.PlayerOId, m.WinnerName, m.WinnerSide, m.Mode, m.PlayedAt })
+            .ToListAsync();
+
+        var ranked = LeaderboardAnalysis.Rank(
+            rows.Select(r => new LeaderboardGame(r.PlayerXName, r.PlayerOName, r.PlayerXId, r.PlayerOId, r.WinnerName, r.WinnerSide, r.Mode, r.PlayedAt)),
+            query.MyPlayerId);
+        return LeaderboardAnalysis.Paginate(ranked, query.Page, query.PageSize);
+    }
+
     public async Task<List<PlayerRank>> GetLeaderboardAsync(int top = 10)
     {
         var rawWins = await db.MatchResults

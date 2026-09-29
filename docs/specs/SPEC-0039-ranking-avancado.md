@@ -4,13 +4,13 @@ title: Ranking avançado
 tier: full
 type: feature
 user_facing: true
-status: approved
+status: in-progress
 created: 2026-09-29
 parent: SPEC-0035
 depends_on: [SPEC-0033, SPEC-0037, SPEC-0038]
 consumes_contract: []
-contract_version: 1
-touches: [src/TicTacToe/TicTacToe.Modules.Gameplay/GameResultService.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/LeaderboardModels.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/LeaderboardAnalysis.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/AiPlayer.cs, src/TicTacToe/TicTacToe.Web/Components/Pages/Leaderboard.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/Leaderboard.razor.css, tests/TicTacToe.Tests/LeaderboardAnalysisTests.cs, tests/TicTacToe.Tests/LeaderboardQueryTests.cs, tests/TicTacToe.Tests/LeaderboardAdvancedUiTests.cs]
+contract_version: 2
+touches: [src/TicTacToe/TicTacToe.Modules.Gameplay/GameResultService.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/LeaderboardModels.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/LeaderboardAnalysis.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/AiPlayer.cs, src/TicTacToe/TicTacToe.Web/Components/Pages/Leaderboard.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/Leaderboard.razor.css, tests/TicTacToe.Tests/LeaderboardAnalysisTests.cs, tests/TicTacToe.Tests/LeaderboardQueryTests.cs, tests/TicTacToe.Tests/LeaderboardAdvancedUiTests.cs, tests/TicTacToe.Tests/LeaderboardCyberArenaTests.cs, tests/TicTacToe.Tests/TailwindDesignSystemTests.cs]
 adrs: [ADR-0009]
 external: []
 size: M
@@ -89,6 +89,14 @@ Regras (LeaderboardAnalysis, funções puras)
   ordem           = vitórias desc, depois LastWinAtUtc desc; só quem tem ≥ 1 vitória
   posição         = índice global + 1 (contínua entre páginas)
   nome exibido    = apelido da partida mais recente do jogador
+
+record LeaderboardGame(string PlayerXName, string PlayerOName, Guid? PlayerXId, Guid? PlayerOId, string? WinnerName,
+                       string? WinnerSide, GameMode? Mode, DateTime PlayedAtUtc)   // projeção mínima de MatchResult
+
+LeaderboardAnalysis.Counts(LeaderboardGame) : bool                                  // regra de exclusão (solo/robô)
+LeaderboardAnalysis.Rank(IEnumerable<LeaderboardGame>, Guid? myPlayerId) : IReadOnlyList<LeaderboardEntry>   // todos com ≥ 1 vitória, ordenados, com posição
+LeaderboardAnalysis.Paginate(IReadOnlyList<LeaderboardEntry>, int page, int pageSize) : LeaderboardPage       // página limitada ao intervalo; Me = entrada com IsMe
+  partida antiga homônima (mesmo apelido nos dois lados, sem WinnerSide) não atribui vitória a ninguém
 
 AiPlayer.IsBotName(string) : bool   // reconhece os nomes de GetBotName (fácil, impossível, Minimax)
 ```
@@ -186,10 +194,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | Gate | Status | Evidência | Data |
 |---|---|---|---|
 | G0 Spec | PASS | `spec_graph.py validate` das 18 specs: 0 erros, 0 avisos | 2026-09-29 |
-| G1 Red | PENDING | | |
-| G2 Green | PENDING | | |
-| G3 Arquitetura | PENDING | | |
-| G4 Review | PENDING | | |
+| G1 Red | PASS | verify SPEC-0039: Red antes do Green (60878cb), 9/9 testes do plano rastreados | 2026-09-29 |
+| G2 Green | PASS | dotnet test 260/260 local; format e tailwind --check limpos; verify PASS | 2026-09-29 |
+| G3 Arquitetura | N/A | sem suíte Category=Architecture | 2026-09-29 |
+| G4 Review | PASS | Review independente (subagente): PASS, 0 bloqueantes/maiores; menores tratados (mesma chave nos dois lados ignorada com teste, chip VOCÊ aria-hidden). Restam como follow-up: teste da sequência anti-resposta velha, fuso do servidor em FormatDate | 2026-09-29 |
 | G5 Integração & CI | PENDING | | |
 | H2 Integração aprovada | PENDING | | |
 | G6 Deploy | PENDING | | |
@@ -239,3 +247,4 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 <!-- Mudança em spec aprovada: uma linha por emenda. Mudou o contrato? Incremente `contract_version` e rode `spec_graph.py impacted SPEC-0039`. -->
 | Versão do contrato | Data | Mudança | Motivo | Specs impactadas | Aprovado por |
 |---|---|---|---|---|---|
+| 2 | 2026-09-29 | Contrato ganha `LeaderboardGame`, `LeaderboardAnalysis.Counts/Rank/Paginate` (assinaturas das funções puras); `touches` inclui `LeaderboardCyberArenaTests.cs` e `TailwindDesignSystemTests.cs` | Explicitar a projeção e as funções puras testadas por UT-01/UT-02; a página passa a exigir o serviço de identidade, então os testes existentes que a renderizam precisam registrá-lo | SPEC-0033 e SPEC-0034 (testes); sem consumidores do contrato | thomas (autorização permanente, 2026-09-29) |
