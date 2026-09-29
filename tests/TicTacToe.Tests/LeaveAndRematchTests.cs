@@ -212,4 +212,35 @@ public class LeaveAndRematchTests
         Assert.Equal(RematchState.None, g.RematchState);
         Assert.False(g.AcceptRematch(Player.O));
     }
+
+    [Fact(DisplayName = "SPEC-0041:UT-04b — A expiração do pedido notifica fora do lock")]
+    [Trait("Category", "SPEC-0041:UT-04")]
+    public void Expiry_ShouldNotifyOutsideTheLock()
+    {
+        var time = new ManualTime();
+        using var g = Finished(time);
+        g.RequestRematch(Player.X);
+        var reentered = false;
+        g.OnStateChanged += () => reentered = Task.Run(() => g.HasLeft(Player.X)).Wait(TimeSpan.FromSeconds(2));
+
+        time.Advance(TimeSpan.FromSeconds(30));
+        g.Tick();
+
+        Assert.Equal(RematchState.Expired, g.RematchState);
+        Assert.True(reentered, "o evento foi disparado com o lock da sessão retido");
+    }
+
+    [Fact(DisplayName = "SPEC-0041:UT-06c — Série com rodada encerrada e oponente ausente não reinicia")]
+    [Trait("Category", "SPEC-0041:UT-06")]
+    public void Series_RestartIsRefusedWhenOpponentLeft()
+    {
+        using var g = new GameSession(enableBackgroundTimer: false, format: SeriesFormat.BestOf5) { Mode = GameMode.Online };
+        SeriesRulesTests.WinRound(g, Player.X);
+        Assert.Equal(LeaveResult.Left, g.Leave(Player.O));
+
+        g.Restart();
+
+        Assert.Equal(Player.X, g.Winner); // continua encerrada, sem tabuleiro fantasma
+        Assert.Equal(2, g.RoundNumber);
+    }
 }

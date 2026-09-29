@@ -83,6 +83,19 @@ public class LeaveAndRematchUiTests
         Assert.Equal("polite", left.Find("[aria-live]").GetAttribute("aria-live"));
     }
 
+    [Fact(DisplayName = "SPEC-0041:UT-07c — Oponente ausente esconde 'Próxima rodada' e avisa, mesmo sem consentimento")]
+    [Trait("Category", "SPEC-0041:UT-07")]
+    public void RematchBar_OpponentLeft_HidesNextRoundEvenWithoutConsent()
+    {
+        using var ctx = new BunitContext();
+        var cut = ctx.Render<RematchBar>(p => p
+            .Add(r => r.Finished, true).Add(r => r.Kind, RematchBar.RematchKind.NextRound).Add(r => r.OpponentLeft, true));
+
+        Assert.Contains("Oponente saiu da partida", cut.Markup);
+        Assert.Empty(cut.FindAll("button"));
+        Assert.DoesNotContain(ctx.Render<RematchBar>(p => p.Add(r => r.Finished, false)).FindAll("[aria-live]"), e => e.TextContent.Length > 0);
+    }
+
     [Fact(DisplayName = "SPEC-0041:UT-08 — ArenaActions: confirmação em duas etapas, cancelar e Esc")]
     [Trait("Category", "SPEC-0041:UT-08")]
     public void ArenaActions_ShouldConfirmInTwoSteps()
