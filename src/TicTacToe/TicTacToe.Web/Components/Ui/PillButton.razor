@@ -1,6 +1,6 @@
 @if (Href is not null && !IsDisabled)
 {
-    <a href="@Href" class="@Css" @onclick="HandleClick">@Content</a>
+    <a href="@Href" class="@Css">@Content</a>
 }
 else
 {
@@ -22,14 +22,14 @@ else
 
     private string Css => string.Join(' ', new[]
     {
-        "inline-flex items-center justify-center gap-2 rounded-pill font-numeric font-semibold uppercase tracking-[0.08em] transition",
+        "inline-flex items-center justify-center gap-2 no-underline! rounded-pill font-numeric font-semibold uppercase tracking-[0.08em] transition",
         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary disabled:pointer-events-none disabled:opacity-50",
         Size == PillSize.Lg ? "min-h-12 px-8 py-4 text-body-lg" : "min-h-11 px-5 py-2.5 text-label-numeric",
         Variant switch
         {
-            PillVariant.Outline => "border border-surface-high text-secondary hover:border-stroke-active hover:bg-surface-high/40",
-            PillVariant.Ghost => "text-ink-muted hover:bg-surface-high/50 hover:text-ink",
-            _ => "bg-linear-to-br from-primary to-[#e74c3c] text-white shadow-[0_4px_16px_rgb(255_71_87/0.4)] hover:brightness-110",
+            PillVariant.Outline => "border border-surface-high text-secondary! hover:border-stroke-active hover:bg-surface-high/40",
+            PillVariant.Ghost => "text-ink-muted! hover:bg-surface-high/50 hover:text-ink!",
+            _ => "bg-linear-to-br from-primary to-[#e74c3c] text-canvas! shadow-[0_4px_16px_rgb(255_71_87/0.4)] hover:brightness-110",
         },
         Class,
     }.Where(c => !string.IsNullOrWhiteSpace(c)));
@@ -41,7 +41,7 @@ else
         }
         else if (!string.IsNullOrWhiteSpace(Icon))
         {
-            <Icon Name="@Icon" Size="18" />
+            <Icon Name="@Icon" Size="20" />
         }
         @ChildContent
     </text>;

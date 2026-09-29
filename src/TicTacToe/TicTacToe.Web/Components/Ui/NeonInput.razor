@@ -1,10 +1,10 @@
 <div class="flex w-full flex-col gap-1">
     <label for="@InputId" class="font-numeric text-label-badge uppercase text-ink-muted">@Label</label>
-    <input id="@InputId" type="text" maxlength="@MaxLength" placeholder="@Placeholder" value="@Value" @oninput="HandleInput"
+    <input id="@InputId" type="text" maxlength="@MaxLength" placeholder="@Placeholder" value="@(Value ?? "")" @oninput="HandleInput"
            class="w-full rounded-pill border border-stroke bg-surface-high/60 px-5 py-3 text-body-lg text-ink placeholder:text-ink-muted/60 focus-visible:border-stroke-active focus-visible:outline-2 focus-visible:outline-secondary" />
     @if (ShowCounter)
     {
-        <span class="self-end font-numeric text-label-badge text-ink-muted">@Value.Length/@MaxLength</span>
+        <span class="self-end font-numeric text-label-badge text-ink-muted">@(Value?.Length ?? 0)/@MaxLength</span>
     }
 </div>
 
