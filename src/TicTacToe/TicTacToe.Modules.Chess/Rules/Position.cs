@@ -156,8 +156,9 @@ public sealed class Position
 
         var list = new List<Move>(48);
         GenerateLegal(list);
-        _legalMoves = list;
-        return list;
+        var frozen = list.ToArray(); // o chamador não pode alterar o cache da posição
+        _legalMoves = frozen;
+        return frozen;
     }
 
     public bool IsInCheck(PieceColor color)
@@ -320,6 +321,11 @@ public sealed class Position
         if (text == "-")
         {
             return 0;
+        }
+
+        if (text.Length == 0)
+        {
+            return -1; // campo vazio é inválido
         }
 
         var rights = 0;
