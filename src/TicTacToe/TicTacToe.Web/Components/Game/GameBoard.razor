@@ -1,9 +1,31 @@
 @using TicTacToe.Modules.Gameplay
 
-<div class="gameboard-stub"></div>
+@if (Game != null)
+{
+    <div class="board">
+        @for (int i = 0; i < 9; i++)
+        {
+            var index = i;
+            var cell = Game.Board[index];
+            var canPlay = Game.Winner == Player.None && !Game.IsDraw && Game.CurrentTurn == MyPlayer && cell == Player.None;
+            <div class="cell @(cell.ToString().ToLower()) @(canPlay ? "playable" : "")"
+                 @onclick="() => HandleCellClick(index)">
+                @(cell == Player.None ? "" : (cell == Player.X ? "✕" : "◯"))
+            </div>
+        }
+    </div>
+}
 
 @code {
     [Parameter] public GameSession Game { get; set; } = default!;
     [Parameter] public Player MyPlayer { get; set; }
     [Parameter] public EventCallback<int> OnCellClick { get; set; }
+
+    private async Task HandleCellClick(int index)
+    {
+        if (Game != null && Game.Winner == Player.None && !Game.IsDraw && Game.CurrentTurn == MyPlayer && Game.Board[index] == Player.None)
+        {
+            await OnCellClick.InvokeAsync(index);
+        }
+    }
 }

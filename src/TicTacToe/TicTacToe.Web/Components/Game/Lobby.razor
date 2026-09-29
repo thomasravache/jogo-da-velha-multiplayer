@@ -1,19 +1,123 @@
 @using TicTacToe.Modules.Gameplay
 
-<div class="lobby-stub"></div>
+@if (CreatedRoomCode != null)
+{
+    <div class="lobby waiting">
+        <div class="spinner"></div>
+        <p>Sala criada!</p>
+        <div class="room-code-badge">@CreatedRoomCode</div>
+        <p>Compartilhe o código com seu amigo para começar 🔒</p>
+    </div>
+}
+else if (IsWaiting)
+{
+    <div class="lobby waiting">
+        <div class="spinner"></div>
+        <p>Procurando oponente para <strong>@PlayerName</strong>... ⏳</p>
+    </div>
+}
+else
+{
+    <div class="lobby">
+        <label for="playerName">Seu apelido</label>
+        <input id="playerName"
+               type="text"
+               maxlength="20"
+               placeholder="Ex: Thomas"
+               value="@PlayerName"
+               @oninput="HandleNameInput"
+               class="name-input" />
+        <div class="mode-actions">
+            <button class="btn-play"
+                    disabled="@(string.IsNullOrWhiteSpace(PlayerName))"
+                    @onclick="OnPlayOnline">
+                Jogar Online 🌐
+            </button>
+            <div class="solo-section">
+                <div class="difficulty-container">
+                    <span class="difficulty-label">Dificuldade:</span>
+                    <div class="difficulty-selector" role="group" aria-label="Dificuldade da IA">
+                        <button type="button"
+                                class="btn-diff @(SelectedDifficulty == AiDifficulty.Easy ? "active" : "")"
+                                aria-pressed="@(SelectedDifficulty == AiDifficulty.Easy)"
+                                @onclick="() => SetDifficulty(AiDifficulty.Easy)">
+                            Fácil 🟢
+                        </button>
+                        <button type="button"
+                                class="btn-diff @(SelectedDifficulty == AiDifficulty.Hard ? "active" : "")"
+                                aria-pressed="@(SelectedDifficulty == AiDifficulty.Hard)"
+                                @onclick="() => SetDifficulty(AiDifficulty.Hard)">
+                            Impossível 🔴
+                        </button>
+                    </div>
+                </div>
+                <button class="btn-play btn-solo"
+                        disabled="@(string.IsNullOrWhiteSpace(PlayerName))"
+                        @onclick="OnPlaySolo">
+                    Jogar vs Robô (IA) 🤖
+                </button>
+            </div>
+            <button class="btn-play btn-private"
+                    disabled="@(string.IsNullOrWhiteSpace(PlayerName))"
+                    @onclick="OnCreateRoom">
+                Criar Sala Privada 🔒
+            </button>
+            <div class="join-room-box">
+                <input type="text"
+                       placeholder="Código (ex: SALA-ABCD)"
+                       value="@InputRoomCode"
+                       @oninput="HandleRoomCodeInput"
+                       class="code-input" />
+                <button class="btn-join"
+                        disabled="@(string.IsNullOrWhiteSpace(PlayerName) || string.IsNullOrWhiteSpace(InputRoomCode))"
+                        @onclick="OnJoinRoom">
+                    Entrar 🔑
+                </button>
+            </div>
+            @if (!string.IsNullOrEmpty(RoomErrorMessage))
+            {
+                <span class="error-msg">@RoomErrorMessage</span>
+            }
+        </div>
+    </div>
+}
 
 @code {
     [Parameter] public string PlayerName { get; set; } = "";
     [Parameter] public EventCallback<string> PlayerNameChanged { get; set; }
+
     [Parameter] public AiDifficulty SelectedDifficulty { get; set; } = AiDifficulty.Hard;
     [Parameter] public EventCallback<AiDifficulty> DifficultyChanged { get; set; }
+
     [Parameter] public string InputRoomCode { get; set; } = "";
     [Parameter] public EventCallback<string> InputRoomCodeChanged { get; set; }
+
     [Parameter] public bool IsWaiting { get; set; }
     [Parameter] public string? CreatedRoomCode { get; set; }
     [Parameter] public string? RoomErrorMessage { get; set; }
+
     [Parameter] public EventCallback OnPlayOnline { get; set; }
     [Parameter] public EventCallback OnPlaySolo { get; set; }
     [Parameter] public EventCallback OnCreateRoom { get; set; }
     [Parameter] public EventCallback OnJoinRoom { get; set; }
+
+    private async Task HandleNameInput(ChangeEventArgs e)
+    {
+        var val = e.Value?.ToString() ?? "";
+        PlayerName = val;
+        await PlayerNameChanged.InvokeAsync(val);
+    }
+
+    private async Task SetDifficulty(AiDifficulty difficulty)
+    {
+        SelectedDifficulty = difficulty;
+        await DifficultyChanged.InvokeAsync(difficulty);
+    }
+
+    private async Task HandleRoomCodeInput(ChangeEventArgs e)
+    {
+        var val = e.Value?.ToString() ?? "";
+        InputRoomCode = val;
+        await InputRoomCodeChanged.InvokeAsync(val);
+    }
 }

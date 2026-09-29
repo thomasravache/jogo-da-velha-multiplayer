@@ -1,6 +1,50 @@
 @using TicTacToe.Modules.Gameplay
 
-<div class="scoreboard-stub"></div>
+@if (Game != null)
+{
+    var currentName = Game.GetPlayerName(Game.CurrentTurn);
+    var myName = Game.GetPlayerName(MyPlayer);
+
+    <div class="players-bar">
+        <span class="player-tag x @(MyPlayer == Player.X ? "me" : "")">
+            ✕ @Game.GetPlayerName(Player.X) <span class="score-badge">@Game.GetScore(Player.X)</span>
+        </span>
+        <span class="vs">vs</span>
+        <span class="player-tag o @(MyPlayer == Player.O ? "me" : "")">
+            ◯ @Game.GetPlayerName(Player.O) <span class="score-badge">@Game.GetScore(Player.O)</span>
+        </span>
+    </div>
+
+    <div class="status">
+        @if (Game.Winner != Player.None)
+        {
+            var winnerName = Game.GetPlayerName(Game.Winner);
+            if (Game.Winner == MyPlayer)
+            {
+                <strong class="win">Você venceu, @myName! 🎉</strong>
+            }
+            else
+            {
+                <strong class="lose">@winnerName venceu! 😅</strong>
+            }
+        }
+        else if (Game.IsDraw)
+        {
+            <strong>Deu velha! 🤝</strong>
+        }
+        else
+        {
+            @if (Game.CurrentTurn == MyPlayer)
+            {
+                <span class="my-turn">Sua vez, <strong>@myName</strong>!</span>
+            }
+            else
+            {
+                <span>Vez de <strong>@currentName</strong>...</span>
+            }
+        }
+    </div>
+}
 
 @code {
     [Parameter] public GameSession Game { get; set; } = default!;
