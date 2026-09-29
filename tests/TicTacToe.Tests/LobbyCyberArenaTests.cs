@@ -21,7 +21,7 @@ public class LobbyCyberArenaTests
             "CreatedRoomCode:String", "DifficultyChanged:EventCallback`1", "InputRoomCode:String",
             "InputRoomCodeChanged:EventCallback`1", "IsWaiting:Boolean", "OnCreateRoom:EventCallback",
             "OnJoinRoom:EventCallback", "OnPlayOnline:EventCallback", "OnPlaySolo:EventCallback",
-            "PlayerName:String", "PlayerNameChanged:EventCallback`1", "RoomErrorMessage:String",
+            "PlayerName:String", "PlayerNameChanged:EventCallback`1", "ReturningPlayerName:String", "RoomErrorMessage:String",
             "SelectedDifficulty:AiDifficulty",
         }.OrderBy(x => x, StringComparer.Ordinal).ToArray();
 
