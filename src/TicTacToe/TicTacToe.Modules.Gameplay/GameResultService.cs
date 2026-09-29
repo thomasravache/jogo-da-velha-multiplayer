@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -59,9 +60,108 @@ public class GameResultService(GameplayDbContext db, ILogger<GameResultService> 
         return true;
     }
 
-    public virtual Task<HistoryPage> GetHistoryAsync(HistoryQuery query) => throw new NotImplementedException();
+    public virtual async Task<HistoryPage> GetHistoryAsync(HistoryQuery query)
+    {
+        var mine = query.Scope == HistoryScope.Mine;
+        if (mine && query.PlayerId is null)
+        {
+            return new HistoryPage([], 0, 1, 1, new HistoryCounts(0, 0, 0, 0, 0));
+        }
 
-    public virtual Task<PlayerSummary> GetPlayerSummaryAsync(Guid playerId) => throw new NotImplementedException();
+        var me = query.PlayerId;
+        IQueryable<MatchResult> scope = mine
+            ? db.MatchResults.Where(m => m.PlayerXId == me || m.PlayerOId == me)
+            : db.MatchResults;
+
+        var term = query.Opponent?.Trim();
+        if (!string.IsNullOrEmpty(term))
+        {
+            // LIKE parametrizado; a colação do banco decide a caixa (SQL Server: insensível por padrão).
+            var pattern = "%" + term.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_").Replace("[", "\\[") + "%";
+            scope = mine
+                ? scope.Where(m => m.PlayerXId == me ? EF.Functions.Like(m.PlayerOName, pattern, "\\") : EF.Functions.Like(m.PlayerXName, pattern, "\\"))
+                : scope.Where(m => EF.Functions.Like(m.PlayerXName, pattern, "\\") || EF.Functions.Like(m.PlayerOName, pattern, "\\"));
+        }
+
+        // Contagens: escopo + busca, nunca o filtro nem a página (SPEC-0038, emenda v3).
+        var counts = new HistoryCounts(
+            await scope.CountAsync(),
+            mine ? await scope.Where(WinPredicate(me)).CountAsync() : 0,
+            mine ? await scope.Where(LossPredicate(me)).CountAsync() : 0,
+            await scope.Where(DrawPredicate).CountAsync(),
+            await scope.Where(WalkOverPredicate).CountAsync());
+
+        var filtered = query.Filter switch
+        {
+            HistoryFilter.Wins when mine => scope.Where(WinPredicate(me)),
+            HistoryFilter.Losses when mine => scope.Where(LossPredicate(me)),
+            HistoryFilter.Draws => scope.Where(DrawPredicate),
+            HistoryFilter.WalkOvers => scope.Where(WalkOverPredicate),
+            _ => scope,
+        };
+
+        var total = await filtered.CountAsync();
+        var pageSize = Math.Max(1, query.PageSize);
+        var pageCount = Math.Max(1, (int)Math.Ceiling(total / (double)pageSize));
+        var page = Math.Clamp(query.Page, 1, pageCount);
+
+        var ordered = query.Sort switch
+        {
+            HistorySort.ShortestDuration => filtered
+                .OrderBy(m => m.DurationSeconds == null).ThenBy(m => m.DurationSeconds).ThenByDescending(m => m.PlayedAt),
+            HistorySort.Result when mine => filtered
+                .OrderBy(m => (m.PlayerXId == me ? m.WinnerSide == "X" : m.WinnerSide == "O") ? 0 : m.WinnerSide == null ? 1 : 2)
+                .ThenByDescending(m => m.PlayedAt),
+            HistorySort.Result => filtered
+                .OrderBy(m => m.WinnerName == null ? 1 : 0).ThenByDescending(m => m.PlayedAt),
+            _ => filtered.OrderByDescending(m => m.PlayedAt),
+        };
+
+        var rows = await ordered.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+        var items = rows.Select(m => ToItem(m, mine ? me : null)).ToList();
+        return new HistoryPage(items, total, page, pageCount, counts);
+    }
+
+    public virtual async Task<PlayerSummary> GetPlayerSummaryAsync(Guid playerId)
+    {
+        var rows = await db.MatchResults
+            .Where(m => m.PlayerXId == playerId || m.PlayerOId == playerId)
+            .Select(m => new { IAmX = m.PlayerXId == playerId, m.WinnerSide, m.EndReason, m.DurationSeconds, m.MoveCount, m.PlayedAt })
+            .ToListAsync();
+
+        return HistoryAnalysis.Summarize(rows.Select(r =>
+            new SummaryGame(r.IAmX, r.WinnerSide, r.EndReason, r.DurationSeconds, r.MoveCount, r.PlayedAt)));
+    }
+
+    private static readonly EndReason?[] WalkOverReasons = [EndReason.Timeout, EndReason.Abandon, EndReason.Disconnect];
+
+    private static Expression<Func<MatchResult, bool>> WinPredicate(Guid? me) =>
+        m => m.PlayerXId == me ? m.WinnerSide == "X" : m.WinnerSide == "O";
+
+    private static Expression<Func<MatchResult, bool>> LossPredicate(Guid? me) =>
+        m => m.PlayerXId == me ? m.WinnerSide == "O" : m.WinnerSide == "X";
+
+    private static readonly Expression<Func<MatchResult, bool>> DrawPredicate =
+        m => m.WinnerSide == null && m.WinnerName == null;
+
+    private static readonly Expression<Func<MatchResult, bool>> WalkOverPredicate =
+        m => WalkOverReasons.Contains(m.EndReason);
+
+    private static HistoryItem ToItem(MatchResult m, Guid? me)
+    {
+        // Partidas antigas não têm WinnerSide: deduz pelos nomes, exceto com homônimos (lado indeterminável).
+        var side = m.WinnerSide ?? (m.WinnerName is null || m.PlayerXName == m.PlayerOName
+            ? null
+            : m.WinnerName == m.PlayerXName ? "X" : m.WinnerName == m.PlayerOName ? "O" : null);
+        bool? iAmX = me is null ? null : m.PlayerXId == me;
+        HistoryOutcome? outcome = iAmX is { } x ? HistoryAnalysis.Classify(m.WinnerSide, x) : null;
+
+        return new HistoryItem(
+            m.Id, m.PlayerXName, m.PlayerOName, outcome,
+            HistoryAnalysis.IsWalkOver(m.EndReason),
+            HistoryAnalysis.Reason(m.EndReason, m.WinningLine),
+            m.DurationSeconds, m.Mode, m.PlayedAt, iAmX, side, m.WinnerName);
+    }
 
     public async Task<List<MatchResult>> GetRecentAsync(int count = 10) =>
         await db.MatchResults
