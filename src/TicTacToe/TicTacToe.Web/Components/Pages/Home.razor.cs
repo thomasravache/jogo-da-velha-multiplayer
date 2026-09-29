@@ -15,7 +15,6 @@ public partial class Home : IDisposable
     private Guid? MatchId;
     private bool IsWaiting;
     private Player MyPlayer;
-    private System.Threading.Timer? _pollTimer;
     private bool _confettiFired;
     private string? CreatedRoomCode;
     private string InputRoomCode = "";
@@ -28,7 +27,6 @@ public partial class Home : IDisposable
         if (string.IsNullOrWhiteSpace(PlayerName)) return;
         RoomErrorMessage = null;
         CreatedRoomCode = Matchmaking.CreatePrivateRoom(ConnectionId, PlayerName.Trim());
-        _pollTimer = new System.Threading.Timer(CheckMatchStatus, null, 500, 500);
     }
 
     private void JoinRoom()
@@ -60,23 +58,6 @@ public partial class Home : IDisposable
             MyPlayer = Player.O;
             IsWaiting = false;
             EnsureGameExists();
-        }
-        else
-        {
-            _pollTimer = new System.Threading.Timer(CheckMatchStatus, null, 500, 500);
-        }
-    }
-
-    private void CheckMatchStatus(object? state)
-    {
-        if (Matchmaking.ActiveMatches.TryGetValue(ConnectionId, out var matchId))
-        {
-            MatchId = matchId;
-            MyPlayer = Player.X;
-            IsWaiting = false;
-            EnsureGameExists();
-            _pollTimer?.Dispose();
-            InvokeAsync(StateHasChanged);
         }
     }
 
@@ -124,28 +105,9 @@ public partial class Home : IDisposable
                 existingGame.SetPlayerName(Player.O, names.Value.PlayerOName);
             }
         }
-
-        _pollTimer = new System.Threading.Timer(async _ => await OnPollTick(), null, 1000, 1000);
     }
 
     private async void OnGameStateChanged()
-    {
-        if (MatchId != null && Games.TryGetValue(MatchId.Value, out var g))
-        {
-            if (g.Winner == MyPlayer && !_confettiFired)
-            {
-                _confettiFired = true;
-                try
-                {
-                    await JS.InvokeVoidAsync("triggerConfetti");
-                }
-                catch { }
-            }
-        }
-        await InvokeAsync(StateHasChanged);
-    }
-
-    private async Task OnPollTick()
     {
         if (MatchId != null && Games.TryGetValue(MatchId.Value, out var g))
         {
@@ -175,8 +137,6 @@ public partial class Home : IDisposable
         game.SetPlayerName(Player.O, AiPlayer.GetBotName(SelectedDifficulty));
         game.OnStateChanged += OnGameStateChanged;
         Games.TryAdd(MatchId.Value, game);
-
-        _pollTimer = new System.Threading.Timer(async _ => await OnPollTick(), null, 1000, 1000);
     }
 
     private async Task MakeMove(int index)
@@ -230,7 +190,6 @@ public partial class Home : IDisposable
         {
             g.OnStateChanged -= OnGameStateChanged;
         }
-        _pollTimer?.Dispose();
         GC.SuppressFinalize(this);
     }
 }

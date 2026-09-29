@@ -1,7 +1,8 @@
-using TicTacToe.Web.Components;
-using TicTacToe.Modules.Matchmaking;
-using TicTacToe.Modules.Gameplay;
 using System.Collections.Concurrent;
+using Microsoft.EntityFrameworkCore;
+using TicTacToe.Modules.Gameplay;
+using TicTacToe.Modules.Matchmaking;
+using TicTacToe.Web.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,7 +27,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<GameplayDbContext>();
-    await db.Database.EnsureCreatedAsync();
+    await db.Database.MigrateAsync();
 }
 
 if (!app.Environment.IsDevelopment())
