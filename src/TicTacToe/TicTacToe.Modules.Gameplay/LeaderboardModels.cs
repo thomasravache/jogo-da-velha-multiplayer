@@ -1,6 +1,6 @@
 namespace TicTacToe.Modules.Gameplay;
 
-public sealed record LeaderboardQuery(Guid? MyPlayerId, int Page, int PageSize = 10);
+public sealed record LeaderboardQuery(Guid? MyPlayerId, int Page, int PageSize = 10, GameType Game = GameType.TicTacToe);
 
 public sealed record LeaderboardEntry(
     int Position,

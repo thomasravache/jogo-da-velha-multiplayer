@@ -39,7 +39,7 @@ internal sealed class RecordingGameResultService(GameplayDbContext db) : GameRes
         return Task.FromResult(Respond(query));
     }
 
-    public override Task<PlayerSummary> GetPlayerSummaryAsync(Guid playerId) => Task.FromResult(Summary);
+    public override Task<PlayerSummary> GetPlayerSummaryAsync(Guid playerId, GameType game = GameType.TicTacToe) => Task.FromResult(Summary);
 }
 
 public class HistoryAdvancedUiTests
@@ -203,7 +203,7 @@ public class HistoryAdvancedUiTests
             return new HistoryPage([item], 1, 1, 1, new HistoryCounts(1, 1, 0, 0, 0));
         }
 
-        public override Task<PlayerSummary> GetPlayerSummaryAsync(Guid playerId) => Task.FromResult(new PlayerSummary(1, 1, 0, 0, 100, 1, 30, 6));
+        public override Task<PlayerSummary> GetPlayerSummaryAsync(Guid playerId, GameType game = GameType.TicTacToe) => Task.FromResult(new PlayerSummary(1, 1, 0, 0, 100, 1, 30, 6));
     }
 
     [Fact(DisplayName = "SPEC-0038:UT-06 — Partidas antigas mostram '—' em duração e motivo, sem erro")]
