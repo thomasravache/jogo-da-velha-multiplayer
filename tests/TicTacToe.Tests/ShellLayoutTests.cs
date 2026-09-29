@@ -196,9 +196,37 @@ public class ShellLayoutTests
         var pairs = new[]
         {
             ("ink", "canvas"), ("ink", "surface"), ("ink-muted", "surface"), ("primary", "canvas"),
-            ("secondary", "canvas"), ("success", "canvas"), ("gold", "canvas"), ("warning", "canvas"),
+            ("canvas", "primary"), ("secondary", "canvas"), ("success", "canvas"), ("gold", "canvas"), ("warning", "canvas"),
         };
         foreach (var (fg, bg) in pairs)
             Assert.True(Ratio(fg, bg) >= 4.5, $"{fg} sobre {bg} tem contraste {Ratio(fg, bg):F2}");
+    }
+
+    [Fact(DisplayName = "SPEC-0043:UT-03b — Rota parecida não ativa o link (/historyfoo)")]
+    [Trait("Category", "SPEC-0043:UT-03")]
+    public async Task SimilarRoute_ShouldNotActivateLink()
+    {
+        await using var ctx = NewContext(out _);
+        ctx.Services.GetRequiredService<NavigationManager>().NavigateTo("/historyfoo");
+        var cut = RenderLayout(ctx);
+
+        Assert.Empty(cut.FindAll("header nav a[aria-current='page']"));
+    }
+
+    [Fact(DisplayName = "SPEC-0043:IT-01b — main em bloco (sem flex central) e links com cor importante para coexistir com CSS legado")]
+    [Trait("Category", "SPEC-0043:IT-01")]
+    public async Task Layout_ShouldKeepMainInBlockFlow_AndProtectLinkColors()
+    {
+        await using var ctx = NewContext(out _);
+        var cut = RenderLayout(ctx);
+
+        var main = cut.Find("main").GetAttribute("class") ?? "";
+        Assert.DoesNotContain("items-center", main);
+        Assert.DoesNotContain("justify-center", main);
+        Assert.Contains("bg-transparent!", main);
+
+        var linkClass = cut.Find("header nav a").GetAttribute("class") ?? "";
+        Assert.Contains("no-underline!", linkClass);
+        Assert.Matches(@"text-[a-z-]+!", linkClass);
     }
 }

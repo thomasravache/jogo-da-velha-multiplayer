@@ -66,6 +66,29 @@ public class UiPrimitivesTests
         Assert.Empty(link.FindAll("button"));
     }
 
+    [Fact(DisplayName = "SPEC-0043:UT-08b — NeonInput tolera valor nulo do pai")]
+    [Trait("Category", "SPEC-0043:UT-08")]
+    public void NeonInput_ShouldTolerateNullValue()
+    {
+        using var ctx = new BunitContext();
+        var cut = ctx.Render<NeonInput>(p => p.Add(c => c.Value, null!).Add(c => c.ShowCounter, true).Add(c => c.Label, "x"));
+
+        Assert.Contains("0/20", cut.Markup);
+    }
+
+    [Fact(DisplayName = "SPEC-0043:UT-06b — PillButton com Href não gera round-trip de clique e usa cores importantes contra CSS legado")]
+    [Trait("Category", "SPEC-0043:UT-06")]
+    public void PillButton_Link_ShouldNotWireClick_AndBeatLegacyLinkColor()
+    {
+        using var ctx = new BunitContext();
+        var link = ctx.Render<PillButton>(p => p.Add(c => c.Href, "/x").Add(c => c.ChildContent, Text("ir")));
+
+        Assert.DoesNotContain("blazor:onclick", link.Markup);
+        var cls = link.Find("a").GetAttribute("class") ?? "";
+        Assert.Contains("text-canvas!", cls);
+        Assert.Contains("no-underline!", cls);
+    }
+
     [Fact(DisplayName = "SPEC-0043:UT-07 — StatusChip varia por tom e só Waiting tem ponto animado")]
     [Trait("Category", "SPEC-0043:UT-07")]
     public void StatusChip_ShouldVaryByTone_AndAnimateDotOnlyOnWaiting()
@@ -114,11 +137,12 @@ public class UiPrimitivesTests
             .Add(c => c.Value, value)
             .Add(c => c.ValueChanged, EventCallback.Factory.Create<string>(ctx, onChange)));
 
-    [Fact(DisplayName = "SPEC-0043:UT-09 — SegmentedControl usa radiogroup, aria-checked, clique e setas")]
+    [Fact(DisplayName = "SPEC-0043:UT-09 — SegmentedControl usa radiogroup, aria-checked, roving tabindex, clique e setas com foco")]
     [Trait("Category", "SPEC-0043:UT-09")]
     public void SegmentedControl_ShouldExposeRadioSemantics_AndHandleInput()
     {
         using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         string? changed = null;
         var cut = Segmented(ctx, "hard", v => changed = v);
 
@@ -127,6 +151,8 @@ public class UiPrimitivesTests
         Assert.Equal(2, radios.Count);
         Assert.Equal("false", radios[0].GetAttribute("aria-checked"));
         Assert.Equal("true", radios[1].GetAttribute("aria-checked"));
+        Assert.Equal("-1", radios[0].GetAttribute("tabindex"));
+        Assert.Equal("0", radios[1].GetAttribute("tabindex"));
 
         radios[0].Click();
         Assert.Equal("easy", changed);
@@ -134,6 +160,27 @@ public class UiPrimitivesTests
         changed = null;
         cut.FindAll("[role='radio']")[1].KeyDown(new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs { Key = "ArrowLeft" });
         Assert.Equal("easy", changed);
+        ctx.JSInterop.VerifyFocusAsyncInvoke();
+
+        changed = null;
+        cut.FindAll("[role='radio']")[0].KeyDown(new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs { Key = "ArrowRight" });
+        Assert.Equal("hard", changed);
+
+        changed = null;
+        cut.FindAll("[role='radio']")[1].KeyDown(new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs { Key = "ArrowRight" });
+        Assert.Equal("easy", changed);
+    }
+
+    [Fact(DisplayName = "SPEC-0043:UT-09b — SegmentedControl sem valor válido mantém o primeiro item alcançável")]
+    [Trait("Category", "SPEC-0043:UT-09")]
+    public void SegmentedControl_ShouldKeepFirstItemReachable_WhenValueMatchesNothing()
+    {
+        using var ctx = new BunitContext();
+        var cut = Segmented(ctx, "inexistente", _ => { });
+
+        var radios = cut.FindAll("[role='radio']");
+        Assert.Equal("0", radios[0].GetAttribute("tabindex"));
+        Assert.Equal("-1", radios[1].GetAttribute("tabindex"));
     }
 
     [Fact(DisplayName = "SPEC-0043:UT-10 — Icon: decorativo, com rótulo e nome inválido")]
