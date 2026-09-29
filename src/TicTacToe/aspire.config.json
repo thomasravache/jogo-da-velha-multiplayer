@@ -1,0 +1,5 @@
+{
+  "appHost": {
+    "path": "TicTacToe.AppHost/TicTacToe.AppHost.csproj"
+  }
+}

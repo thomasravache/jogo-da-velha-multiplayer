@@ -1,0 +1,234 @@
+@page "/"
+@using TicTacToe.Modules.Matchmaking
+@using TicTacToe.Modules.Gameplay
+@using System.Collections.Concurrent
+@rendermode InteractiveServer
+@inject MatchmakingService Matchmaking
+@inject ConcurrentDictionary<Guid, GameSession> Games
+@inject GameResultService GameResultService
+@implements IDisposable
+
+<PageTitle>Jogo da Velha Multiplayer</PageTitle>
+
+<div class="game-container">
+    <h1>Jogo da Velha ✕ ◯</h1>
+
+    @if (MatchId == null)
+    {
+        if (IsWaiting)
+        {
+            <div class="lobby waiting">
+                <div class="spinner"></div>
+                <p>Procurando oponente para <strong>@PlayerName</strong>... ⏳</p>
+            </div>
+        }
+        else
+        {
+            <div class="lobby">
+                <label for="playerName">Seu apelido</label>
+                <input id="playerName"
+                       type="text"
+                       maxlength="20"
+                       placeholder="Ex: Thomas"
+                       @bind="PlayerName"
+                       @bind:event="oninput"
+                       class="name-input" />
+                <button class="btn-play"
+                        disabled="@(string.IsNullOrWhiteSpace(PlayerName))"
+                        @onclick="FindMatch">
+                    Jogar Agora 🎮
+                </button>
+            </div>
+        }
+    }
+    else
+    {
+        var game = Games[MatchId.Value];
+        var currentName = game.GetPlayerName(game.CurrentTurn);
+        var myName = game.GetPlayerName(MyPlayer);
+
+        <div class="players-bar">
+            <span class="player-tag x @(MyPlayer == Player.X ? "me" : "")">
+                ✕ @game.GetPlayerName(Player.X)
+            </span>
+            <span class="vs">vs</span>
+            <span class="player-tag o @(MyPlayer == Player.O ? "me" : "")">
+                ◯ @game.GetPlayerName(Player.O)
+            </span>
+        </div>
+
+        <div class="status">
+            @if (game.Winner != Player.None)
+            {
+                var winnerName = game.GetPlayerName(game.Winner);
+                if (game.Winner == MyPlayer)
+                {
+                    <strong class="win">Você venceu, @myName! 🎉</strong>
+                }
+                else
+                {
+                    <strong class="lose">@winnerName venceu! 😅</strong>
+                }
+            }
+            else if (game.IsDraw)
+            {
+                <strong>Deu velha! 🤝</strong>
+            }
+            else
+            {
+                @if (game.CurrentTurn == MyPlayer)
+                {
+                    <span class="my-turn">Sua vez, <strong>@myName</strong>!</span>
+                }
+                else
+                {
+                    <span>Vez de <strong>@currentName</strong>...</span>
+                }
+            }
+        </div>
+
+        <div class="board">
+            @for (int i = 0; i < 9; i++)
+            {
+                var index = i;
+                var cell = game.Board[index];
+                var canPlay = game.Winner == Player.None && !game.IsDraw && game.CurrentTurn == MyPlayer && cell == Player.None;
+                <div class="cell @(cell.ToString().ToLower()) @(canPlay ? "playable" : "")"
+                     @onclick="() => MakeMove(index)">
+                    @(cell == Player.None ? "" : (cell == Player.X ? "✕" : "◯"))
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<style>
+    :root { --x-color: #e74c3c; --o-color: #3498db; --bg: #1a1a2e; --surface: #16213e; --surface2: #0f3460; --text: #e0e0e0; }
+    body { background: var(--bg); color: var(--text); margin: 0; }
+    .game-container { font-family: 'Segoe UI', sans-serif; text-align: center; padding: 40px 20px; max-width: 480px; margin: 0 auto; }
+    h1 { font-size: 2rem; color: #e0e0e0; margin-bottom: 30px; letter-spacing: 2px; }
+
+    /* Lobby */
+    .lobby { background: var(--surface); padding: 40px; border-radius: 16px; display: flex; flex-direction: column; gap: 16px; align-items: center; }
+    label { font-size: 1rem; color: #aaa; }
+    .name-input { padding: 12px 18px; font-size: 1.1rem; border: 2px solid var(--surface2); border-radius: 8px; background: var(--bg); color: var(--text); width: 220px; text-align: center; outline: none; transition: border-color .2s; }
+    .name-input:focus { border-color: #e74c3c; }
+    .btn-play { padding: 14px 32px; font-size: 1.1rem; cursor: pointer; background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; border: none; border-radius: 8px; font-weight: bold; transition: opacity .2s, transform .1s; }
+    .btn-play:hover:not(:disabled) { transform: translateY(-2px); opacity: .9; }
+    .btn-play:disabled { opacity: .4; cursor: not-allowed; }
+    .waiting { gap: 12px; }
+    .spinner { width: 40px; height: 40px; border: 4px solid var(--surface2); border-top-color: #e74c3c; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @@keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Players Bar */
+    .players-bar { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 16px; }
+    .player-tag { padding: 6px 16px; border-radius: 20px; font-weight: bold; background: var(--surface); font-size: .95rem; }
+    .player-tag.x { color: var(--x-color); border: 2px solid var(--x-color); }
+    .player-tag.o { color: var(--o-color); border: 2px solid var(--o-color); }
+    .player-tag.me { box-shadow: 0 0 10px rgba(255,255,255,0.15); }
+    .vs { color: #666; font-size: .85rem; }
+
+    /* Status */
+    .status { margin: 16px 0 24px; font-size: 1.3rem; min-height: 40px; }
+    .my-turn { color: #2ecc71; }
+    .win { color: #2ecc71; font-size: 1.5rem; }
+    .lose { color: #e74c3c; }
+
+    /* Board */
+    .board { display: grid; grid-template-columns: repeat(3, 110px); gap: 8px; justify-content: center; }
+    .cell { width: 110px; height: 110px; background: var(--surface); font-size: 2.8rem; display: flex; align-items: center; justify-content: center; border-radius: 12px; transition: background .15s, transform .1s; cursor: default; user-select: none; }
+    .cell.playable { cursor: pointer; }
+    .cell.playable:hover { background: var(--surface2); transform: scale(1.04); }
+    .cell.x { color: var(--x-color); }
+    .cell.o { color: var(--o-color); }
+</style>
+
+@code {
+    private string ConnectionId = Guid.NewGuid().ToString();
+    private string PlayerName = "";
+    private Guid? MatchId;
+    private bool IsWaiting = false;
+    private Player MyPlayer;
+    private System.Threading.Timer? _pollTimer;
+
+    private void FindMatch()
+    {
+        if (string.IsNullOrWhiteSpace(PlayerName)) return;
+
+        IsWaiting = true;
+        MatchId = Matchmaking.JoinQueue(ConnectionId, PlayerName.Trim());
+
+        if (MatchId != null)
+        {
+            MyPlayer = Player.O;
+            IsWaiting = false;
+            EnsureGameExists();
+        }
+        else
+        {
+            _pollTimer = new System.Threading.Timer(CheckMatchStatus, null, 500, 500);
+        }
+    }
+
+    private void CheckMatchStatus(object? state)
+    {
+        if (Matchmaking.ActiveMatches.TryGetValue(ConnectionId, out var matchId))
+        {
+            MatchId = matchId;
+            MyPlayer = Player.X;
+            IsWaiting = false;
+            EnsureGameExists();
+            _pollTimer?.Dispose();
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private void EnsureGameExists()
+    {
+        if (MatchId != null && !Games.ContainsKey(MatchId.Value))
+        {
+            var game = new GameSession();
+            // Player.X is always the first player in queue
+            // We need both names — poll until the second player's name is available
+            Games.TryAdd(MatchId.Value, game);
+        }
+
+        // After the game is created, apply names from MatchmakingService
+        if (MatchId != null && Games.TryGetValue(MatchId.Value, out var existingGame))
+        {
+            // Find both connection IDs for this match and apply their names
+            var matchPlayers = Matchmaking.ActiveMatches
+                .Where(kvp => kvp.Value == MatchId.Value)
+                .Select(kvp => kvp.Key)
+                .ToList();
+
+            if (matchPlayers.Count == 2)
+            {
+                // First queued = X, second = O (order preserved by queue)
+                var xName = Matchmaking.GetPlayerName(matchPlayers[0]) ?? "X";
+                var oName = Matchmaking.GetPlayerName(matchPlayers[1]) ?? "O";
+                existingGame.SetPlayerName(Player.X, xName);
+                existingGame.SetPlayerName(Player.O, oName);
+            }
+        }
+
+        _pollTimer = new System.Threading.Timer(_ => InvokeAsync(StateHasChanged), null, 300, 300);
+    }
+
+    private async Task MakeMove(int index)
+    {
+        if (MatchId != null && Games.TryGetValue(MatchId.Value, out var game))
+        {
+            if (game.CurrentTurn == MyPlayer)
+            {
+                var moved = game.MakeMove(index, MyPlayer);
+                if (moved && (game.Winner != Player.None || game.IsDraw))
+                {
+                    await GameResultService.SaveResultAsync(game);
+                }
+            }
+        }
+    }
+
+    public void Dispose() => _pollTimer?.Dispose();
+}
