@@ -78,23 +78,23 @@
     else
     {
         <NeonCard Class="overflow-hidden">
-            <table class="w-full border-collapse text-left">
-                <thead class="hidden md:table-header-group">
-                    <tr class="border-b border-stroke font-numeric text-label-badge uppercase text-ink-muted">
-                        <th scope="col" class="px-5 py-3">Resultado</th>
-                        <th scope="col" class="px-5 py-3">Duelo (✕ vs ◯)</th>
-                        <th scope="col" class="px-5 py-3">Motivo</th>
-                        <th scope="col" class="px-5 py-3">Duração</th>
-                        <th scope="col" class="px-5 py-3">Data e hora</th>
+            <table role="table" aria-busy="@(_busy ? "true" : "false")" class="w-full border-collapse text-left">
+                <thead role="rowgroup" class="hidden md:table-header-group">
+                    <tr role="row" class="border-b border-stroke font-numeric text-label-badge uppercase text-ink-muted">
+                        <th role="columnheader" scope="col" class="px-5 py-3">Resultado</th>
+                        <th role="columnheader" scope="col" class="px-5 py-3">Duelo (✕ vs ◯)</th>
+                        <th role="columnheader" scope="col" class="px-5 py-3">Motivo</th>
+                        <th role="columnheader" scope="col" class="px-5 py-3">Duração</th>
+                        <th role="columnheader" scope="col" class="px-5 py-3">Data e hora</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody role="rowgroup">
                     @foreach (var r in _result.Items)
                     {
                         var xWins = r.WinnerSide == "X";
                         var oWins = r.WinnerSide == "O";
-                        <tr class="block border-b border-stroke px-5 py-4 last:border-b-0 md:table-row md:px-0 md:py-0" data-outcome="@OutcomeName(r.Outcome)">
-                            <td data-cell="resultado" class="block md:table-cell md:px-5 md:py-4">
+                        <tr role="row" class="block border-b border-stroke px-5 py-4 last:border-b-0 md:table-row md:px-0 md:py-0" data-outcome="@OutcomeName(r.Outcome)">
+                            <td role="cell" data-cell="resultado" class="block md:table-cell md:px-5 md:py-4">
                                 <span class="flex flex-wrap items-center gap-2">
                                     @if (r.Outcome is { } outcome)
                                     {
@@ -116,7 +116,7 @@
                                     }
                                 </span>
                             </td>
-                            <td data-cell="duelo" class="block py-2 md:table-cell md:px-5 md:py-4">
+                            <td role="cell" data-cell="duelo" class="block py-2 md:table-cell md:px-5 md:py-4">
                                 <span class="flex flex-wrap items-center gap-2 text-body-lg">
                                     <span class="min-w-0 break-words text-primary" data-winner="@(xWins ? "true" : null)">
                                         ✕ @r.PlayerXName@if (xWins) {<Icon Name="trophy" Size="16" Label="Vencedor" />}
@@ -127,9 +127,9 @@
                                     </span>
                                 </span>
                             </td>
-                            <td data-cell="motivo" class="block text-label-numeric text-ink-muted md:table-cell md:px-5 md:py-4">@r.Reason</td>
-                            <td data-cell="duracao" class="block font-numeric text-label-numeric text-ink-muted md:table-cell md:px-5 md:py-4">@HistoryAnalysis.FormatDuration(r.DurationSeconds)</td>
-                            <td data-cell="data" class="block font-numeric text-label-numeric text-ink-muted md:table-cell md:px-5 md:py-4">
+                            <td role="cell" data-cell="motivo" class="block text-label-numeric text-ink-muted md:table-cell md:px-5 md:py-4">@r.Reason</td>
+                            <td role="cell" data-cell="duracao" class="block font-numeric text-label-numeric text-ink-muted md:table-cell md:px-5 md:py-4">@HistoryAnalysis.FormatDuration(r.DurationSeconds)</td>
+                            <td role="cell" data-cell="data" class="block font-numeric text-label-numeric text-ink-muted md:table-cell md:px-5 md:py-4">
                                 @HistoryDateFormatter.Format(r.PlayedAtUtc, _now)
                             </td>
                         </tr>
@@ -163,6 +163,8 @@
     private int _sequence;
     private bool _ready;
     private bool _error;
+    private bool _busy;
+    private bool _disposed;
     private DateTime _now = DateTime.Now;
     private CancellationTokenSource? _debounce;
 
@@ -193,16 +195,22 @@
     {
         if (!firstRender) return;
 
-        _profile = await Identity.LoadAsync();
         try
         {
+            _profile = await Identity.LoadAsync();
             _summary = await GameResultService.GetPlayerSummaryAsync(_profile.PlayerId);
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Falha ao calcular o resumo do histórico.");
+            // Sem identidade (ou sem resumo) a página continua útil no escopo global; nunca derruba o circuito.
+            Logger.LogError(ex, "Falha ao carregar a identidade ou o resumo do histórico.");
+            if (_profile is null)
+            {
+                _scope = HistoryScope.All;
+            }
         }
 
+        if (_disposed) return;
         _ready = true;
         StateHasChanged();
         await LoadAsync();
@@ -210,12 +218,14 @@
 
     private async Task LoadAsync()
     {
+        if (_disposed) return;
         var sequence = ++_sequence;
+        _busy = true;
         try
         {
             var query = new HistoryQuery(_scope == HistoryScope.Mine ? _profile?.PlayerId : null, _scope, _filter, _opponent, _sort, _page);
             var page = await GameResultService.GetHistoryAsync(query);
-            if (sequence != _sequence) return; // uma consulta mais nova já foi disparada
+            if (sequence != _sequence || _disposed) return; // uma consulta mais nova já foi disparada
 
             _result = page;
             _page = page.Page;
@@ -224,11 +234,12 @@
         }
         catch (Exception ex)
         {
-            if (sequence != _sequence) return;
+            if (sequence != _sequence || _disposed) return;
             Logger.LogError(ex, "Falha ao consultar o histórico.");
             _error = true;
         }
 
+        _busy = false;
         StateHasChanged();
     }
 
@@ -303,6 +314,7 @@
 
     public void Dispose()
     {
+        _disposed = true;
         _debounce?.Cancel();
         _debounce?.Dispose();
     }

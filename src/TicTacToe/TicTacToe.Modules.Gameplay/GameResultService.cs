@@ -88,14 +88,14 @@ public class GameResultService(GameplayDbContext db, ILogger<GameResultService> 
             await scope.CountAsync(),
             mine ? await scope.Where(WinPredicate(me)).CountAsync() : 0,
             mine ? await scope.Where(LossPredicate(me)).CountAsync() : 0,
-            await scope.Where(DrawPredicate).CountAsync(),
+            await scope.Where(DrawPredicate(mine)).CountAsync(),
             await scope.Where(WalkOverPredicate).CountAsync());
 
         var filtered = query.Filter switch
         {
             HistoryFilter.Wins when mine => scope.Where(WinPredicate(me)),
             HistoryFilter.Losses when mine => scope.Where(LossPredicate(me)),
-            HistoryFilter.Draws => scope.Where(DrawPredicate),
+            HistoryFilter.Draws => scope.Where(DrawPredicate(mine)),
             HistoryFilter.WalkOvers => scope.Where(WalkOverPredicate),
             _ => scope,
         };
@@ -110,7 +110,7 @@ public class GameResultService(GameplayDbContext db, ILogger<GameResultService> 
             HistorySort.ShortestDuration => filtered
                 .OrderBy(m => m.DurationSeconds == null).ThenBy(m => m.DurationSeconds).ThenByDescending(m => m.PlayedAt),
             HistorySort.Result when mine => filtered
-                .OrderBy(m => (m.PlayerXId == me ? m.WinnerSide == "X" : m.WinnerSide == "O") ? 0 : m.WinnerSide == null ? 1 : 2)
+                .OrderBy(m => ((m.PlayerXId == me && m.WinnerSide == "X") || (m.PlayerXId != me && m.WinnerSide == "O")) ? 0 : m.WinnerSide == null ? 1 : 2)
                 .ThenByDescending(m => m.PlayedAt),
             HistorySort.Result => filtered
                 .OrderBy(m => m.WinnerName == null ? 1 : 0).ThenByDescending(m => m.PlayedAt),
@@ -133,19 +133,19 @@ public class GameResultService(GameplayDbContext db, ILogger<GameResultService> 
             new SummaryGame(r.IAmX, r.WinnerSide, r.EndReason, r.DurationSeconds, r.MoveCount, r.PlayedAt)));
     }
 
-    private static readonly EndReason?[] WalkOverReasons = [EndReason.Timeout, EndReason.Abandon, EndReason.Disconnect];
-
+    // Só lógica booleana e comparações simples: traduz para SQL Server sem CASE de bit aninhado.
     private static Expression<Func<MatchResult, bool>> WinPredicate(Guid? me) =>
-        m => m.PlayerXId == me ? m.WinnerSide == "X" : m.WinnerSide == "O";
+        m => (m.PlayerXId == me && m.WinnerSide == "X") || (m.PlayerXId != me && m.WinnerSide == "O");
 
     private static Expression<Func<MatchResult, bool>> LossPredicate(Guid? me) =>
-        m => m.PlayerXId == me ? m.WinnerSide == "O" : m.WinnerSide == "X";
+        m => (m.PlayerXId == me && m.WinnerSide == "O") || (m.PlayerXId != me && m.WinnerSide == "X");
 
-    private static readonly Expression<Func<MatchResult, bool>> DrawPredicate =
-        m => m.WinnerSide == null && m.WinnerName == null;
+    // Escopo pessoal decide pelo lado (como HistoryAnalysis.Classify); o global também olha o nome (partidas antigas).
+    private static Expression<Func<MatchResult, bool>> DrawPredicate(bool mine) =>
+        mine ? m => m.WinnerSide == null : m => m.WinnerSide == null && m.WinnerName == null;
 
     private static readonly Expression<Func<MatchResult, bool>> WalkOverPredicate =
-        m => WalkOverReasons.Contains(m.EndReason);
+        m => m.EndReason == EndReason.Timeout || m.EndReason == EndReason.Abandon || m.EndReason == EndReason.Disconnect;
 
     private static HistoryItem ToItem(MatchResult m, Guid? me)
     {
