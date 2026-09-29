@@ -179,13 +179,14 @@ public sealed class MediumChessBot : IChessBot
             Nodes++;
             onNode?.Invoke(Nodes);
 
-            if (position.HalfmoveClock >= 100)
-            {
-                return 0;
-            }
-
             var side = position.SideToMove;
             var inCheck = position.IsInCheck(side);
+            if (position.HalfmoveClock >= 100)
+            {
+                // Xeque-mate prevalece sobre o corte de 50 lances.
+                return inCheck && position.LegalMoves().Count == 0 ? -(MateScore - ply) : 0;
+            }
+
             if (depth <= 0)
             {
                 if (!inCheck || ply >= MaxPly)
