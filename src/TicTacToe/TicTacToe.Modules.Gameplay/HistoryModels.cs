@@ -30,7 +30,8 @@ public sealed record HistoryItem(
     GameMode? Mode,
     DateTime PlayedAtUtc,
     bool? IAmX,
-    string? WinnerSide);
+    string? WinnerSide,
+    string? WinnerName);
 
 public sealed record HistoryCounts(int All, int Wins, int Losses, int Draws, int WalkOvers);
 

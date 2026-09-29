@@ -59,9 +59,9 @@ public class GameResultService(GameplayDbContext db, ILogger<GameResultService> 
         return true;
     }
 
-    public Task<HistoryPage> GetHistoryAsync(HistoryQuery query) => throw new NotImplementedException();
+    public virtual Task<HistoryPage> GetHistoryAsync(HistoryQuery query) => throw new NotImplementedException();
 
-    public Task<PlayerSummary> GetPlayerSummaryAsync(Guid playerId) => throw new NotImplementedException();
+    public virtual Task<PlayerSummary> GetPlayerSummaryAsync(Guid playerId) => throw new NotImplementedException();
 
     public async Task<List<MatchResult>> GetRecentAsync(int count = 10) =>
         await db.MatchResults
