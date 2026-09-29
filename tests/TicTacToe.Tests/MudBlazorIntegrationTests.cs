@@ -46,7 +46,7 @@ public class MudBlazorIntegrationTests
 
         Assert.Contains("<header", markup);
         Assert.Contains("aria-label=\"Principal\"", markup);
-        Assert.DoesNotContain("mud-appbar", markup);
+        Assert.Empty(cut.FindAll(".mud-appbar"));
         Assert.DoesNotContain("top-row px-4", markup);
     }
 

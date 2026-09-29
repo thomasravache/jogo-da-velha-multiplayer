@@ -96,10 +96,10 @@ public class UiPrimitivesTests
             .Add(c => c.Value, "")
             .Add(c => c.ValueChanged, EventCallback.Factory.Create<string>(this, v => received = v)));
 
+        Assert.Contains("0/20", cut.Markup);
         cut.Find("input").Input("Thomas");
         Assert.Equal("Thomas", received);
         Assert.Equal("20", cut.Find("input").GetAttribute("maxlength"));
-        Assert.Contains("0/20", cut.Markup);
         Assert.Equal("apelido", cut.Find("label").GetAttribute("for"));
         Assert.Equal("apelido", cut.Find("input").GetAttribute("id"));
 

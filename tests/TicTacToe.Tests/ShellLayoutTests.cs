@@ -37,9 +37,9 @@ public class ShellLayoutTests
 
     [Fact(DisplayName = "SPEC-0043:UT-01 — Header com marca e navegação principal em pílulas a partir de lg")]
     [Trait("Category", "SPEC-0043:UT-01")]
-    public void Header_ShouldRenderBrandAndDesktopNav()
+    public async Task Header_ShouldRenderBrandAndDesktopNav()
     {
-        using var ctx = NewContext(out _);
+        await using var ctx = NewContext(out _);
         var cut = RenderLayout(ctx);
 
         var brand = cut.Find("header a[href='/']");
@@ -56,9 +56,9 @@ public class ShellLayoutTests
 
     [Fact(DisplayName = "SPEC-0043:UT-02 — Barra de navegação inferior fixa e escondida em lg")]
     [Trait("Category", "SPEC-0043:UT-02")]
-    public void BottomNav_ShouldRenderFixedAndHiddenOnLg()
+    public async Task BottomNav_ShouldRenderFixedAndHiddenOnLg()
     {
-        using var ctx = NewContext(out _);
+        await using var ctx = NewContext(out _);
         var cut = RenderLayout(ctx);
 
         var navs = cut.FindAll("nav");
@@ -74,9 +74,9 @@ public class ShellLayoutTests
 
     [Fact(DisplayName = "SPEC-0043:UT-03 — Só o link da rota atual tem aria-current e '/' é correspondência exata")]
     [Trait("Category", "SPEC-0043:UT-03")]
-    public void ActiveLink_ShouldHaveAriaCurrent_OnlyForCurrentRoute()
+    public async Task ActiveLink_ShouldHaveAriaCurrent_OnlyForCurrentRoute()
     {
-        using var ctx = NewContext(out _);
+        await using var ctx = NewContext(out _);
         var nav = ctx.Services.GetRequiredService<NavigationManager>();
 
         nav.NavigateTo("/history");
@@ -98,7 +98,7 @@ public class ShellLayoutTests
     [Trait("Category", "SPEC-0043:UT-04")]
     public async Task ImmersiveMode_ShouldHideBottomNav_AndShowTitle()
     {
-        using var ctx = NewContext(out var shell);
+        await using var ctx = NewContext(out var shell);
         var cut = RenderLayout(ctx);
         Assert.Equal(2, cut.FindAll("nav").Count);
 
@@ -119,9 +119,9 @@ public class ShellLayoutTests
 
     [Fact(DisplayName = "SPEC-0043:IT-01 — Lobby atual (MudBlazor) renderiza dentro do novo shell")]
     [Trait("Category", "SPEC-0043:IT-01")]
-    public void LegacyMudLobby_ShouldRenderInsideNewShell()
+    public async Task LegacyMudLobby_ShouldRenderInsideNewShell()
     {
-        using var ctx = NewContext(out _);
+        await using var ctx = NewContext(out _);
         var cut = ctx.Render<MainLayout>(p => p.Add(l => l.Body, (RenderFragment)(b =>
         {
             b.OpenComponent<Lobby>(0);
@@ -152,17 +152,17 @@ public class ShellLayoutTests
 
     [Fact(DisplayName = "SPEC-0043:E2E-01 — Jornada do shell: header, navegação, barra inferior e tokens; sem MudAppBar")]
     [Trait("Category", "SPEC-0043:E2E-01")]
-    public void Shell_ShouldRenderCyberArenaShell_WithoutLegacyAppBar()
+    public async Task Shell_ShouldRenderCyberArenaShell_WithoutLegacyAppBar()
     {
-        using var ctx = NewContext(out _);
+        await using var ctx = NewContext(out _);
         var cut = RenderLayout(ctx);
 
         Assert.Contains("id=\"corpo\"", cut.Markup);
         Assert.NotEmpty(cut.FindAll("header"));
         Assert.Equal(2, cut.FindAll("nav").Count);
         Assert.Contains("bg-canvas", cut.Markup);
-        Assert.DoesNotContain("mud-appbar", cut.Markup);
-        Assert.DoesNotContain("mud-layout", cut.Markup);
+        Assert.Empty(cut.FindAll(".mud-appbar"));
+        Assert.Empty(cut.FindAll(".mud-layout"));
     }
 
     [Fact(DisplayName = "SPEC-0043:UT-11 — Pares de cor de texto atendem contraste AA (4.5:1)")]
