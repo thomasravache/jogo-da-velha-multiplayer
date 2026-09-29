@@ -233,12 +233,13 @@ public sealed class ChessHomeTests : IDisposable
         var a = Open(ctxA, "Ana");
         var b = Open(ctxB, "Bia");
         Search(a, "Blitz", "Brancas");
-        Search(b, "Blitz", "Brancas");
         Assert.Contains("Na fila", a.Markup, StringComparison.Ordinal);
-
         Button(a, "Cancelar busca").Click(); // A cancela
         Assert.DoesNotContain("Na fila", a.Markup, StringComparison.Ordinal);
-        await ctxB.DisposeComponentsAsync(); // B sai da página
+
+        Search(b, "Blitz", "Brancas");
+        Assert.Contains("Na fila", b.Markup, StringComparison.Ordinal);
+        await ctxB.DisposeComponentsAsync(); // B sai da página na fila
 
         var c = Open(NewCircuit("Caio"), "Caio");
         Search(c, "Blitz", "Pretas");
