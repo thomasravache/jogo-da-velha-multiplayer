@@ -36,8 +36,8 @@ public class GameSession : IDisposable
     }
 
     private bool _resultRecorded;
+    private IReadOnlyList<int>? _winningLine;
 
-    /// <summary>Marca atomicamente que o resultado da rodada foi gravado; verdadeiro só no primeiro chamador.</summary>
     /// <summary>Três índices (0–8, crescentes) da linha que deu a vitória por jogada; nulo em outros casos.</summary>
     public IReadOnlyList<int>? WinningLine
     {
@@ -50,8 +50,7 @@ public class GameSession : IDisposable
         }
     }
 
-    private int[]? _winningLine;
-
+    /// <summary>Marca atomicamente que o resultado da rodada foi gravado; verdadeiro só no primeiro chamador.</summary>
     public bool TryMarkResultRecorded()
     {
         lock (_lock)
@@ -121,7 +120,7 @@ public class GameSession : IDisposable
             if (line is not null)
             {
                 Winner = player;
-                _winningLine = line;
+                _winningLine = Array.AsReadOnly((int[])line.Clone());
                 _scores[player] = GetScore(player) + 1;
             }
             else

@@ -25,13 +25,26 @@
                 var cell = Game.Board[index];
                 var canPlay = CanPlay(index);
                 var win = Game.WinningLine?.Contains(index) == true;
-                <div data-cell="@index" role="button" tabindex="@(canPlay ? 0 : -1)" aria-label="@CellLabel(index, cell)"
+                <div data-cell="@index" role="button" tabindex="@(canPlay ? 0 : -1)" aria-label="@CellLabel(index, cell)" aria-disabled="@(canPlay ? null : "true")"
                      data-playable="@(canPlay ? "true" : null)" data-win="@(win ? "true" : null)"
                      data-mark="@(cell == Player.None ? null : cell.ToString())"
                      class="@CellCss(cell, canPlay, win)"
                      @onclick="() => HandleCellClick(index)"
                      @onkeydown="e => HandleKey(e, index)">
-                    @if (cell == Player.X)
+                    @if (canPlay)
+                    {
+                        <svg data-ghost="@MyPlayer" viewBox="0 0 24 24" class="@GhostCss" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true">
+                            @if (MyPlayer == Player.X)
+                            {
+                                <path d="M5 5l14 14M19 5L5 19" />
+                            }
+                            else
+                            {
+                                <circle cx="12" cy="12" r="7.5" />
+                            }
+                        </svg>
+                    }
+                    else if (cell == Player.X)
                     {
                         <svg viewBox="0 0 24 24" class="size-3/5" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true">
                             <path d="M5 5l14 14M19 5L5 19" />
@@ -63,11 +76,15 @@
     private bool CanPlay(int index) =>
         Game.Winner == Player.None && !Game.IsDraw && Game.CurrentTurn == MyPlayer && Game.Board[index] == Player.None;
 
+    private string GhostCss =>
+        "size-3/5 opacity-0 transition-opacity motion-reduce:transition-none group-hover:opacity-30 group-focus-visible:opacity-30 " +
+        (MyPlayer == Player.X ? "text-primary" : "text-secondary");
+
     private static string CellLabel(int index, Player cell) =>
         cell == Player.None ? $"Casa {index + 1}, vazia" : $"Casa {index + 1}, {cell}";
 
     private static string CellCss(Player cell, bool canPlay, bool win) =>
-        "flex aspect-square items-center justify-center rounded-cell border border-stroke bg-surface-high shadow-[inset_0_0_0_1px_rgb(255_255_255/0.05)] transition lg:rounded-cell-lg " +
+        "group flex aspect-square items-center justify-center rounded-cell border border-stroke bg-surface-high shadow-[inset_0_0_0_1px_rgb(255_255_255/0.05)] transition lg:rounded-cell-lg " +
         "focus-visible:outline-2 focus-visible:outline-secondary " +
         (cell == Player.X ? "text-primary drop-shadow-[0_0_12px_rgb(255_71_87/0.6)] " : cell == Player.O ? "text-secondary drop-shadow-[0_0_12px_rgb(0_210_211/0.6)] " : "") +
         (canPlay ? "cursor-pointer hover:bg-surface-high/70 " : "") +

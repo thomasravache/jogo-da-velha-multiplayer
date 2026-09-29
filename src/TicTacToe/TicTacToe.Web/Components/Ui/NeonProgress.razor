@@ -23,7 +23,7 @@
 
     private string ToneName => Tone.ToString().ToLowerInvariant();
 
-    private string BarCss => "h-full rounded-pill transition-[width] duration-700 ease-linear " + Tone switch
+    private string BarCss => "h-full rounded-pill transition-[width] duration-700 ease-linear motion-reduce:transition-none " + Tone switch
     {
         ProgressTone.Warning => "bg-warning",
         ProgressTone.Danger => "bg-primary motion-safe:animate-pulse",
