@@ -269,6 +269,11 @@ public class ArenaCyberArenaTests
         Assert.Contains("grid", layout);
         Assert.Contains("lg:grid-cols-", layout);
         Assert.Contains("grid-cols-", layout);
+
+        // Posição dos filhos no desktop: cards nas laterais, tabuleiro ao centro.
+        Assert.Contains("lg:col-start-1", home.Find("[data-player='X']").GetAttribute("class"));
+        Assert.Contains("lg:col-start-3", home.Find("[data-player='O']").GetAttribute("class"));
+        Assert.Contains("lg:col-start-2", home.Find(".board").ParentElement!.GetAttribute("class"));
     }
 
     [Fact(DisplayName = "SPEC-0031:UT-12 — Componentes da arena sem MudBlazor e Home com título XO Arena")]
@@ -321,5 +326,24 @@ public class ArenaCyberArenaTests
 
         home.Find("[data-cell='4']").Click();
         home.WaitForAssertion(() => Assert.Equal("X", home.Find("[data-cell='4']").GetAttribute("data-mark")));
+    }
+
+    [Fact(DisplayName = "SPEC-0031:UT-04b — Prévia da marca no hover e aria-disabled nas células não jogáveis")]
+    [Trait("Category", "SPEC-0031:UT-04")]
+    public void Cells_ShouldShowGhostMark_AndExposeDisabledState()
+    {
+        var game = NewGame();
+        game.MakeMove(4, Player.X);
+        using var ctx = new BunitContext();
+
+        var mine = ctx.Render<GameBoard>(p => p.Add(b => b.Game, game).Add(b => b.MyPlayer, Player.O));
+        Assert.Equal("O", mine.Find("[data-cell='0'] [data-ghost]").GetAttribute("data-ghost"));
+        Assert.Empty(mine.FindAll("[data-cell='4'] [data-ghost]"));
+        Assert.Null(mine.Find("[data-cell='0']").GetAttribute("aria-disabled"));
+        Assert.Equal("true", mine.Find("[data-cell='4']").GetAttribute("aria-disabled"));
+
+        var rival = ctx.Render<GameBoard>(p => p.Add(b => b.Game, game).Add(b => b.MyPlayer, Player.X));
+        Assert.Empty(rival.FindAll("[data-ghost]"));
+        Assert.Equal("true", rival.Find("[data-cell='0']").GetAttribute("aria-disabled"));
     }
 }
