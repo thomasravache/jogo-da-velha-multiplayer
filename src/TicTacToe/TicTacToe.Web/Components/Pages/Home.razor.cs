@@ -269,12 +269,17 @@ public partial class Home : IDisposable
     {
         if (MatchId == null || !Games.TryGetValue(MatchId.Value, out var game)) return;
 
-        if (game.Leave(MyPlayer) == LeaveResult.Forfeited)
+        try
         {
-            await GameResultService.SaveOnceAsync(game);
+            if (game.Leave(MyPlayer) == LeaveResult.Forfeited)
+            {
+                await GameResultService.SaveOnceAsync(game);
+            }
         }
-
-        ReturnToLobby();
+        finally
+        {
+            ReturnToLobby(); // o jogador sempre volta ao lobby, mesmo se a gravação falhar
+        }
     }
 
     private void BackToLobby()
@@ -289,9 +294,8 @@ public partial class Home : IDisposable
         if (MatchId is { } id && Games.TryGetValue(id, out var game))
         {
             game.OnStateChanged -= OnGameStateChanged;
-            if (IsSoloGame || (game.HasLeft(Player.X) && game.HasLeft(Player.O)))
+            if ((IsSoloGame || (game.HasLeft(Player.X) && game.HasLeft(Player.O))) && Games.TryRemove(id, out _))
             {
-                Games.TryRemove(id, out _);
                 game.Dispose();
             }
         }

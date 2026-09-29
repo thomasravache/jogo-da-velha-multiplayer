@@ -47,8 +47,11 @@ else
                     OpponentLeft="@game.HasLeft(MyPlayer == Player.X ? Player.O : Player.X)"
                     OnRematch="RestartGame" OnRequest="RequestRematch" OnAccept="AcceptRematch" OnDecline="DeclineRematch" OnBackToLobby="BackToLobby" />
 
-        <div class="col-span-2 flex justify-center lg:col-span-1 lg:col-start-2 lg:row-start-3">
-            <ArenaActions InProgress="@(game.Winner == Player.None && !game.IsDraw)" OnLeave="LeaveGame" />
-        </div>
+        @if (game.Winner == Player.None && !game.IsDraw)
+        {
+            <div class="col-span-2 flex justify-center lg:col-span-1 lg:col-start-2 lg:row-start-3">
+                <ArenaActions InProgress="true" OnLeave="LeaveGame" />
+            </div>
+        }
     </div>
 }

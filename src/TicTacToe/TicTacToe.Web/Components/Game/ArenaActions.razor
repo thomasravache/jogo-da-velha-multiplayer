@@ -2,7 +2,7 @@
 {
     @if (!_confirming)
     {
-        <button type="button" @onclick="Ask" class="@ButtonCss text-ink-muted">Abandonar</button>
+        <button type="button" @ref="_askButton" @onclick="Ask" class="@ButtonCss text-ink-muted">Abandonar</button>
     }
     else
     {
@@ -24,6 +24,8 @@
     private bool _confirming;
     private bool _focusPending;
     private ElementReference _confirmButton;
+    private ElementReference _askButton;
+    private bool _returnFocus;
 
     [Parameter] public bool InProgress { get; set; }
     [Parameter] public EventCallback OnLeave { get; set; }
@@ -35,12 +37,14 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!_focusPending) return;
+        if (!_focusPending && !_returnFocus) return;
 
+        var target = _focusPending ? _confirmButton : _askButton;
         _focusPending = false;
+        _returnFocus = false;
         try
         {
-            await _confirmButton.FocusAsync();
+            await target.FocusAsync();
         }
         catch (Exception ex) when (ex is JSException or JSDisconnectedException or InvalidOperationException)
         {
@@ -54,7 +58,11 @@
         _focusPending = true;
     }
 
-    private void Cancel() => _confirming = false;
+    private void Cancel()
+    {
+        _confirming = false;
+        _returnFocus = true;
+    }
 
     private async Task Confirm()
     {
@@ -64,6 +72,6 @@
 
     private void OnKey(KeyboardEventArgs e)
     {
-        if (e.Key == "Escape") _confirming = false;
+        if (e.Key == "Escape") Cancel();
     }
 }

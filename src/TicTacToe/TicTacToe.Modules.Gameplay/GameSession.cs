@@ -319,6 +319,7 @@ public class GameSession : IDisposable
     public void Tick()
     {
         var changed = false;
+        var skipTick = false;
         lock (_lock)
         {
             if (RematchState == RematchState.Requested && _time.GetUtcNow() - _rematchRequestedAt >= RematchTimeout)
@@ -329,13 +330,14 @@ public class GameSession : IDisposable
 
             if (Winner != Player.None || IsDraw || RemainingSeconds <= 0 || _left.Count > 0)
             {
-                if (changed) OnStateChanged?.Invoke();
-                return;
+                skipTick = true;
+            }
+            else
+            {
+                RemainingSeconds--;
             }
 
-            RemainingSeconds--;
-
-            if (RemainingSeconds <= 0)
+            if (!skipTick && RemainingSeconds <= 0)
             {
                 IsTimedOut = true;
                 _endedAt = _time.GetUtcNow();
@@ -346,7 +348,7 @@ public class GameSession : IDisposable
             }
         }
 
-        OnStateChanged?.Invoke();
+        if (!skipTick || changed) OnStateChanged?.Invoke();
     }
 
     public void Restart()
@@ -362,6 +364,8 @@ public class GameSession : IDisposable
     // Chamado com o lock adquirido; falso quando não há o que reiniciar (rodada em andamento numa série).
     private bool RestartCore()
     {
+        if (_left.Count > 0) return false; // alguém saiu: não há com quem jogar
+
         if (_format == SeriesFormat.BestOf5)
         {
             if (SeriesOver)
