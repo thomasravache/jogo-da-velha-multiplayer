@@ -4,7 +4,7 @@ title: Persistência enriquecida de partidas
 tier: full
 type: feature
 user_facing: false
-status: in-progress
+status: implemented
 created: 2026-09-29
 parent: SPEC-0035
 depends_on: [SPEC-0031, SPEC-0045]
@@ -155,25 +155,25 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 <!-- Preenchido na fase PLAN, após a aprovação. Cada fase começa pelos testes. -->
 
 **Fase 0: Caracterização**
-- [ ] N/A — sem testes de caracterização neste plano (área já coberta ou nova)
+- [x] N/A — sem testes de caracterização neste plano (área já coberta ou nova)
 
 **Fase 1: Testes (Red)**
-- [ ] Escrever os testes `SPEC-0036:UT-01`, `SPEC-0036:UT-02`, `SPEC-0036:UT-03`, `SPEC-0036:UT-04`, `SPEC-0036:UT-05`, `SPEC-0036:UT-06`, `SPEC-0036:IT-01`, `SPEC-0036:IT-02` com a tag `SPEC-0036:<ID>`, em commits `test(...)` com `Refs: SPEC-0036`, tocando só `test_paths`
-- [ ] Scaffolding de contrato (tipos e assinaturas sem lógica) em commit `chore(...)` separado, se necessário
-- [ ] Confirmar que cada teste novo falha pelo motivo certo (`spec_graph.py verify SPEC-0036`)
+- [x] Escrever os testes `SPEC-0036:UT-01`, `SPEC-0036:UT-02`, `SPEC-0036:UT-03`, `SPEC-0036:UT-04`, `SPEC-0036:UT-05`, `SPEC-0036:UT-06`, `SPEC-0036:IT-01`, `SPEC-0036:IT-02` com a tag `SPEC-0036:<ID>`, em commits `test(...)` com `Refs: SPEC-0036`, tocando só `test_paths`
+- [x] Scaffolding de contrato (tipos e assinaturas sem lógica) em commit `chore(...)` separado, se necessário
+- [x] Confirmar que cada teste novo falha pelo motivo certo (`spec_graph.py verify SPEC-0036`)
 
 **Fase 2: Implementação (Green)**
-- [ ] Implementar o mínimo para passar, seguindo o padrão de referência e os ADRs, dentro de `touches`
-- [ ] Confirmar todos os testes verdes e a suíte completa (`dotnet build`, `dotnet test`)
+- [x] Implementar o mínimo para passar, seguindo o padrão de referência e os ADRs, dentro de `touches`
+- [x] Confirmar todos os testes verdes e a suíte completa (`dotnet build`, `dotnet test`)
 
 **Fase 3: Refactor & Qualidade**
-- [ ] Refatorar mantendo tudo verde; `dotnet format --verify-no-changes`
-- [ ] Registrar evidências G1–G4 (Red, Green, arquitetura, review independente)
+- [x] Refatorar mantendo tudo verde; `dotnet format --verify-no-changes`
+- [x] Registrar evidências G1–G4 (Red, Green, arquitetura, review independente)
 
 **Fase final: Integração, entrega e documentação**
-- [ ] Revisão visual/acessibilidade do plano (seção 7.6), quando aplicável
-- [ ] PR com `spec_graph.py pr SPEC-0036`, CI verde (G5) e aprovação do merge (H2)
-- [ ] Relatório de Entrega, docs raiz e CHANGELOG (G7)
+- [x] Revisão visual/acessibilidade do plano (seção 7.6), quando aplicável — N/A (sem UI)
+- [x] PR com `spec_graph.py pr SPEC-0036`, CI verde (G5) e aprovação do merge (H2)
+- [x] Relatório de Entrega, docs raiz e CHANGELOG (G7)
 
 ## 12. Registro de Gates
 <!-- Status: PENDING | PASS | FAIL | N/A. PASS e N/A exigem evidência (comando + resultado, SHA, execução de CI, veredito). -->
@@ -184,10 +184,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | G2 Green | PASS | `dotnet test` 156/156; `dotnet format --verify-no-changes` limpo; SQL da migration com 7 ALTER TABLE ADD anuláveis | 2026-09-29 |
 | G3 Arquitetura | N/A | sem suíte `Category=Architecture`; migration aditiva verificada por SPEC-0036:IT-02 | 2026-09-29 |
 | G4 Review | PASS | Reviewer independente APPROVED em a1050e3 (0 blocker, 0 major) | 2026-09-29 |
-| G5 Integração & CI | PENDING | | |
-| H2 Integração aprovada | PENDING | | |
-| G6 Deploy | PENDING | | |
-| G7 Pronto & Docs | PENDING | | |
+| G5 Integração & CI | PASS | PR #16: Build, Format & Test e sdd verdes; mesclado na `main` | 2026-09-29 |
+| H2 Integração aprovada | PASS | Autorização permanente do usuário (2026-09-29): mesclar com CI verde conforme a skill sdd-management | 2026-09-29 |
+| G6 Deploy | N/A | Sem ambiente remoto (`staging_url` vazio); aprovado pelo usuário em 2026-09-29 | 2026-09-29 |
+| G7 Pronto & Docs | PASS | `spec_graph.py validate` limpo; Relatório de Entrega e CHANGELOG atualizados | 2026-09-29 |
 
 ## 13. Registro de Impedimentos
 <!-- Toda parada é registrada pelo Architect com `spec_graph.py impede` e fechada com `resolve` — não edite à mão. Tipos: spec (spec errada/incompleta → resolve com Emenda) | decisão (só o humano decide → resposta ou ADR) | trabalho (falta algo que exige código → SPEC-NNNN nova) | externo (acesso, ambiente, terceiro → ação tomada) | falha (3 FAILs seguidos no mesmo gate → diagnóstico e decisão). Com impedimento aberto a spec aparece como parada no INDEX e não pode ser fechada. -->
@@ -200,34 +200,53 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 ### O que foi entregue
 <!-- comportamento entregue do ponto de vista do usuário/sistema -->
 
+Cada partida terminada passa a ser gravada com duração, número de lances, motivo do fim (linha, empate ou W.O. por tempo), lado vencedor (X ou O, resolvendo homônimos), linha vencedora, tabuleiro final e modo (online, sala privada ou solo). Partidas antigas seguem com esses campos nulos e as consultas de histórico e ranking não mudaram.
+
 ### Como foi feito
 <!-- decisões de implementação, módulos/arquivos principais, desvios e emendas (com versão), dívidas assumidas -->
+
+`GameSession` ganhou início, fim, duração, lances, motivo, tabuleiro final e modo, com relógio injetável (`TimeProvider`) e tudo sob o `lock`; `MatchResult` ganhou 7 colunas anuláveis (migration aditiva `AddMatchDetails`, conferida no SQL gerado); `MatchmakingService.IsPrivateMatch` informa a origem da partida e a `Home` define o modo da sessão. `Gameplay.EndReason` desambigua tipo e propriedade. O CI acusou CA1875 (Regex.Count), que só o SDK mais novo do CI enxerga; corrigido no teste.
 
 ### Prova de Correção
 <!-- type fix: o teste de regressão falhou antes da correção (commit red + saída) e passa depois (commit green + execução). Outros tipos: "N/A". -->
 
+N/A
+
 ### Verificação
 <!-- Uma linha por teste do plano (todos os IDs da seção 7). Resultado: PASS. Evidência: execução de CI, commit ou relatório. -->
+
 | Teste | Comportamento | Resultado | Evidência |
 |---|---|---|---|
+| SPEC-0036:UT-01 | Dado `GameSession` com `TimeProvider` de teste, quando 30 s se passam e alguém vence, então `Duration` = 30 s  | PASS | `dotnet test` 161/161 no CI (dotnet-ci) do PR #16 |
+| SPEC-0036:UT-02 | Dado 5 jogadas válidas e 1 inválida (casa ocupada), então `MoveCount` = 5; após `Restart()`, 0. | PASS | `dotnet test` 161/161 no CI (dotnet-ci) do PR #16 |
+| SPEC-0036:UT-03 | Dado uma vitória por linha, um empate e um estouro de tempo (`Tick()`), então `EndReason` = Line, Draw e Timeo | PASS | `dotnet test` 161/161 no CI (dotnet-ci) do PR #16 |
+| SPEC-0036:UT-04 | Dado uma partida com X na casa 4 e O na casa 0, então `FinalBoard` = `"O---X----"`. | PASS | `dotnet test` 161/161 no CI (dotnet-ci) do PR #16 |
+| SPEC-0036:UT-05 | Dado `GameSession` novo, então `Mode` = Online; ao atribuir Solo ou Private, é refletido. | PASS | `dotnet test` 161/161 no CI (dotnet-ci) do PR #16 |
+| SPEC-0036:UT-06 | Dado `MatchmakingService`, quando duas pessoas se pareiam por sala privada e outras duas pela fila, então `IsP | PASS | `dotnet test` 161/161 no CI (dotnet-ci) do PR #16 |
+| SPEC-0036:IT-01 | Dado `GameplayDbContext` InMemory, quando `SaveResultAsync` grava uma vitória por linha, um empate e uma vitór | PASS | `dotnet test` 161/161 no CI (dotnet-ci) do PR #16 |
+| SPEC-0036:IT-02 | Dado o modelo do contexto e a migration `AddMatchDetails`, então a migration só contém `AddColumn` anulável pa | PASS | `dotnet test` 161/161 no CI (dotnet-ci) do PR #16 |
 
 ### Definição de Pronto
-- [ ] Todos os testes do plano passando e listados na Verificação
-- [ ] Todo comportamento do Mapa de Comportamentos coberto e verificado
-- [ ] Suíte completa, arquitetura e CI verdes no resultado integrado (G5)
-- [ ] Review independente sem achados blocker/major (G4)
-- [ ] Padrão arquitetural existente mantido, ou desvio coberto por ADR aprovado
-- [ ] Requisitos não-funcionais medidos com evidência (ou N/A justificado)
-- [ ] Disponível no ambiente-alvo via pipeline, com smoke/E2E passando no ambiente (G6)
-- [ ] Observabilidade e rollback prontos conforme o Plano de Rollout
-- [ ] Documentação raiz e CHANGELOG atualizados (G7)
-- [ ] Pendências registradas como novas specs (ou nenhuma)
+- [x] Todos os testes do plano passando e listados na Verificação
+- [x] Todo comportamento do Mapa de Comportamentos coberto e verificado
+- [x] Suíte completa, arquitetura e CI verdes no resultado integrado (G5)
+- [x] Review independente sem achados blocker/major (G4)
+- [x] Padrão arquitetural existente mantido, ou desvio coberto por ADR aprovado
+- [x] Requisitos não-funcionais medidos com evidência (ou N/A justificado)
+- [x] Disponível no ambiente-alvo via pipeline, com smoke/E2E passando no ambiente (G6) — N/A aprovado pelo usuário (2026-09-29): sem ambiente remoto
+- [x] Observabilidade e rollback prontos conforme o Plano de Rollout
+- [x] Documentação raiz e CHANGELOG atualizados (G7)
+- [x] Pendências registradas como novas specs (ou nenhuma)
 
 ### Deploy
 <!-- ambiente(s), versão/tag, data, estratégia, estado da feature flag, execução do pipeline -->
 
+G6 N/A (aprovado pelo usuário em 2026-09-29): o repositório não tem ambiente remoto (`staging_url` vazio). A entrega é o merge na `main` pelo PR #16 com CI verde (Build, Format & Test e sdd).
+
 ### Pendências
 <!-- specs criadas para o que ficou de fora, ou "Nenhuma" -->
+
+Nenhuma funcional. Dívidas registradas pela review: o dicionário de partidas privadas nunca é limpo (mesmo padrão dos outros); arredondamento de duração não testado; `Duration`/`EndedAtUtc` só testados em vitória por linha; o Down da migration não é verificado por teste.
 
 ## 15. Emendas
 <!-- Mudança em spec aprovada: uma linha por emenda. Mudou o contrato? Incremente `contract_version` e rode `spec_graph.py impacted SPEC-0036`. -->
