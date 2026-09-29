@@ -198,10 +198,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | Gate | Status | Evidência | Data |
 |---|---|---|---|
 | G0 Spec | PASS | `spec_graph.py validate` das 18 specs: 0 erros, 0 avisos | 2026-09-29 |
-| G1 Red | PENDING | | |
-| G2 Green | PENDING | | |
-| G3 Arquitetura | PENDING | | |
-| G4 Review | PENDING | | |
+| G1 Red | PASS | verify SPEC-0040: Red antes do Green, testes do plano rastreados | 2026-09-29 |
+| G2 Green | PASS | dotnet test 276/276 local; format limpo; verify PASS | 2026-09-29 |
+| G3 Arquitetura | N/A | sem suíte Category=Architecture; Matchmaking não referencia Gameplay (bestOf inteiro) | 2026-09-29 |
+| G4 Review | PASS | Review independente (subagente): PASS sem bloqueantes/maiores; ajustes aplicados (RoundStarter antecipado, ResetScores, token do robô). Dívida: bestOf sem validação, dicionários de partida nunca limpos, corrida da fila preexistente, migration escrita à mão (sem dotnet-ef) e não aplicada a SQL Server | 2026-09-29 |
 | G5 Integração & CI | PENDING | | |
 | H2 Integração aprovada | PENDING | | |
 | G6 Deploy | PENDING | | |
