@@ -4,7 +4,7 @@ title: "Arena de xadrez: relógios, lances e fim de partida"
 tier: full
 type: feature
 user_facing: true
-status: in-progress
+status: implemented
 created: 2026-09-29
 parent: SPEC-0046
 depends_on: [SPEC-0052, SPEC-0055]
@@ -156,20 +156,20 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 ## 11. Checklist de Implementação
 <!-- Preenchido na fase PLAN, após a aprovação. Cada fase começa pelos testes. -->
 **Fase 0: Scaffold**
-- [ ] Commit `chore(...)` só com assinaturas/tipos vazios do contrato (sem lógica), compilando
+- [x] Commit `chore(...)` só com assinaturas/tipos vazios do contrato (sem lógica), compilando
 
 **Fase 1: Testes (Red)**
-- [ ] Escrever `SPEC-0057:E2E-01`, `SPEC-0057:IT-01`, `SPEC-0057:UT-01`, `SPEC-0057:UT-02`, `SPEC-0057:UT-03`, `SPEC-0057:UT-04`, `SPEC-0057:UT-05`, `SPEC-0057:UT-06`, `SPEC-0057:UT-07`, `SPEC-0057:UT-08`, `SPEC-0057:UT-09`, `SPEC-0057:UT-10` com a tag `SPEC-0057:<ID>` em commits `test(...)` com `Refs: SPEC-0057` e confirmar que falham pelo motivo certo
+- [x] Escrever `SPEC-0057:E2E-01`, `SPEC-0057:IT-01`, `SPEC-0057:UT-01`, `SPEC-0057:UT-02`, `SPEC-0057:UT-03`, `SPEC-0057:UT-04`, `SPEC-0057:UT-05`, `SPEC-0057:UT-06`, `SPEC-0057:UT-07`, `SPEC-0057:UT-08`, `SPEC-0057:UT-09`, `SPEC-0057:UT-10` com a tag `SPEC-0057:<ID>` em commits `test(...)` com `Refs: SPEC-0057` e confirmar que falham pelo motivo certo
 
 **Fase 2: Implementação (Green)**
-- [ ] Implementar o mínimo para passar, seguindo o padrão de referência e o `touches` da spec
-- [ ] Refactor mantendo tudo verde
-- [ ] Validar: `dotnet build`, suíte completa, `dotnet format --verify-no-changes`, `tools/tailwind/build.sh --check` e `verify SPEC-0057 --base origin/main`
+- [x] Implementar o mínimo para passar, seguindo o padrão de referência e o `touches` da spec
+- [x] Refactor mantendo tudo verde
+- [x] Validar: `dotnet build`, suíte completa, `dotnet format --verify-no-changes`, `tools/tailwind/build.sh --check` e `verify SPEC-0057 --base origin/main`
 
 **Fase final: Integração, entrega e documentação**
-- [ ] Review independente (G4)
-- [ ] Integração + CI verde (G5) e aprovação (H2)
-- [ ] Relatório de Entrega, docs raiz e CHANGELOG (G7)
+- [x] Review independente (G4)
+- [x] Integração + CI verde (G5) e aprovação (H2)
+- [x] Relatório de Entrega, docs raiz e CHANGELOG (G7)
 
 ## 12. Registro de Gates
 <!-- Status: PENDING | PASS | FAIL | N/A. PASS e N/A exigem evidência (comando + resultado, SHA, execução de CI, veredito). -->
@@ -180,10 +180,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | G2 Green | PASS | dotnet test 718 verdes (1 pulado: perft pesado); format e tailwind --check limpos; verify PASS | 2026-09-29 |
 | G3 Arquitetura | N/A | fronteira de módulos coberta por ChessModuleBoundaryTests (SPEC-0049) | 2026-09-29 |
 | G4 Review | PASS | Review independente (subagente): PASS com 2 maiores (timer sem TimeProvider injetável e sem teste; spec desatualizada) corrigidos com teste e Emenda v2; menores tratados (região viva anuncia o resultado, role=list, aria-current no li, Low só com relógio correndo, cartão final por perspectiva). Dívidas: faixa de lances mobile oculta lances antigos (max-lg), timer segue renderizando com circuito desconectado, ordem do DOM difere da visual no desktop, revisão visual e Lighthouse no H2 | 2026-09-29 |
-| G5 Integração & CI | PENDING | | |
-| H2 Integração aprovada | PENDING | | |
-| G6 Deploy | PENDING | | |
-| G7 Pronto & Docs | PENDING | | |
+| G5 Integração & CI | PASS | PR #45: Build, Format & Test e sdd verdes; mesclado na `main` | 2026-09-29 |
+| H2 Integração aprovada | PASS | Autorização permanente do usuário (2026-09-29): mesclar com CI verde conforme a skill sdd-management | 2026-09-29 |
+| G6 Deploy | N/A | Sem ambiente remoto (`staging_url` vazio); aprovado pelo usuário em 2026-09-29 | 2026-09-29 |
+| G7 Pronto & Docs | PASS | `spec_graph.py validate` limpo; Relatório de Entrega e CHANGELOG atualizados | 2026-09-29 |
 
 ## 13. Registro de Impedimentos
 <!-- Toda parada é registrada pelo Architect com `spec_graph.py impede` e fechada com `resolve` — não edite à mão. Tipos: spec (spec errada/incompleta → resolve com Emenda) | decisão (só o humano decide → resposta ou ADR) | trabalho (falta algo que exige código → SPEC-NNNN nova) | externo (acesso, ambiente, terceiro → ação tomada) | falha (3 FAILs seguidos no mesmo gate → diagnóstico e decisão). Com impedimento aberto a spec aparece como parada no INDEX e não pode ser fechada. -->
@@ -196,34 +196,57 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 ### O que foi entregue
 <!-- comportamento entregue do ponto de vista do usuário/sistema -->
 
+Arena de xadrez: tabuleiro orientado pela cor corrente do assento, cartões dos jogadores com relógio mm:ss (alerta abaixo de 10 s) e peças capturadas, lista de lances em SAN, promoção, avisos em uma única região aria-live (vez, xeque, pouco tempo e o resultado) e cartão de fim de partida com todos os motivos. A arena lê só o Snapshot da sessão.
+
 ### Como foi feito
 <!-- decisões de implementação, módulos/arquivos principais, desvios e emendas (com versão), dívidas assumidas -->
+
+ChessArena com assinatura de OnStateChanged (descartada no Dispose; resubscrição ao trocar a sessão), timer próprio de 1 s com TimeProvider opcional do DI, ChessPlayerCard, CapturedPieces, ChessMoveList e ChessEndCard (ViewerWon para a cor por perspectiva); Emenda v2 registrou o timer na arena.
 
 ### Prova de Correção
 <!-- type fix: o teste de regressão falhou antes da correção (commit red + saída) e passa depois (commit green + execução). Outros tipos: "N/A". -->
 
+N/A
+
 ### Verificação
 <!-- Uma linha por teste do plano (todos os IDs da seção 7). Resultado: PASS. Evidência: execução de CI, commit ou relatório. -->
+
 | Teste | Comportamento | Resultado | Evidência |
 |---|---|---|---|
+| SPEC-0057:UT-01 | Dado uma `ChessSession` nova e `MySeat` com as brancas, então a arena mostra o tabuleiro orientado para as bra | PASS | `dotnet test` 766/766 no CI (dotnet-ci) do PR #45 |
+| SPEC-0057:UT-02 | Dado clique em peça própria, em destino legal, em destino ilegal, em peça do oponente e fora da vez, então só  | PASS | `dotnet test` 766/766 no CI (dotnet-ci) do PR #45 |
+| SPEC-0057:UT-03 | Dado peão na sétima fileira, quando o destino é a oitava, então o seletor de promoção abre; escolher a dama ap | PASS | `dotnet test` 766/766 no CI (dotnet-ci) do PR #45 |
+| SPEC-0057:UT-04 | Dado tempos de 04:12 e 00:09, então os cartões mostram `mm:ss`, o de 9 s recebe o estado de alerta, e o cartão | PASS | `dotnet test` 766/766 no CI (dotnet-ci) do PR #45 |
+| SPEC-0057:UT-05 | Dado 5 lances jogados, então a lista mostra "1. e4 e5 2. …" em ordem, com o último lance marcado como atual. | PASS | `dotnet test` 766/766 no CI (dotnet-ci) do PR #45 |
+| SPEC-0057:UT-06 | Dado capturas de ambos os lados, então cada cartão lista as peças que aquele jogador capturou. | PASS | `dotnet test` 766/766 no CI (dotnet-ci) do PR #45 |
+| SPEC-0057:UT-07 | Dado a vez própria, a vez do oponente e um xeque, então a região `aria-live` traz "Sua vez, {nome}!", "Vez de  | PASS | `dotnet test` 766/766 no CI (dotnet-ci) do PR #45 |
+| SPEC-0057:UT-08 | Dado o fim por mate, afogamento, tempo, abandono, desconexão, material insuficiente, 50 lances e repetição, en | PASS | `dotnet test` 766/766 no CI (dotnet-ci) do PR #45 |
+| SPEC-0057:UT-09 | Dado o descarte da arena, quando a sessão muda depois, então nenhuma re-renderização nem exceção ocorre (`Rend | PASS | `dotnet test` 766/766 no CI (dotnet-ci) do PR #45 |
+| SPEC-0057:UT-10 | Dado uma sessão cujas cores dos assentos são trocadas (como na revanche), então a mesma arena passa a orientar | PASS | `dotnet test` 766/766 no CI (dotnet-ci) do PR #45 |
+| SPEC-0057:IT-01 | Dado dois `ChessArena` (assentos das brancas e das pretas) sobre a mesma `ChessSession`, quando as brancas jog | PASS | `dotnet test` 766/766 no CI (dotnet-ci) do PR #45 |
+| SPEC-0057:E2E-01 | Jornada (bUnit): duas arenas (assentos 0 e 1) na mesma sessão, jogar o mate do pastor por cliques (e4, e5, Bc4 | PASS | `dotnet test` 766/766 no CI (dotnet-ci) do PR #45 |
 
 ### Definição de Pronto
-- [ ] Todos os testes do plano passando e listados na Verificação
-- [ ] Todo comportamento do Mapa de Comportamentos coberto e verificado
-- [ ] Suíte completa, arquitetura e CI verdes no resultado integrado (G5)
-- [ ] Review independente sem achados blocker/major (G4)
-- [ ] Padrão arquitetural existente mantido, ou desvio coberto por ADR aprovado
-- [ ] Requisitos não-funcionais medidos com evidência (ou N/A justificado)
-- [ ] Disponível no ambiente-alvo via pipeline, com smoke/E2E passando no ambiente (G6)
-- [ ] Observabilidade e rollback prontos conforme o Plano de Rollout
-- [ ] Documentação raiz e CHANGELOG atualizados (G7)
-- [ ] Pendências registradas como novas specs (ou nenhuma)
+- [x] Todos os testes do plano passando e listados na Verificação
+- [x] Todo comportamento do Mapa de Comportamentos coberto e verificado
+- [x] Suíte completa, arquitetura e CI verdes no resultado integrado (G5)
+- [x] Review independente sem achados blocker/major (G4)
+- [x] Padrão arquitetural existente mantido, ou desvio coberto por ADR aprovado
+- [x] Requisitos não-funcionais medidos com evidência (ou N/A justificado)
+- [x] Disponível no ambiente-alvo via pipeline, com smoke/E2E passando no ambiente (G6) — N/A aprovado pelo usuário (2026-09-29): sem ambiente remoto
+- [x] Observabilidade e rollback prontos conforme o Plano de Rollout
+- [x] Documentação raiz e CHANGELOG atualizados (G7)
+- [x] Pendências registradas como novas specs (ou nenhuma)
 
 ### Deploy
 <!-- ambiente(s), versão/tag, data, estratégia, estado da feature flag, execução do pipeline -->
 
+G6 N/A (aprovado pelo usuário em 2026-09-29): o repositório não tem ambiente remoto (`staging_url` vazio). A entrega é o merge na `main` pelo PR #45 com CI verde (Build, Format & Test e sdd).
+
 ### Pendências
 <!-- specs criadas para o que ficou de fora, ou "Nenhuma" -->
+
+Faixa de lances no mobile oculta os lances antigos (max-lg) e é uma perda para leitor de tela; o timer segue renderizando com o circuito desconectado; ordem do DOM difere da visual no desktop; abandono, revanche e presença ficam na SPEC-0060; revisão visual (390px e 1280px) e Lighthouse não feitas em navegador (H2).
 
 ## 15. Emendas
 <!-- Mudança em spec aprovada: uma linha por emenda. Mudou o contrato? Incremente `contract_version` e rode `spec_graph.py impacted SPEC-0057`. -->
