@@ -4,7 +4,7 @@ title: Pipeline Tailwind, tokens e fontes Cyber Arena
 tier: full
 type: migration
 user_facing: false
-status: approved
+status: in-progress
 created: 2026-09-29
 parent: SPEC-0028
 depends_on: []

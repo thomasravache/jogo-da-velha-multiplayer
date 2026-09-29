@@ -4,7 +4,7 @@ title: Gravação única do resultado da partida
 tier: full
 type: fix
 user_facing: false
-status: approved
+status: in-progress
 created: 2026-09-29
 parent: SPEC-0035
 depends_on: []

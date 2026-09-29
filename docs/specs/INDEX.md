@@ -5,19 +5,19 @@
 ## Saúde
 
 - Validação (G0): **0 erro(s), 0 aviso(s)**
-- Specs: approved 16, implemented 23
+- Specs: approved 14, in-progress 2, implemented 23
 - Impedimentos: **0 aberto(s)**, 0 resolvido(s)
 
 ## Plano de Execução
 
-**Em andamento:** —  
+**Em andamento:** SPEC-0029, SPEC-0045  
 **Paradas por impedimento:** —  
-**Próximo lote:** SPEC-0029, SPEC-0045
+**Próximo lote:** —
 
 | Onda | Spec | Título | Tier/Tam. | Status | Prontidão | Observação |
 |---|---|---|---|---|---|---|
-| 1 | SPEC-0029 | Pipeline Tailwind, tokens e fontes Cyber Arena | full/M | approved | ✅ pronta |  |
-| 1 | SPEC-0045 | Gravação única do resultado da partida | full/S | approved | ✅ pronta |  |
+| 1 | SPEC-0029 | Pipeline Tailwind, tokens e fontes Cyber Arena | full/M | in-progress | 🔄 em andamento |  |
+| 1 | SPEC-0045 | Gravação única do resultado da partida | full/S | in-progress | 🔄 em andamento |  |
 | 2 | SPEC-0043 | Shell e primitivos de UI Cyber Arena | full/M | approved | ⛔ aguarda implementação de SPEC-0029 |  |
 | 3 | SPEC-0030 | Lobby Cyber Arena | full/M | approved | ⛔ aguarda implementação de SPEC-0043 |  |
 | 3 | SPEC-0032 | Histórico de partidas Cyber Arena | full/S | approved | ⛔ aguarda implementação de SPEC-0043 |  |
@@ -51,7 +51,7 @@ Seta contínua: depende da implementação. Seta tracejada: consome contrato.
 ```mermaid
 flowchart LR
   subgraph E0028["SPEC-0028 · Redesign Cyber Arena — migração da UI para Tailwind (Fase 1 visual)"]
-    S0029["SPEC-0029<br/>Pipeline Tailwind, tokens e fontes Cybe…"]:::approved
+    S0029["SPEC-0029<br/>Pipeline Tailwind, tokens e fontes Cybe…"]:::inprogress
     S0030["SPEC-0030<br/>Lobby Cyber Arena"]:::approved
     S0031["SPEC-0031<br/>Arena da partida Cyber Arena"]:::approved
     S0032["SPEC-0032<br/>Histórico de partidas Cyber Arena"]:::approved
@@ -68,7 +68,7 @@ flowchart LR
     S0041["SPEC-0041<br/>Abandonar partida e pedir revanche"]:::approved
     S0042["SPEC-0042<br/>W.O. por desconexão do oponente"]:::approved
     S0044["SPEC-0044<br/>Série melhor de 5: interface no lobby e…"]:::approved
-    S0045["SPEC-0045<br/>Gravação única do resultado da partida"]:::approved
+    S0045["SPEC-0045<br/>Gravação única do resultado da partida"]:::inprogress
   end
   S0043 --> S0030
   S0043 --> S0031
@@ -134,7 +134,7 @@ flowchart LR
 | [SPEC-0026](SPEC-0026-redesign-de-ui-e-tema-escuro-com-mudblazor.md) | Redesign de UI e Tema Escuro Imersivo com MudBlazor | full | migration | implemented | 2026-09-29 | — | — | — |
 | [SPEC-0027](SPEC-0027-timer-de-turno-e-timeout-por-w-o.md) | Timer de turno e timeout por W.O. | full | feature | implemented | 2026-09-29 | — | — | — |
 | [SPEC-0028](SPEC-0028-redesign-cyber-arena-migracao-da-ui-para-tailwind-fase-1-vis.md) | Redesign Cyber Arena — migração da UI para Tailwind (Fase 1 visual) | epic | migration | approved | 2026-09-29 | — | — | — |
-| [SPEC-0029](SPEC-0029-pipeline-tailwind-tokens-e-fontes-cyber-arena.md) | Pipeline Tailwind, tokens e fontes Cyber Arena | full | migration | approved | 2026-09-29 | SPEC-0028 | — | — |
+| [SPEC-0029](SPEC-0029-pipeline-tailwind-tokens-e-fontes-cyber-arena.md) | Pipeline Tailwind, tokens e fontes Cyber Arena | full | migration | in-progress | 2026-09-29 | SPEC-0028 | — | — |
 | [SPEC-0030](SPEC-0030-lobby-cyber-arena.md) | Lobby Cyber Arena | full | feature | approved | 2026-09-29 | SPEC-0028 | SPEC-0043 | — |
 | [SPEC-0031](SPEC-0031-arena-da-partida-cyber-arena.md) | Arena da partida Cyber Arena | full | feature | approved | 2026-09-29 | SPEC-0028 | SPEC-0043 | — |
 | [SPEC-0032](SPEC-0032-historico-de-partidas-cyber-arena.md) | Histórico de partidas Cyber Arena | full | feature | approved | 2026-09-29 | SPEC-0028 | SPEC-0043 | — |
@@ -150,7 +150,7 @@ flowchart LR
 | [SPEC-0042](SPEC-0042-w-o-por-desconexao-do-oponente.md) | W.O. por desconexão do oponente | full | feature | approved | 2026-09-29 | SPEC-0035 | SPEC-0041 | — |
 | [SPEC-0043](SPEC-0043-shell-e-primitivos-de-ui-cyber-arena.md) | Shell e primitivos de UI Cyber Arena | full | feature | approved | 2026-09-29 | SPEC-0028 | SPEC-0029 | — |
 | [SPEC-0044](SPEC-0044-serie-melhor-de-5-interface-no-lobby-e-na-arena.md) | Série melhor de 5: interface no lobby e na arena | full | feature | approved | 2026-09-29 | SPEC-0035 | SPEC-0030, SPEC-0040 | — |
-| [SPEC-0045](SPEC-0045-gravacao-unica-do-resultado-da-partida.md) | Gravação única do resultado da partida | full | fix | approved | 2026-09-29 | SPEC-0035 | — | — |
+| [SPEC-0045](SPEC-0045-gravacao-unica-do-resultado-da-partida.md) | Gravação única do resultado da partida | full | fix | in-progress | 2026-09-29 | SPEC-0035 | — | — |
 
 ## ADRs
 
