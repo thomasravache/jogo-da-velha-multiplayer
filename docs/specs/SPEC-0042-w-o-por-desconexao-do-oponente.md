@@ -178,10 +178,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | Gate | Status | Evidência | Data |
 |---|---|---|---|
 | G0 Spec | PASS | `spec_graph.py validate` das 18 specs: 0 erros, 0 avisos | 2026-09-29 |
-| G1 Red | PENDING | | |
-| G2 Green | PENDING | | |
-| G3 Arquitetura | PENDING | | |
-| G4 Review | PENDING | | |
+| G1 Red | PASS | verify SPEC-0042: Red antes do Green, testes do plano rastreados | 2026-09-29 |
+| G2 Green | PASS | dotnet test 322/322 local; format e tailwind --check limpos; verify PASS | 2026-09-29 |
+| G3 Arquitetura | N/A | sem suíte Category=Architecture | 2026-09-29 |
+| G4 Review | PASS | Review independente (subagente): FAIL condicional a (1) região aria-live anunciando a cada segundo, (2) contagem obsoleta com rodada encerrada, (3) falta de logs de presença; todos corrigidos com testes; menor 4 (leitura atômica) corrigido. Restam como dívida: service locator opcional em Home (IServiceProvider), sessão vaza quando os dois circuitos somem, IT-02 valida o registro por leitura do Program.cs, timers reais nos testes de Home, queda durante a tela de resultado numa série não é rastreada, navegar para outra página conta como queda (decisão de produto a confirmar) | 2026-09-29 |
 | G5 Integração & CI | PENDING | | |
 | H2 Integração aprovada | PENDING | | |
 | G6 Deploy | PENDING | | |
