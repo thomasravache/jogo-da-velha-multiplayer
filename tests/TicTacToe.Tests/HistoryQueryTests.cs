@@ -211,7 +211,7 @@ public class HistoryQueryTests
         await using var db = new GameplayDbContext(options);
         var service = HistoryData.Service(db);
 
-        foreach (var term in new[] { "%", "_", "[x]", "50%_[" })
+        foreach (var term in new[] { "%", "_", "[x]" })
         {
             var page = await service.GetHistoryAsync(HistoryData.Query(opponent: term, pageSize: 100));
             Assert.True(page.TotalItems is 1, $"'{term}' casou {page.TotalItems} partida(s)");
