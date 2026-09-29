@@ -104,11 +104,11 @@ public class MatchDetailsPersistenceTests
         // O método Up é a evolução do esquema; o Down apenas desfaz as mesmas colunas.
         var up = full[full.IndexOf("void Up(", StringComparison.Ordinal)..full.IndexOf("void Down(", StringComparison.Ordinal)];
 
-        Assert.Equal(7, Regex.Matches(up, @"AddColumn<").Count);
+        Assert.Equal(7, Regex.Count(up, @"AddColumn<"));
         Assert.DoesNotContain("DropColumn", up);
         Assert.DoesNotContain("AlterColumn", up);
         Assert.DoesNotContain("DropTable", up);
-        Assert.Equal(7, Regex.Matches(up, @"nullable: true").Count);
+        Assert.Equal(7, Regex.Count(up, @"nullable: true"));
 
         var options = NewOptions();
         var when = DateTime.UtcNow;
