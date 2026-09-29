@@ -6,6 +6,7 @@
 @inject MatchmakingService Matchmaking
 @inject ConcurrentDictionary<Guid, GameSession> Games
 @inject GameResultService GameResultService
+@inject IJSRuntime JS
 @implements IDisposable
 
 <PageTitle>Jogo da Velha Multiplayer</PageTitle>
@@ -15,7 +16,16 @@
 
     @if (MatchId == null)
     {
-        if (IsWaiting)
+        if (CreatedRoomCode != null)
+        {
+            <div class="lobby waiting">
+                <div class="spinner"></div>
+                <p>Sala criada!</p>
+                <div class="room-code-badge">@CreatedRoomCode</div>
+                <p>Compartilhe o código com seu amigo para começar 🔒</p>
+            </div>
+        }
+        else if (IsWaiting)
         {
             <div class="lobby waiting">
                 <div class="spinner"></div>
@@ -33,11 +43,38 @@
                        @bind="PlayerName"
                        @bind:event="oninput"
                        class="name-input" />
-                <button class="btn-play"
-                        disabled="@(string.IsNullOrWhiteSpace(PlayerName))"
-                        @onclick="FindMatch">
-                    Jogar Agora 🎮
-                </button>
+                <div class="mode-actions">
+                    <button class="btn-play"
+                            disabled="@(string.IsNullOrWhiteSpace(PlayerName))"
+                            @onclick="FindMatch">
+                        Jogar Online 🌐
+                    </button>
+                    <button class="btn-play btn-solo"
+                            disabled="@(string.IsNullOrWhiteSpace(PlayerName))"
+                            @onclick="StartSoloGame">
+                        Jogar vs Robô (IA) 🤖
+                    </button>
+                    <button class="btn-play btn-private"
+                            disabled="@(string.IsNullOrWhiteSpace(PlayerName))"
+                            @onclick="CreateRoom">
+                        Criar Sala Privada 🔒
+                    </button>
+                    <div class="join-room-box">
+                        <input type="text"
+                               placeholder="Código (ex: SALA-ABCD)"
+                               @bind="InputRoomCode"
+                               class="code-input" />
+                        <button class="btn-join"
+                                disabled="@(string.IsNullOrWhiteSpace(PlayerName) || string.IsNullOrWhiteSpace(InputRoomCode))"
+                                @onclick="JoinRoom">
+                            Entrar 🔑
+                        </button>
+                    </div>
+                    @if (!string.IsNullOrEmpty(RoomErrorMessage))
+                    {
+                        <span class="error-msg">@RoomErrorMessage</span>
+                    }
+                </div>
             </div>
         }
     }
@@ -49,11 +86,11 @@
 
         <div class="players-bar">
             <span class="player-tag x @(MyPlayer == Player.X ? "me" : "")">
-                ✕ @game.GetPlayerName(Player.X)
+                ✕ @game.GetPlayerName(Player.X) <span class="score-badge">@game.GetScore(Player.X)</span>
             </span>
             <span class="vs">vs</span>
             <span class="player-tag o @(MyPlayer == Player.O ? "me" : "")">
-                ◯ @game.GetPlayerName(Player.O)
+                ◯ @game.GetPlayerName(Player.O) <span class="score-badge">@game.GetScore(Player.O)</span>
             </span>
         </div>
 
@@ -125,6 +162,16 @@
     .btn-play { padding: 14px 32px; font-size: 1.1rem; cursor: pointer; background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; border: none; border-radius: 8px; font-weight: bold; transition: opacity .2s, transform .1s; }
     .btn-play:hover:not(:disabled) { transform: translateY(-2px); opacity: .9; }
     .btn-play:disabled { opacity: .4; cursor: not-allowed; }
+    .mode-actions { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 260px; }
+    .btn-solo { background: linear-gradient(135deg, #8e44ad, #9b59b6); }
+    .btn-private { background: linear-gradient(135deg, #2c3e50, #34495e); }
+    .join-room-box { display: flex; gap: 6px; margin-top: 6px; }
+    .code-input { flex: 1; padding: 10px; font-size: 0.95rem; border: 2px solid var(--surface2); border-radius: 8px; background: var(--bg); color: var(--text); text-align: center; text-transform: uppercase; outline: none; }
+    .code-input:focus { border-color: #3498db; }
+    .btn-join { padding: 10px 18px; font-size: 0.95rem; cursor: pointer; background: #3498db; color: white; border: none; border-radius: 8px; font-weight: bold; }
+    .btn-join:disabled { opacity: 0.4; cursor: not-allowed; }
+    .room-code-badge { font-size: 1.8rem; font-weight: bold; letter-spacing: 3px; color: #f1c40f; padding: 10px 20px; background: var(--surface2); border-radius: 8px; display: inline-block; margin: 10px 0; border: 2px dashed #f1c40f; }
+    .error-msg { color: #e74c3c; font-size: 0.85rem; margin-top: 4px; }
     .waiting { gap: 12px; }
     .spinner { width: 40px; height: 40px; border: 4px solid var(--surface2); border-top-color: #e74c3c; border-radius: 50%; animation: spin 0.8s linear infinite; }
     @@keyframes spin { to { transform: rotate(360deg); } }
@@ -135,6 +182,7 @@
     .player-tag.x { color: var(--x-color); border: 2px solid var(--x-color); }
     .player-tag.o { color: var(--o-color); border: 2px solid var(--o-color); }
     .player-tag.me { box-shadow: 0 0 10px rgba(255,255,255,0.15); }
+    .score-badge { display: inline-block; background: rgba(255,255,255,0.18); padding: 1px 7px; border-radius: 10px; margin-left: 6px; font-size: 0.85rem; font-weight: bold; }
     .vs { color: #666; font-size: .85rem; }
 
     /* Status */
@@ -164,6 +212,35 @@
     private bool IsWaiting = false;
     private Player MyPlayer;
     private System.Threading.Timer? _pollTimer;
+    private bool _confettiFired = false;
+    private string? CreatedRoomCode;
+    private string InputRoomCode = "";
+    private string? RoomErrorMessage;
+
+    private void CreateRoom()
+    {
+        if (string.IsNullOrWhiteSpace(PlayerName)) return;
+        RoomErrorMessage = null;
+        CreatedRoomCode = Matchmaking.CreatePrivateRoom(ConnectionId, PlayerName.Trim());
+        _pollTimer = new System.Threading.Timer(CheckMatchStatus, null, 500, 500);
+    }
+
+    private void JoinRoom()
+    {
+        if (string.IsNullOrWhiteSpace(PlayerName) || string.IsNullOrWhiteSpace(InputRoomCode)) return;
+        RoomErrorMessage = null;
+        var matchId = Matchmaking.JoinPrivateRoom(InputRoomCode, ConnectionId, PlayerName.Trim());
+        if (matchId != null)
+        {
+            MatchId = matchId;
+            MyPlayer = Player.O;
+            EnsureGameExists();
+        }
+        else
+        {
+            RoomErrorMessage = "Sala inválida ou já iniciada!";
+        }
+    }
 
     private void FindMatch()
     {
@@ -197,20 +274,37 @@
         }
     }
 
+    protected override void OnInitialized()
+    {
+        Matchmaking.OnPlayerMatched += OnMatchedReceived;
+    }
+
+    private void OnMatchedReceived(string connectionId, Guid matchId)
+    {
+        if (connectionId == ConnectionId && MatchId == null)
+        {
+            MatchId = matchId;
+            MyPlayer = Player.X;
+            IsWaiting = false;
+            CreatedRoomCode = null;
+            EnsureGameExists();
+            _ = InvokeAsync(StateHasChanged);
+        }
+    }
+
     private void EnsureGameExists()
     {
         if (MatchId != null && !Games.ContainsKey(MatchId.Value))
         {
             var game = new GameSession();
-            // Player.X is always the first player in queue
-            // We need both names — poll until the second player's name is available
             Games.TryAdd(MatchId.Value, game);
         }
 
-        // After the game is created, apply names from MatchmakingService
         if (MatchId != null && Games.TryGetValue(MatchId.Value, out var existingGame))
         {
-            // Find both connection IDs for this match and apply their names
+            existingGame.OnStateChanged -= OnGameStateChanged;
+            existingGame.OnStateChanged += OnGameStateChanged;
+
             var matchPlayers = Matchmaking.ActiveMatches
                 .Where(kvp => kvp.Value == MatchId.Value)
                 .Select(kvp => kvp.Key)
@@ -218,7 +312,6 @@
 
             if (matchPlayers.Count == 2)
             {
-                // First queued = X, second = O (order preserved by queue)
                 var xName = Matchmaking.GetPlayerName(matchPlayers[0]) ?? "X";
                 var oName = Matchmaking.GetPlayerName(matchPlayers[1]) ?? "O";
                 existingGame.SetPlayerName(Player.X, xName);
@@ -226,7 +319,61 @@
             }
         }
 
-        _pollTimer = new System.Threading.Timer(_ => InvokeAsync(StateHasChanged), null, 300, 300);
+        _pollTimer = new System.Threading.Timer(async _ => await OnPollTick(), null, 1000, 1000);
+    }
+
+    private async void OnGameStateChanged()
+    {
+        if (MatchId != null && Games.TryGetValue(MatchId.Value, out var g))
+        {
+            if (g.Winner == MyPlayer && !_confettiFired)
+            {
+                _confettiFired = true;
+                try
+                {
+                    await JS.InvokeVoidAsync("triggerConfetti");
+                }
+                catch { }
+            }
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnPollTick()
+    {
+        if (MatchId != null && Games.TryGetValue(MatchId.Value, out var g))
+        {
+            if (g.Winner == MyPlayer && !_confettiFired)
+            {
+                _confettiFired = true;
+                try
+                {
+                    await JS.InvokeVoidAsync("triggerConfetti");
+                }
+                catch { }
+            }
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private bool IsSoloGame = false;
+    private AiDifficulty SelectedDifficulty = AiDifficulty.Hard;
+
+    private void StartSoloGame()
+    {
+        if (string.IsNullOrWhiteSpace(PlayerName)) return;
+
+        IsSoloGame = true;
+        MatchId = Guid.NewGuid();
+        MyPlayer = Player.X;
+
+        var game = new GameSession();
+        game.SetPlayerName(Player.X, PlayerName.Trim());
+        game.SetPlayerName(Player.O, "Robô Minimax 🤖");
+        game.OnStateChanged += OnGameStateChanged;
+        Games.TryAdd(MatchId.Value, game);
+
+        _pollTimer = new System.Threading.Timer(async _ => await OnPollTick(), null, 1000, 1000);
     }
 
     private async Task MakeMove(int index)
@@ -236,9 +383,29 @@
             if (game.CurrentTurn == MyPlayer)
             {
                 var moved = game.MakeMove(index, MyPlayer);
-                if (moved && (game.Winner != Player.None || game.IsDraw))
+                if (moved)
                 {
-                    await GameResultService.SaveResultAsync(game);
+                    if (game.Winner != Player.None || game.IsDraw)
+                    {
+                        await GameResultService.SaveResultAsync(game);
+                    }
+                    else if (IsSoloGame && game.CurrentTurn == Player.O)
+                    {
+                        _ = Task.Run(async () =>
+                        {
+                            await Task.Delay(250);
+                            int aiMove = AiPlayer.GetBestMove(game, Player.O, SelectedDifficulty);
+                            if (aiMove != -1)
+                            {
+                                game.MakeMove(aiMove, Player.O);
+                                if (game.Winner != Player.None || game.IsDraw)
+                                {
+                                    await GameResultService.SaveResultAsync(game);
+                                }
+                                await InvokeAsync(StateHasChanged);
+                            }
+                        });
+                    }
                 }
             }
         }
@@ -248,9 +415,18 @@
     {
         if (MatchId != null && Games.TryGetValue(MatchId.Value, out var game))
         {
+            _confettiFired = false;
             game.Restart();
         }
     }
 
-    public void Dispose() => _pollTimer?.Dispose();
+    public void Dispose()
+    {
+        Matchmaking.OnPlayerMatched -= OnMatchedReceived;
+        if (MatchId != null && Games.TryGetValue(MatchId.Value, out var g))
+        {
+            g.OnStateChanged -= OnGameStateChanged;
+        }
+        _pollTimer?.Dispose();
+    }
 }

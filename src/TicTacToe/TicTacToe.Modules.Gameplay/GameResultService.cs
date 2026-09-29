@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -5,6 +6,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace TicTacToe.Modules.Gameplay;
+
+public record PlayerRank(string PlayerName, int Wins, DateTime LastWinAt);
 
 public class GameResultService(GameplayDbContext db, ILogger<GameResultService> logger)
 {
@@ -35,4 +38,24 @@ public class GameResultService(GameplayDbContext db, ILogger<GameResultService> 
             .OrderByDescending(m => m.PlayedAt)
             .Take(count)
             .ToListAsync();
+
+    public async Task<List<PlayerRank>> GetLeaderboardAsync(int top = 10)
+    {
+        var rawWins = await db.MatchResults
+            .Where(m => m.WinnerName != null)
+            .Select(m => new { WinnerName = m.WinnerName!, m.PlayedAt })
+            .ToListAsync();
+
+        return rawWins
+            .GroupBy(m => m.WinnerName)
+            .Select(g => new PlayerRank(
+                g.Key,
+                g.Count(),
+                g.Max(m => m.PlayedAt)
+            ))
+            .OrderByDescending(r => r.Wins)
+            .ThenByDescending(r => r.LastWinAt)
+            .Take(top)
+            .ToList();
+    }
 }

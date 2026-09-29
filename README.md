@@ -6,26 +6,31 @@ Um jogo da velha multiplayer em tempo real construído com **.NET 10**, **Blazor
 
 ## 🚀 Tecnologias e Arquitetura
 
-- **Frontend & Real-Time:** [.NET Blazor Server](https://learn.microsoft.com/aspnet/core/blazor/) com renderização interativa (`InteractiveServer`).
+- **Frontend & Real-Time:** [.NET Blazor Server](https://learn.microsoft.com/aspnet/core/blazor/) com renderização interativa (`InteractiveServer`) e eventos reativos em memória (sem polling).
 - **Orquestração e Observabilidade:** [.NET Aspire](https://learn.microsoft.com/dotnet/aspire/) gerenciando containers e service discovery.
 - **Banco de Dados:** SQL Server containerizado via Aspire com [Entity Framework Core](https://learn.microsoft.com/ef/core/).
+- **Inteligência Artificial:** Algoritmo clássico **Minimax** no módulo de Gameplay para jogo solo invencível.
 - **Arquitetura Modular Monolith:**
-  - `TicTacToe.Modules.Gameplay`: Domínio puro de regras do jogo, turnos, validação de vitórias/empates, entidade `MatchResult` e `GameplayDbContext` (schema `Gameplay`).
-  - `TicTacToe.Modules.Matchmaking`: Fila de pareamento in-memory concorrente (`ConcurrentQueue` / `ConcurrentDictionary`).
-  - `TicTacToe.Web`: Frontend Blazor Server com tema escuro e injeção de dependências dos módulos.
-  - `TicTacToe.AppHost`: Orquestrador Aspire que provisiona SQL Server e liga as aplicações.
+  - `TicTacToe.Modules.Gameplay`: Domínio de regras do jogo, IA Minimax, entidade `MatchResult`, ranking acumulado e `GameplayDbContext` (schema `Gameplay`).
+  - `TicTacToe.Modules.Matchmaking`: Fila de pareamento pública e gerenciamento de salas privadas por código curto (`ConcurrentDictionary`).
+  - `TicTacToe.Web`: Frontend Blazor Server com tema escuro, efeitos visuais (confetes JS), leaderboard e injeção de dependências dos módulos.
+  - `TicTacToe.AppHost`: Orquestrador Aspire que provisiona SQL Server e interliga os serviços.
   - `TicTacToe.ServiceDefaults`: Configurações de métricas, telemetria (OpenTelemetry) e health checks.
-  - `TicTacToe.Tests`: Bateria de testes automatizados com xUnit e EF Core InMemory.
+  - `TicTacToe.Tests`: 32 testes automatizados cobrindo todos os módulos e cenários com xUnit e EF Core InMemory.
 
 ---
 
 ## 🎮 Funcionalidades
 
-- **Matchmaking Instantâneo:** Jogadores entram na fila com seu apelido e são pareados automaticamente em tempo real.
-- **Jogo em Tempo Real:** Sincronização entre navegadores via circuitos Blazor Server.
-- **Jogar Novamente (Rematch):** Botão que reinicia o tabuleiro mantendo os mesmos oponentes sem recarregar a página.
+- **Matchmaking Instantâneo:** Jogadores entram na fila com seu apelido e são pareados automaticamente em tempo real via eventos em memória.
+- **Salas Privadas com Código:** Crie uma sala protegida por código (ex: `SALA-7X9B`) e compartilhe com um amigo para jogarem juntos.
+- **Modo Solo vs IA (Minimax):** Jogue contra o computador sem precisar de segundo jogador. A IA no modo difícil calcula todas as árvores de possibilidades e nunca perde.
+- **Placar da Sessão:** Acompanhamento acumulado das vitórias entre os dois jogadores na sessão atual (`Thomas 2 ✕ 1 Ana`).
+- **Efeito de Confetes na Vitória:** Comemoração visual com partículas de confetes na tela do vencedor via JS Interop.
+- **Jogar Novamente (Rematch):** Reinicia o tabuleiro mantendo os mesmos oponentes e acumulando o placar.
 - **Histórico Persistido:** Cada partida concluída é salva no SQL Server com nomes, vencedor e data/hora.
-- **Navegação Integrada:** Aba `/` para jogar e `/history` para consultar as partidas recentes.
+- **Classificação Geral / Leaderboard:** Página `/leaderboard` com o ranking dos maiores vencedores e medalhas (🥇, 🥈, 🥉).
+- **Navegação Integrada:** Abas para **Jogar** (`/`), **Histórico** (`/history`) e **Ranking** (`/leaderboard`).
 
 ---
 
@@ -50,6 +55,12 @@ O projeto foi inteiramente concebido e implementado utilizando o ciclo de qualid
   - `SPEC-0010`: Histórico de Partidas no SQL Server
   - `SPEC-0011`: Navegação entre Jogo e Histórico
   - `SPEC-0012`: Jogar Novamente (Rematch)
+  - `SPEC-0013`: Evolução da Plataforma (Épico)
+  - `SPEC-0014`: Placar da Sessão e Efeitos de Vitória
+  - `SPEC-0015`: Modo Solo vs IA Minimax
+  - `SPEC-0016`: Salas Privadas com Código
+  - `SPEC-0017`: Leaderboard e Estatísticas
+  - `SPEC-0018`: Sincronização Reativa por Eventos
 
 ---
 
@@ -68,18 +79,17 @@ dotnet run --project src/TicTacToe/TicTacToe.AppHost/TicTacToe.AppHost.csproj
 
 O console exibirá o link para o **Dashboard do Aspire** (ex: `https://localhost:17228/login?t=...`).
 
-### 2. Jogar Multiplayer
+### 2. Jogar
 1. Acesse o Dashboard do Aspire e clique no endpoint do serviço `webfrontend`.
-2. Abra a mesma URL em duas abas (ou em navegadores diferentes / aba anônima).
-3. Na primeira janela, digite seu apelido e clique em **Jogar Agora 🎮**.
-4. Na segunda janela, digite outro apelido e clique em **Jogar Agora 🎮**.
-5. O pareamento ocorrerá na hora e a partida começará!
+2. Para **Modo Solo**, digite seu apelido e clique em **Jogar vs Robô (IA) 🤖**.
+3. Para **Salas Privadas**, clique em **Criar Sala Privada 🔒**, passe o código para um amigo na outra aba e clique em **Entrar 🔑**.
+4. Para **Fila Pública**, clique em **Jogar Online 🌐** em duas abas para pareamento instantâneo.
 
 ---
 
 ## 🧪 Rodando os Testes
 
-Execute a suíte completa de testes unitários e de integração:
+Execute a suíte com 32 testes unitários e de integração:
 
 ```bash
 dotnet test

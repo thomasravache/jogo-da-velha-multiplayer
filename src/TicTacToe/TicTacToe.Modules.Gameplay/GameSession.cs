@@ -10,22 +10,32 @@ public class GameSession
     public Guid Id { get; } = Guid.NewGuid();
 
     private readonly Dictionary<Player, string> _playerNames = new();
+    private readonly Dictionary<Player, int> _scores = new();
 
     public void SetPlayerName(Player player, string name) =>
         _playerNames[player] = name;
 
     public string GetPlayerName(Player player) =>
         _playerNames.TryGetValue(player, out var name) ? name : player.ToString();
+
+    public int GetScore(Player player) =>
+        _scores.TryGetValue(player, out var score) ? score : 0;
+
+    public void ResetScores() => _scores.Clear();
+
     public Player[] Board { get; } = new Player[9];
     public Player CurrentTurn { get; private set; } = Player.X;
     public Player Winner { get; private set; } = Player.None;
     public bool IsDraw => Winner == Player.None && Array.TrueForAll(Board, p => p != Player.None);
+
+    public event Action? OnStateChanged;
 
     public void Restart()
     {
         Array.Clear(Board, 0, Board.Length);
         Winner = Player.None;
         CurrentTurn = Player.X;
+        OnStateChanged?.Invoke();
     }
 
     public bool MakeMove(int index, Player player)
@@ -38,11 +48,13 @@ public class GameSession
         if (CheckWin(player))
         {
             Winner = player;
+            _scores[player] = GetScore(player) + 1;
         }
         else
         {
             CurrentTurn = player == Player.X ? Player.O : Player.X;
         }
+        OnStateChanged?.Invoke();
         return true;
     }
 
