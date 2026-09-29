@@ -17,7 +17,8 @@ public sealed record HistoryQuery(
     string? Opponent,
     HistorySort Sort,
     int Page,
-    int PageSize = 10);
+    int PageSize = 10,
+    GameType Game = GameType.TicTacToe);
 
 public sealed record HistoryItem(
     Guid Id,

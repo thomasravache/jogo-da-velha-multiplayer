@@ -18,7 +18,7 @@ public class MatchmakingService
 
     public event Action<string, Guid>? OnPlayerMatched;
 
-    public Guid? JoinQueue(string connectionId, string playerName = "", Guid? playerId = null, int bestOf = 1)
+    public Guid? JoinQueue(string connectionId, string playerName = "", Guid? playerId = null, int bestOf = 1, string? queueKey = null)
     {
         RememberId(connectionId, playerId);
         _playerNames[connectionId] = string.IsNullOrWhiteSpace(playerName) ? connectionId : playerName;
@@ -90,9 +90,18 @@ public class MatchmakingService
 
     private readonly ConcurrentDictionary<Guid, int> _matchBestOf = new();
 
+    /// <summary>Chave efetiva da fila que originou a partida (ex.: "velha:1").</summary>
+    public string GetMatchQueueKey(Guid matchId) => throw new NotImplementedException();
+
+    /// <summary>Remove a conexão de qualquer fila (idempotente).</summary>
+    public void LeaveQueue(string connectionId) => throw new NotImplementedException();
+
+    /// <summary>Remove as salas privadas criadas pela conexão que ainda esperam.</summary>
+    public void CancelPrivateRoom(string connectionId) => throw new NotImplementedException();
+
     private readonly ConcurrentDictionary<string, string> _privateRooms = new();
 
-    public string CreatePrivateRoom(string connectionId, string playerName, Guid? playerId = null, int bestOf = 1)
+    public string CreatePrivateRoom(string connectionId, string playerName, Guid? playerId = null, int bestOf = 1, string? queueKey = null)
     {
         RememberId(connectionId, playerId);
         _playerNames[connectionId] = string.IsNullOrWhiteSpace(playerName) ? connectionId : playerName;
@@ -102,7 +111,7 @@ public class MatchmakingService
         return code;
     }
 
-    public Guid? JoinPrivateRoom(string roomCode, string connectionId, string playerName, Guid? playerId = null)
+    public Guid? JoinPrivateRoom(string roomCode, string connectionId, string playerName, Guid? playerId = null, string game = "velha")
     {
         if (string.IsNullOrWhiteSpace(roomCode)) return null;
         string normalized = roomCode.Trim().ToUpperInvariant();

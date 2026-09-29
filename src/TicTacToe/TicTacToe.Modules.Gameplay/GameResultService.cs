@@ -125,7 +125,7 @@ public class GameResultService(GameplayDbContext db, ILogger<GameResultService> 
         return new HistoryPage(items, total, page, pageCount, counts);
     }
 
-    public virtual async Task<PlayerSummary> GetPlayerSummaryAsync(Guid playerId)
+    public virtual async Task<PlayerSummary> GetPlayerSummaryAsync(Guid playerId, GameType game = GameType.TicTacToe)
     {
         var rows = await db.MatchResults
             .Where(m => m.PlayerXId == playerId || m.PlayerOId == playerId)

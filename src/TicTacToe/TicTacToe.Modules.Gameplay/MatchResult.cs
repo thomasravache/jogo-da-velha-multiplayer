@@ -6,6 +6,8 @@ public enum GameMode { Online = 0, Private = 1, Solo = 2 }
 
 public enum EndReason { Line = 0, Draw = 1, Timeout = 2, Abandon = 3, Disconnect = 4 }
 
+public enum GameType { TicTacToe = 0, Chess = 1 }
+
 public class MatchResult
 {
     public Guid Id { get; set; } = Guid.NewGuid();
@@ -31,4 +33,7 @@ public class MatchResult
     public Guid? SeriesId { get; set; }
     public int? RoundNumber { get; set; }
     public int? BestOf { get; set; }
+
+    // Jogo da partida (SPEC-0047): partidas antigas valem como jogo da velha.
+    public GameType GameType { get; set; } = GameType.TicTacToe;
 }
