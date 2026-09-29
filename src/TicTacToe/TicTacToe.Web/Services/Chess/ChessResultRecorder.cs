@@ -12,5 +12,8 @@ public class ChessResultRecorder(GameResultService results, ILogger<ChessResultR
     private readonly GameResultService _results = results;
     private readonly ILogger<ChessResultRecorder> _logger = logger;
 
+    /// <summary>Motivo de gravação correspondente ao motivo de encerramento da sessão.</summary>
+    public static EndReason MapReason(ChessEndReason reason) => throw new NotImplementedException();
+
     public Task<bool> SaveOnceAsync(ChessSession session) => throw new NotImplementedException();
 }
