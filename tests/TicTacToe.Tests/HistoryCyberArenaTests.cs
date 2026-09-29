@@ -47,7 +47,7 @@ public class HistoryCyberArenaTests
     // A página abre no escopo pessoal (SPEC-0038); estes testes cobrem o escopo global da SPEC-0032.
     private static IRenderedComponent<History> RenderAll(BunitContext ctx)
     {
-        var cut = RenderAll(ctx);
+        var cut = ctx.Render<History>();
         cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll("[role='radiogroup'][aria-label='Escopo']")));
         cut.FindAll("[role='radiogroup'][aria-label='Escopo'] [role='radio']").Single(r => r.TextContent.Trim() == "Todos").Click();
         return cut;
