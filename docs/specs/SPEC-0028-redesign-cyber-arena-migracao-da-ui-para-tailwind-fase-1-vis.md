@@ -3,7 +3,7 @@ id: SPEC-0028
 title: Redesign Cyber Arena — migração da UI para Tailwind (Fase 1 visual)
 tier: epic
 type: migration
-status: approved
+status: implemented
 created: 2026-09-29
 depends_on: []
 adrs: [ADR-0008]
@@ -85,13 +85,13 @@ Ordem esperada (`waves`): 0029 → 0043 → telas (0030, 0031, 0032, 0033; a par
 - **Dados de protótipo do Stitch tratados como requisito** — regra explícita de omissão (o que não tem backend não é renderizado) e matriz de cobertura na SPEC-0035.
 
 ## 7. Critérios de Aceite do Épico
-- [ ] O pipeline gera o CSS Cyber Arena com todos os tokens a partir de um binário pinado e verificado — SPEC-0029:IT-01
-- [ ] O shell exibe header/nav no desktop, barra inferior no mobile e modo imersivo na partida, com navegação acessível — SPEC-0043:E2E-01
-- [ ] O Lobby permite jogar online, solo (com dificuldade) e criar/entrar em sala privada no visual Cyber Arena — SPEC-0030:E2E-01
-- [ ] A Arena mostra jogadores, tabuleiro, timer, resultado (vitória, derrota, empate, W.O.) e revanche no visual Cyber Arena — SPEC-0031:E2E-01
-- [ ] O Histórico lista as partidas recentes com resultado, jogadores e data no visual Cyber Arena — SPEC-0032:E2E-01
-- [ ] O Ranking exibe pódio e tabela com o dado real do leaderboard no visual Cyber Arena — SPEC-0033:E2E-01
-- [ ] Nenhuma referência a MudBlazor ou Bootstrap resta no código, nos pacotes ou nos testes — SPEC-0034:E2E-01
+- [x] O pipeline gera o CSS Cyber Arena com todos os tokens a partir de um binário pinado e verificado — SPEC-0029:IT-01
+- [x] O shell exibe header/nav no desktop, barra inferior no mobile e modo imersivo na partida, com navegação acessível — SPEC-0043:E2E-01
+- [x] O Lobby permite jogar online, solo (com dificuldade) e criar/entrar em sala privada no visual Cyber Arena — SPEC-0030:E2E-01
+- [x] A Arena mostra jogadores, tabuleiro, timer, resultado (vitória, derrota, empate, W.O.) e revanche no visual Cyber Arena — SPEC-0031:E2E-01
+- [x] O Histórico lista as partidas recentes com resultado, jogadores e data no visual Cyber Arena — SPEC-0032:E2E-01
+- [x] O Ranking exibe pódio e tabela com o dado real do leaderboard no visual Cyber Arena — SPEC-0033:E2E-01
+- [x] Nenhuma referência a MudBlazor ou Bootstrap resta no código, nos pacotes ou nos testes — SPEC-0034:E2E-01
 
 ## 8. Questões em Aberto
 Nenhuma neste nível; as decisões de cada spec estão nas suas próprias Questões em Aberto.
@@ -105,7 +105,20 @@ Uma aprovação humana cobre o épico e as specs filhas apresentadas junto com e
 |---|---|---|---|---|---|---|---|---|
 
 ## 11. Relatório de Entrega
-<!-- Preenchido ao fechar o épico: o que foi entregue, como (ondas e deploys com versão/data), resultado dos critérios de aceite com os testes que os provam, métricas pós-release, pendências como novas specs. `spec_graph.py report SPEC-0028` ajuda a montar. -->
+### O que foi entregue
+O app inteiro no visual Cyber Arena, sem MudBlazor nem Bootstrap: pipeline do Tailwind CSS standalone com tokens e fontes locais (SPEC-0029), shell responsivo e primitivos de UI (SPEC-0043), lobby (SPEC-0030), histórico (SPEC-0032), ranking (SPEC-0033) e arena da partida com linha vencedora (SPEC-0031), e a remoção do MudBlazor e do Bootstrap com o preflight habilitado (SPEC-0034). Nenhuma regra de jogo, matchmaking ou dado mudou; a única adição de domínio foi `GameSession.WinningLine`. A correção de gravação duplicada (SPEC-0045) foi entregue junto, como pré-requisito dos dados da Fase 2.
+
+### Como foi feito
+Migração incremental por tela (strangler): ondas 1 e 2 (pipeline e shell), tela a tela (lobby, histórico, ranking, arena) e, por fim, a remoção da biblioteca antiga. Cada spec passou por Red, Green, review independente e PR com CI verde (Build, Format & Test e sdd). O ADR-0008 (Tailwind standalone) foi aceito no H1 e o ADR-0007 passa a `superseded`. Emendas de `touches` foram necessárias em quatro specs (0030, 0031, 0034 e, indiretamente, o `scope_exempt` do CSS gerado no `sdd-config.yml`).
+
+### Critérios de aceite
+Todos marcados em §7 e provados pelos testes das filhas: `SPEC-0029:IT-01`, `SPEC-0043:E2E-01`, `SPEC-0030:E2E-01`, `SPEC-0031:E2E-01`, `SPEC-0032:E2E-01`, `SPEC-0033:E2E-01` e `SPEC-0034:E2E-01`.
+
+### Métricas pós-release
+Sem ambiente remoto (`staging_url` vazio; G6 N/A aprovado pelo usuário): suíte com 153 testes verdes no CI, sem pacotes vulneráveis e sem drift do CSS gerado.
+
+### Pendências
+Conferência visual das quatro telas em 390 e 1280 px e Lighthouse de acessibilidade **não foram executadas** em nenhuma spec (o app nunca foi aberto no navegador; o risco é maior após o preflight). Outras: coluna "Último triunfo" oculta no mobile, barra de espaço rolando a página na arena, timer no vermelho sem vibração, semântica de tabela no mobile e utilitários `!` redundantes. Cada item está na seção Pendências da spec da tela.
 
 ## 12. Emendas
 <!-- Mudança em spec aprovada: uma linha por emenda, aprovada pelo humano. -->

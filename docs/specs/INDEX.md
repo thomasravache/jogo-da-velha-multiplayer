@@ -4,7 +4,7 @@
 
 ## Saúde
 
-- Validação (G0): **0 erro(s), 1 aviso(s)** — rode `spec_graph.py validate`
+- Validação (G0): **0 erro(s), 0 aviso(s)**
 - Specs: approved 8, implemented 31
 - Impedimentos: **0 aberto(s)**, 0 resolvido(s)
 
@@ -33,7 +33,7 @@
 | SPEC-0005 | Jogo da Velha | implemented | 3/3 implementadas |
 | SPEC-0013 | Evolução do Jogo da Velha | implemented | 6/6 implementadas |
 | SPEC-0021 | Engenharia de Qualidade e Refatoração Arquitetural | implemented | 4/4 implementadas |
-| SPEC-0028 | Redesign Cyber Arena — migração da UI para Tailwind (Fase 1 visual) | approved | 7/7 implementadas |
+| SPEC-0028 | Redesign Cyber Arena — migração da UI para Tailwind (Fase 1 visual) | implemented | 7/7 implementadas |
 | SPEC-0035 | Evolução funcional a partir do Stitch (Fase 2) | approved | 1/9 implementadas |
 
 ## Grafo de Dependências
@@ -113,7 +113,7 @@ flowchart LR
 | [SPEC-0025](SPEC-0025-eventos-em-tempo-real-sem-polling-e-ef-core-migrations.md) | Eventos em Tempo Real sem Polling e EF Core Migrations | full | refactor | implemented | 2026-09-29 | SPEC-0021 | SPEC-0024 | — |
 | [SPEC-0026](SPEC-0026-redesign-de-ui-e-tema-escuro-com-mudblazor.md) | Redesign de UI e Tema Escuro Imersivo com MudBlazor | full | migration | implemented | 2026-09-29 | — | — | — |
 | [SPEC-0027](SPEC-0027-timer-de-turno-e-timeout-por-w-o.md) | Timer de turno e timeout por W.O. | full | feature | implemented | 2026-09-29 | — | — | — |
-| [SPEC-0028](SPEC-0028-redesign-cyber-arena-migracao-da-ui-para-tailwind-fase-1-vis.md) | Redesign Cyber Arena — migração da UI para Tailwind (Fase 1 visual) | epic | migration | approved | 2026-09-29 | — | — | — |
+| [SPEC-0028](SPEC-0028-redesign-cyber-arena-migracao-da-ui-para-tailwind-fase-1-vis.md) | Redesign Cyber Arena — migração da UI para Tailwind (Fase 1 visual) | epic | migration | implemented | 2026-09-29 | — | — | — |
 | [SPEC-0029](SPEC-0029-pipeline-tailwind-tokens-e-fontes-cyber-arena.md) | Pipeline Tailwind, tokens e fontes Cyber Arena | full | migration | implemented | 2026-09-29 | SPEC-0028 | — | — |
 | [SPEC-0030](SPEC-0030-lobby-cyber-arena.md) | Lobby Cyber Arena | full | feature | implemented | 2026-09-29 | SPEC-0028 | SPEC-0043 | — |
 | [SPEC-0031](SPEC-0031-arena-da-partida-cyber-arena.md) | Arena da partida Cyber Arena | full | feature | implemented | 2026-09-29 | SPEC-0028 | SPEC-0043 | — |
@@ -142,6 +142,6 @@ flowchart LR
 | [ADR-0004](../adr/ADR-0004-arquitetura.md) | Arquitetura | accepted | N/A — histórico |
 | [ADR-0005](../adr/ADR-0005-padronizacao-de-analise-estatica-e-compilacao-estrita.md) | Padronização de Análise Estática e Compilação Estrita | accepted | Directory.Build.props e dotnet format |
 | [ADR-0006](../adr/ADR-0006-componentizacao-blazor-css-isolation-e-testes-com-bunit.md) | Componentização Blazor, CSS Isolation e Testes com bUnit | accepted | Testes de componentes bUnit |
-| [ADR-0007](../adr/ADR-0007-adocao-do-mudblazor-como-design-system-e-componentes.md) | Adoção do MudBlazor como Design System e Componentes | accepted | tests/TicTacToe.Tests/MudBlazorIntegrationTests.cs |
+| [ADR-0007](../adr/ADR-0007-adocao-do-mudblazor-como-design-system-e-componentes.md) | Adoção do MudBlazor como Design System e Componentes | superseded | tests/TicTacToe.Tests/MudBlazorIntegrationTests.cs |
 | [ADR-0008](../adr/ADR-0008-tailwind-css-standalone-como-camada-de-estilo-e-design-syste.md) | Tailwind CSS standalone como camada de estilo e design system próprio | accepted | tests/TicTacToe.Tests/TailwindDesignSystemTests.cs |
 | [ADR-0009](../adr/ADR-0009-identidade-anonima-persistente-do-jogador.md) | Identidade anônima persistente do jogador | accepted | tests/TicTacToe.Tests/PlayerIdentityTests.cs |

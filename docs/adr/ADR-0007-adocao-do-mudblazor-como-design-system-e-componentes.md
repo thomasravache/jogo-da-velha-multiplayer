@@ -1,14 +1,14 @@
 ---
 id: ADR-0007
 title: Adoção do MudBlazor como Design System e Componentes
-status: accepted
+status: superseded
 origin: decision
 date: 2026-09-29
 decision_makers: [thomas]
 consulted: []
 informed: []
 supersedes: ADR-0002
-superseded_by:
+superseded_by: ADR-0008
 enforced_by: tests/TicTacToe.Tests/MudBlazorIntegrationTests.cs
 ---
 
