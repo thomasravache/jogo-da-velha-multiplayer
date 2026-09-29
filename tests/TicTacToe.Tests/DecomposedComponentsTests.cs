@@ -3,7 +3,6 @@ using System.IO;
 using System.Threading.Tasks;
 using Bunit;
 using Microsoft.AspNetCore.Components.Web;
-using MudBlazor.Services;
 using TicTacToe.Modules.Gameplay;
 using TicTacToe.Web.Components.Game;
 using Xunit;
@@ -19,7 +18,6 @@ public class DecomposedComponentsTests
     public async Task Lobby_ShouldRenderInputsAndButtons()
     {
         await using var ctx = new BunitContext();
-        ctx.Services.AddMudServices();
         var cut = ctx.Render<Lobby>(parameters => parameters
             .Add(p => p.PlayerName, "Thomas")
             .Add(p => p.SelectedDifficulty, AiDifficulty.Hard));
@@ -60,7 +58,6 @@ public class DecomposedComponentsTests
         int clickedIndex = -1;
 
         await using var ctx = new BunitContext();
-        ctx.Services.AddMudServices();
         var cut = ctx.Render<GameBoard>(parameters => parameters
             .Add(p => p.Game, game)
             .Add(p => p.MyPlayer, Player.X)

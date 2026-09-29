@@ -1,7 +1,6 @@
 using System.Threading.Tasks;
 using Bunit;
 using Microsoft.Extensions.DependencyInjection;
-using MudBlazor.Services;
 using TicTacToe.Modules.Gameplay;
 using TicTacToe.Web.Components.Game;
 using Xunit;
@@ -15,7 +14,6 @@ public class GameBoardTimerTests
     public async Task GameBoard_ShouldRenderTimerChipAndProgress()
     {
         await using var ctx = new BunitContext();
-        ctx.Services.AddMudServices();
 
         using var session = new GameSession();
         var cut = ctx.Render<GameBoard>(parameters => parameters
@@ -32,7 +30,6 @@ public class GameBoardTimerTests
     public async Task GameBoard_ShouldRenderWOMessage_WhenTimedOut()
     {
         await using var ctx = new BunitContext();
-        ctx.Services.AddMudServices();
 
         using var session = new GameSession();
         session.SetPlayerName(Player.X, "Thomas");

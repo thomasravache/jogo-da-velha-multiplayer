@@ -6,7 +6,6 @@ using Bunit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
-using MudBlazor.Services;
 using TicTacToe.Modules.Gameplay;
 using TicTacToe.Modules.Matchmaking;
 using TicTacToe.Web.Components.Pages;
@@ -130,7 +129,6 @@ public class SingleResultRecordingTests
     {
         var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-        ctx.Services.AddMudServices();
         ctx.Services.AddSingleton<MatchmakingService>();
         ctx.Services.AddSingleton<ConcurrentDictionary<Guid, GameSession>>();
         ctx.Services.AddSingleton(new TicTacToe.Web.Components.Ui.ShellState());

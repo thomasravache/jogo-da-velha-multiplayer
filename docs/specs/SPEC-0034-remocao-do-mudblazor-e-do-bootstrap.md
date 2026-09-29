@@ -4,13 +4,13 @@ title: Remoção do MudBlazor e do Bootstrap
 tier: full
 type: migration
 user_facing: true
-status: approved
+status: in-progress
 created: 2026-09-29
 parent: SPEC-0028
 depends_on: [SPEC-0030, SPEC-0031, SPEC-0032, SPEC-0033]
 consumes_contract: []
 contract_version: 1
-touches: [src/TicTacToe/TicTacToe.Web/TicTacToe.Web.csproj, tests/TicTacToe.Tests/TicTacToe.Tests.csproj, src/TicTacToe/TicTacToe.Web/Program.cs, src/TicTacToe/TicTacToe.Web/Components/_Imports.razor, src/TicTacToe/TicTacToe.Web/Components/App.razor, src/TicTacToe/TicTacToe.Web/Components/Layout/**, src/TicTacToe/TicTacToe.Web/Components/Pages/Counter.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/Error.razor, src/TicTacToe/TicTacToe.Web/wwwroot/app.css, src/TicTacToe/TicTacToe.Web/wwwroot/lib/**, src/TicTacToe/TicTacToe.Web/Styles/**, src/TicTacToe/TicTacToe.Web/wwwroot/css/**, tests/TicTacToe.Tests/MudBlazorIntegrationTests.cs, tests/TicTacToe.Tests/TailwindDesignSystemTests.cs, README.md, CHANGELOG.md]
+touches: [src/TicTacToe/TicTacToe.Web/TicTacToe.Web.csproj, tests/TicTacToe.Tests/TicTacToe.Tests.csproj, src/TicTacToe/TicTacToe.Web/Program.cs, src/TicTacToe/TicTacToe.Web/Components/_Imports.razor, src/TicTacToe/TicTacToe.Web/Components/App.razor, src/TicTacToe/TicTacToe.Web/Components/Layout/**, src/TicTacToe/TicTacToe.Web/Components/Pages/Counter.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/Error.razor, src/TicTacToe/TicTacToe.Web/wwwroot/app.css, src/TicTacToe/TicTacToe.Web/wwwroot/lib/**, src/TicTacToe/TicTacToe.Web/Styles/**, src/TicTacToe/TicTacToe.Web/wwwroot/css/**, tests/TicTacToe.Tests/MudBlazorIntegrationTests.cs, tests/TicTacToe.Tests/TailwindDesignSystemTests.cs, tests/TicTacToe.Tests/DecomposedComponentsTests.cs, tests/TicTacToe.Tests/GameBoardTimerTests.cs, tests/TicTacToe.Tests/ShellLayoutTests.cs, tests/TicTacToe.Tests/SingleResultRecordingTests.cs, tests/TicTacToe.Tests/ArenaCyberArenaTests.cs, README.md, CHANGELOG.md]
 adrs: [ADR-0008, ADR-0007]
 external: []
 size: M
@@ -174,10 +174,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | Gate | Status | Evidência | Data |
 |---|---|---|---|
 | G0 Spec | PASS | `spec_graph.py validate` das 18 specs: 0 erros, 0 avisos | 2026-09-29 |
-| G1 Red | PENDING | | |
-| G2 Green | PENDING | | |
-| G3 Arquitetura | PENDING | | |
-| G4 Review | PENDING | | |
+| G1 Red | PASS | `verify SPEC-0034`: Red antes do Green; 10/10 testes rastreados; 17 falhas iniciais pelos motivos esperados (CH-01 guarda) | 2026-09-29 |
+| G2 Green | PASS | `dotnet test` 153/153; `dotnet format --verify-no-changes` limpo; `dotnet list package --vulnerable` limpo; `build.sh --check` sem drift | 2026-09-29 |
+| G3 Arquitetura | PASS | Regras do ADR-0008 (sem Mud/Bootstrap/<style>) garantidas por SPEC-0034:UT-01/02/03/05/06 | 2026-09-29 |
+| G4 Review | PASS | Reviewer independente APPROVED em 06b43d0 (0 blocker, 0 major; minors tratados) | 2026-09-29 |
 | G5 Integração & CI | PENDING | | |
 | H2 Integração aprovada | PENDING | | |
 | G6 Deploy | PENDING | | |
@@ -227,3 +227,4 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 <!-- Mudança em spec aprovada: uma linha por emenda. Mudou o contrato? Incremente `contract_version` e rode `spec_graph.py impacted SPEC-0034`. -->
 | Versão do contrato | Data | Mudança | Motivo | Specs impactadas | Aprovado por |
 |---|---|---|---|---|---|
+| 1 (contrato inalterado) | 2026-09-29 | `touches` inclui 5 arquivos de teste que registram `AddMudServices()` | Remover o pacote MudBlazor do projeto de testes quebra esses arquivos; neles só saem o registro de serviços e os usings | SPEC-0043, SPEC-0045, SPEC-0031 (testes) | thomas (2026-09-29) |

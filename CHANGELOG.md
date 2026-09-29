@@ -19,3 +19,6 @@ Cada entrada cita a spec de origem (`SPEC-NNNN`); gere-as com `spec_graph.py rep
 
 ### Fixed
 - Gravação única do resultado da partida (SPEC-0045)
+
+### Removed
+- MudBlazor, Bootstrap, página de exemplo `/counter` e menu lateral legado; reset de CSS (preflight) do Tailwind habilitado (SPEC-0034)
