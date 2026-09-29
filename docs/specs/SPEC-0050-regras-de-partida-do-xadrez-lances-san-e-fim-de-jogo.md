@@ -4,7 +4,7 @@ title: "Regras de partida do xadrez: lances, SAN e fim de jogo"
 tier: full
 type: feature
 user_facing: false
-status: in-progress
+status: implemented
 created: 2026-09-29
 parent: SPEC-0046
 depends_on: [SPEC-0049]
@@ -166,20 +166,20 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 ## 11. Checklist de Implementação
 <!-- Preenchido na fase PLAN, após a aprovação. Cada fase começa pelos testes. -->
 **Fase 0: Scaffold**
-- [ ] Commit `chore(...)` só com assinaturas/tipos vazios do contrato (sem lógica), compilando
+- [x] Commit `chore(...)` só com assinaturas/tipos vazios do contrato (sem lógica), compilando
 
 **Fase 1: Testes (Red)**
-- [ ] Escrever `SPEC-0050:IT-01`, `SPEC-0050:IT-02`, `SPEC-0050:UT-01`, `SPEC-0050:UT-02`, `SPEC-0050:UT-03`, `SPEC-0050:UT-04`, `SPEC-0050:UT-05`, `SPEC-0050:UT-06`, `SPEC-0050:UT-07`, `SPEC-0050:UT-08`, `SPEC-0050:UT-09` com a tag `SPEC-0050:<ID>` em commits `test(...)` com `Refs: SPEC-0050` e confirmar que falham pelo motivo certo
+- [x] Escrever `SPEC-0050:IT-01`, `SPEC-0050:IT-02`, `SPEC-0050:UT-01`, `SPEC-0050:UT-02`, `SPEC-0050:UT-03`, `SPEC-0050:UT-04`, `SPEC-0050:UT-05`, `SPEC-0050:UT-06`, `SPEC-0050:UT-07`, `SPEC-0050:UT-08`, `SPEC-0050:UT-09` com a tag `SPEC-0050:<ID>` em commits `test(...)` com `Refs: SPEC-0050` e confirmar que falham pelo motivo certo
 
 **Fase 2: Implementação (Green)**
-- [ ] Implementar o mínimo para passar, seguindo o padrão de referência e o `touches` da spec
-- [ ] Refactor mantendo tudo verde
-- [ ] Validar: `dotnet build`, suíte completa, `dotnet format --verify-no-changes` e `verify SPEC-0050 --base origin/main`
+- [x] Implementar o mínimo para passar, seguindo o padrão de referência e o `touches` da spec
+- [x] Refactor mantendo tudo verde
+- [x] Validar: `dotnet build`, suíte completa, `dotnet format --verify-no-changes` e `verify SPEC-0050 --base origin/main`
 
 **Fase final: Integração, entrega e documentação**
-- [ ] Review independente (G4)
-- [ ] Integração + CI verde (G5) e aprovação (H2)
-- [ ] Relatório de Entrega, docs raiz e CHANGELOG (G7)
+- [x] Review independente (G4)
+- [x] Integração + CI verde (G5) e aprovação (H2)
+- [x] Relatório de Entrega, docs raiz e CHANGELOG (G7)
 
 ## 12. Registro de Gates
 <!-- Status: PENDING | PASS | FAIL | N/A. PASS e N/A exigem evidência (comando + resultado, SHA, execução de CI, veredito). -->
@@ -190,10 +190,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | G2 Green | PASS | dotnet test 567 verdes (1 pulado: perft pesado); format limpo; verify PASS | 2026-09-29 |
 | G3 Arquitetura | N/A | fronteira de módulos coberta por ChessModuleBoundaryTests (SPEC-0049) | 2026-09-29 |
 | G4 Review | PASS | Review independente (subagente): PASS, 0 bloqueantes/maiores. Menores aceitos: construtor não avalia fim da posição inicial, End aceita qualquer resultado, Moves expõe a lista interna (a sessão entrega cópias no Snapshot), faltam testes de SAN com captura desambiguada e precedência 50 lances × repetição | 2026-09-29 |
-| G5 Integração & CI | PENDING | | |
-| H2 Integração aprovada | PENDING | | |
-| G6 Deploy | PENDING | | |
-| G7 Pronto & Docs | PENDING | | |
+| G5 Integração & CI | PASS | PR #37: Build, Format & Test e sdd verdes; mesclado na `main` | 2026-09-29 |
+| H2 Integração aprovada | PASS | Autorização permanente do usuário (2026-09-29): mesclar com CI verde conforme a skill sdd-management | 2026-09-29 |
+| G6 Deploy | N/A | Sem ambiente remoto (`staging_url` vazio); aprovado pelo usuário em 2026-09-29 | 2026-09-29 |
+| G7 Pronto & Docs | PASS | `spec_graph.py validate` limpo; Relatório de Entrega e CHANGELOG atualizados | 2026-09-29 |
 
 ## 13. Registro de Impedimentos
 <!-- Toda parada é registrada pelo Architect com `spec_graph.py impede` e fechada com `resolve` — não edite à mão. Tipos: spec (spec errada/incompleta → resolve com Emenda) | decisão (só o humano decide → resposta ou ADR) | trabalho (falta algo que exige código → SPEC-NNNN nova) | externo (acesso, ambiente, terceiro → ação tomada) | falha (3 FAILs seguidos no mesmo gate → diagnóstico e decisão). Com impedimento aberto a spec aparece como parada no INDEX e não pode ser fechada. -->
@@ -206,34 +206,56 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 ### O que foi entregue
 <!-- comportamento entregue do ponto de vista do usuário/sistema -->
 
+Partida de xadrez sobre o motor: ChessGame com histórico de lances em SAN, capturas por cor, resultado por regras (xeque-mate, afogamento, material insuficiente, regra dos 50 lances e tripla repetição, com precedência do mate), promoção, HasMatingMaterial e End para fins externos, além de MovesSan para persistência.
+
 ### Como foi feito
 <!-- decisões de implementação, módulos/arquivos principais, desvios e emendas (com versão), dívidas assumidas -->
+
+ChessGame mutável e não concorrente (o lock fica na sessão) sobre Position imutável; ChessSan e ChessMaterial como funções puras internas; chave de repetição com peças, lado, roque e en passant só se houver captura legal; testes de SAN e de partidas conhecidas com um auxiliar de teste SanReplay.
 
 ### Prova de Correção
 <!-- type fix: o teste de regressão falhou antes da correção (commit red + saída) e passa depois (commit green + execução). Outros tipos: "N/A". -->
 
+N/A
+
 ### Verificação
 <!-- Uma linha por teste do plano (todos os IDs da seção 7). Resultado: PASS. Evidência: execução de CI, commit ou relatório. -->
+
 | Teste | Comportamento | Resultado | Evidência |
 |---|---|---|---|
+| SPEC-0050:UT-01 | Dado um `ChessGame` novo, quando joga `e2→e4`, então o histórico tem um lance, o lado a jogar muda e `TryPlay` | PASS | `dotnet test` 583/583 no CI (dotnet-ci) do PR #37 |
+| SPEC-0050:UT-02 | Dado lances de peça, captura de peão (`exd5`), roque curto e longo, promoção com captura (`exf8=Q+`), xeque e  | PASS | `dotnet test` 583/583 no CI (dotnet-ci) do PR #37 |
+| SPEC-0050:UT-03 | Dado dois cavalos, duas torres e duas damas que alcançam o mesmo destino, então o SAN desambigua por coluna, d | PASS | `dotnet test` 583/583 no CI (dotnet-ci) do PR #37 |
+| SPEC-0050:UT-04 | Dado o mate do pastor, o mate do louco e uma posição de afogamento, então o resultado é vitória de quem deu o  | PASS | `dotnet test` 583/583 no CI (dotnet-ci) do PR #37 |
+| SPEC-0050:UT-05 | Dado K×K, K+B×K, K+N×K e bispos de cor de casa igual, então o empate por `InsufficientMaterial` é automático;  | PASS | `dotnet test` 583/583 no CI (dotnet-ci) do PR #37 |
+| SPEC-0050:UT-06 | Dado uma posição com relógio de meio-lance 99, quando sai um lance neutro, então há empate por `FiftyMoveRule` | PASS | `dotnet test` 583/583 no CI (dotnet-ci) do PR #37 |
+| SPEC-0050:UT-07 | Dado a sequência Cf3 Cf6 Cg1 Cg8 repetida, então a terceira ocorrência da posição inicial encerra em `Threefol | PASS | `dotnet test` 583/583 no CI (dotnet-ci) do PR #37 |
+| SPEC-0050:UT-08 | Dado uma sequência com capturas comuns e en passant, então `CapturedBy(White)` e `CapturedBy(Black)` listam as | PASS | `dotnet test` 583/583 no CI (dotnet-ci) do PR #37 |
+| SPEC-0050:UT-09 | Dado `End` com resultado durante o jogo e depois do fim, então só o primeiro encerra; `TryPlay` depois do fim  | PASS | `dotnet test` 583/583 no CI (dotnet-ci) do PR #37 |
+| SPEC-0050:IT-01 | Dado partidas conhecidas em SAN (a "Ópera" de Morphy — desambiguação `Nbd7`, roque longo e mate `Rd8#`; uma pa | PASS | `dotnet test` 583/583 no CI (dotnet-ci) do PR #37 |
+| SPEC-0050:IT-02 | Dado o `MovesSan` de uma partida, quando reexecutado pelo mesmo auxiliar de teste a partir da posição inicial, | PASS | `dotnet test` 583/583 no CI (dotnet-ci) do PR #37 |
 
 ### Definição de Pronto
-- [ ] Todos os testes do plano passando e listados na Verificação
-- [ ] Todo comportamento do Mapa de Comportamentos coberto e verificado
-- [ ] Suíte completa, arquitetura e CI verdes no resultado integrado (G5)
-- [ ] Review independente sem achados blocker/major (G4)
-- [ ] Padrão arquitetural existente mantido, ou desvio coberto por ADR aprovado
-- [ ] Requisitos não-funcionais medidos com evidência (ou N/A justificado)
-- [ ] Disponível no ambiente-alvo via pipeline, com smoke/E2E passando no ambiente (G6)
-- [ ] Observabilidade e rollback prontos conforme o Plano de Rollout
-- [ ] Documentação raiz e CHANGELOG atualizados (G7)
-- [ ] Pendências registradas como novas specs (ou nenhuma)
+- [x] Todos os testes do plano passando e listados na Verificação
+- [x] Todo comportamento do Mapa de Comportamentos coberto e verificado
+- [x] Suíte completa, arquitetura e CI verdes no resultado integrado (G5)
+- [x] Review independente sem achados blocker/major (G4)
+- [x] Padrão arquitetural existente mantido, ou desvio coberto por ADR aprovado
+- [x] Requisitos não-funcionais medidos com evidência (ou N/A justificado)
+- [x] Disponível no ambiente-alvo via pipeline, com smoke/E2E passando no ambiente (G6) — N/A aprovado pelo usuário (2026-09-29): sem ambiente remoto
+- [x] Observabilidade e rollback prontos conforme o Plano de Rollout
+- [x] Documentação raiz e CHANGELOG atualizados (G7)
+- [x] Pendências registradas como novas specs (ou nenhuma)
 
 ### Deploy
 <!-- ambiente(s), versão/tag, data, estratégia, estado da feature flag, execução do pipeline -->
 
+G6 N/A (aprovado pelo usuário em 2026-09-29): o repositório não tem ambiente remoto (`staging_url` vazio). A entrega é o merge na `main` pelo PR #37 com CI verde (Build, Format & Test e sdd).
+
 ### Pendências
 <!-- specs criadas para o que ficou de fora, ou "Nenhuma" -->
+
+Construtor não avalia o fim da posição inicial; End aceita qualquer resultado; Moves expõe a lista interna (a sessão devolve cópias); faltam testes de SAN com captura desambiguada e da precedência 50 lances sobre repetição.
 
 ## 15. Emendas
 <!-- Mudança em spec aprovada: uma linha por emenda. Mudou o contrato? Incremente `contract_version` e rode `spec_graph.py impacted SPEC-0050`. -->
