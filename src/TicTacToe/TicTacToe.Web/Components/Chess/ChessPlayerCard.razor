@@ -24,7 +24,8 @@
     [Parameter] public IReadOnlyList<PieceType> Captured { get; set; } = [];
     [Parameter] public string? Class { get; set; }
 
-    private bool Low => Remaining < LowTime;
+    // O alerta só vale enquanto o relógio deste lado corre (IsActive); em 00:00 após a bandeira não pulsa.
+    private bool Low => IsActive && Remaining < LowTime;
 
     private string Text => Format(Remaining);
 

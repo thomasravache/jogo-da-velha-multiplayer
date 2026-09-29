@@ -1,4 +1,6 @@
 @implements IDisposable
+@using Microsoft.Extensions.DependencyInjection
+@inject IServiceProvider Services
 
 @if (_snap is not null)
 {
@@ -55,7 +57,7 @@
         @if (_snap.Result is { } result)
         {
             <div class="order-6 lg:col-start-3 lg:row-start-3">
-                <ChessEndCard Result="result" WinnerName="@WinnerName(result)" MoveCount="_snap.Moves.Count" Duration="@Elapsed()" />
+                <ChessEndCard Result="result" WinnerName="@WinnerName(result)" MoveCount="_snap.Moves.Count" Duration="@Elapsed()" ViewerWon="@ViewerWon(result)" />
             </div>
         }
     </div>
@@ -80,6 +82,8 @@
 
     /// <summary>Usado pelo ciclo de vida da partida (SPEC-0060).</summary>
     [Parameter] public EventCallback OnBackToLobby { get; set; }
+
+    private TimeProvider Time { get; set; } = TimeProvider.System;
 
     private bool Over => _snap?.Result is not null;
 
@@ -113,6 +117,8 @@
         }
     }
 
+    protected override void OnInitialized() => Time = Services.GetService<TimeProvider>() ?? TimeProvider.System;
+
     protected override void OnParametersSet()
     {
         if (!ReferenceEquals(_subscribed, Session))
@@ -134,7 +140,7 @@
         // A sessão só avisa quando o estado muda; os relógios na tela precisam de um pulso por segundo.
         if (firstRender && !_disposed)
         {
-            _timer = TimeProvider.System.CreateTimer(_ => _ = InvokeAsync(OnTick), null, Second, Second);
+            _timer = Time.CreateTimer(_ => _ = InvokeAsync(OnTick), null, Second, Second);
         }
     }
 
@@ -149,21 +155,26 @@
         }
     }
 
-    private void OnSessionChanged() => _ = InvokeAsync(Update);
+    private void OnSessionChanged() => _ = InvokeAsync(() => Update(clearMessage: true));
 
     private void OnTick()
     {
         if (_snap is { ClockRunning: not null })
         {
-            Update();
+            Update(clearMessage: false);
         }
     }
 
-    private void Update()
+    private void Update(bool clearMessage)
     {
         if (_disposed)
         {
             return;
+        }
+
+        if (clearMessage)
+        {
+            _message = null;
         }
 
         Refresh();
@@ -273,7 +284,7 @@
     {
         if (Over)
         {
-            return "Partida encerrada.";
+            return ChessEndCard.TitleFor(_snap!.Result!, WinnerName(_snap.Result!));
         }
 
         return _snap!.SideToMove == _color
@@ -291,5 +302,12 @@
         _ => null,
     };
 
-    private TimeSpan Elapsed() => (_snap!.EndedAtUtc ?? DateTimeOffset.UtcNow) - _snap.StartedAtUtc;
+    private bool? ViewerWon(ChessResult result) => result.Outcome switch
+    {
+        ChessOutcome.WhiteWins => _color == PieceColor.White,
+        ChessOutcome.BlackWins => _color == PieceColor.Black,
+        _ => null,
+    };
+
+    private TimeSpan Elapsed() => (_snap!.EndedAtUtc ?? Time.GetUtcNow()) - _snap.StartedAtUtc;
 }

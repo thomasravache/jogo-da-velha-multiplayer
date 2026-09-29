@@ -1,16 +1,16 @@
 <div class="flex flex-col-reverse lg:max-h-64 lg:overflow-y-auto">
-    <ol data-move-list aria-label="Lances da partida" class="flex gap-4 overflow-x-auto font-numeric text-body-md lg:flex-col lg:gap-0.5 lg:overflow-x-visible">
+    <ol data-move-list role="list" aria-label="Lances da partida" class="flex gap-4 overflow-x-auto font-numeric text-body-md lg:flex-col lg:gap-0.5 lg:overflow-x-visible">
         @for (var i = 0; i < Moves.Count; i += 2)
         {
             var white = Moves[i];
             var black = i + 1 < Moves.Count ? Moves[i + 1] : null;
             var number = i / 2 + 1;
-            <li class="flex shrink-0 gap-2 max-lg:nth-last-[n+4]:hidden lg:grid lg:grid-cols-[2.5rem_1fr_1fr]">
+            <li aria-current="@(i + 2 >= Moves.Count ? "step" : null)" class="flex shrink-0 gap-2 max-lg:nth-last-[n+4]:hidden lg:grid lg:grid-cols-[2.5rem_1fr_1fr]">
                 <span class="text-ink-muted">@number.</span>@(" ")
-                <span aria-current="@(i == Moves.Count - 1 ? "step" : null)" class="@SanCss(i == Moves.Count - 1)">@white.San</span>@(" ")
+                <span class="@SanCss(i == Moves.Count - 1)">@white.San</span>@(" ")
                 @if (black is not null)
                 {
-                    <span aria-current="@(i + 1 == Moves.Count - 1 ? "step" : null)" class="@SanCss(i + 1 == Moves.Count - 1)">@black.San</span>
+                    <span class="@SanCss(i + 1 == Moves.Count - 1)">@black.San</span>
                 }
             </li>
         }
