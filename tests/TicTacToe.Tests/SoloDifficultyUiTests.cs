@@ -50,9 +50,9 @@ public class SoloDifficultyUiTests
         if (System.IO.File.Exists(targetPath))
         {
             var content = System.IO.File.ReadAllText(targetPath);
-            Assert.Contains("difficulty-selector", content);
-            Assert.Contains("SelectedDifficulty == AiDifficulty.Easy", content);
-            Assert.Contains("SelectedDifficulty == AiDifficulty.Hard", content);
+            Assert.Contains("SegmentedControl", content);
+            Assert.Contains("AiDifficulty.Easy", content);
+            Assert.Contains("AiDifficulty.Hard", content);
             Assert.Contains("Fácil 🟢", content);
             Assert.Contains("Impossível 🔴", content);
         }

@@ -26,10 +26,10 @@ public class DecomposedComponentsTests
 
         // Deve conter campo de apelido e botões
         var markup = cut.Markup;
-        Assert.Contains("Jogar Online", markup);
-        Assert.Contains("Jogar vs Robô (IA)", markup);
-        Assert.Contains("Criar Sala Privada", markup);
-        Assert.Contains("Dificuldade:", markup);
+        Assert.Contains("Procurar oponente", markup);
+        Assert.Contains("Iniciar partida solo", markup);
+        Assert.Contains("Criar sala", markup);
+        Assert.Contains("Sala Privada", markup);
     }
 
     [Fact(DisplayName = "SPEC-0024:UT-02 — Scoreboard renderiza tags e placar dos jogadores")]

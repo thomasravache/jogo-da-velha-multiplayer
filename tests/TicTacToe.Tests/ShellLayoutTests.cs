@@ -128,7 +128,7 @@ public class ShellLayoutTests
             b.CloseComponent();
         })));
 
-        Assert.Contains("Jogar Online", cut.Markup);
+        Assert.Contains("Procurar oponente", cut.Markup);
     }
 
     [Fact(DisplayName = "SPEC-0043:IT-02 — ShellState registrado como Scoped e Set/Reset restauram o shell")]
