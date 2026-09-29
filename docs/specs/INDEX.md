@@ -5,12 +5,12 @@
 ## Saúde
 
 - Validação (G0): **0 erro(s), 0 aviso(s)**
-- Specs: approved 14, in-progress 2, implemented 23
+- Specs: approved 13, in-progress 3, implemented 23
 - Impedimentos: **0 aberto(s)**, 0 resolvido(s)
 
 ## Plano de Execução
 
-**Em andamento:** SPEC-0029, SPEC-0045  
+**Em andamento:** SPEC-0029, SPEC-0043, SPEC-0045  
 **Paradas por impedimento:** —  
 **Próximo lote:** —
 
@@ -18,7 +18,7 @@
 |---|---|---|---|---|---|---|
 | 1 | SPEC-0029 | Pipeline Tailwind, tokens e fontes Cyber Arena | full/M | in-progress | 🔄 em andamento |  |
 | 1 | SPEC-0045 | Gravação única do resultado da partida | full/S | in-progress | 🔄 em andamento |  |
-| 2 | SPEC-0043 | Shell e primitivos de UI Cyber Arena | full/M | approved | ⛔ aguarda implementação de SPEC-0029 |  |
+| 2 | SPEC-0043 | Shell e primitivos de UI Cyber Arena | full/M | in-progress | 🔄 em andamento |  |
 | 3 | SPEC-0030 | Lobby Cyber Arena | full/M | approved | ⛔ aguarda implementação de SPEC-0043 |  |
 | 3 | SPEC-0032 | Histórico de partidas Cyber Arena | full/S | approved | ⛔ aguarda implementação de SPEC-0043 |  |
 | 3 | SPEC-0033 | Ranking Cyber Arena | full/S | approved | ⛔ aguarda implementação de SPEC-0043 |  |
@@ -57,7 +57,7 @@ flowchart LR
     S0032["SPEC-0032<br/>Histórico de partidas Cyber Arena"]:::approved
     S0033["SPEC-0033<br/>Ranking Cyber Arena"]:::approved
     S0034["SPEC-0034<br/>Remoção do MudBlazor e do Bootstrap"]:::approved
-    S0043["SPEC-0043<br/>Shell e primitivos de UI Cyber Arena"]:::approved
+    S0043["SPEC-0043<br/>Shell e primitivos de UI Cyber Arena"]:::inprogress
   end
   subgraph E0035["SPEC-0035 · Evolução funcional a partir do Stitch (Fase 2)"]
     S0036["SPEC-0036<br/>Persistência enriquecida de partidas"]:::approved
@@ -148,7 +148,7 @@ flowchart LR
 | [SPEC-0040](SPEC-0040-serie-melhor-de-5-md5.md) | Série melhor de 5 (MD5) | full | feature | approved | 2026-09-29 | SPEC-0035 | SPEC-0031, SPEC-0036 | — |
 | [SPEC-0041](SPEC-0041-abandonar-partida-e-pedir-revanche.md) | Abandonar partida e pedir revanche | full | feature | approved | 2026-09-29 | SPEC-0035 | SPEC-0044, SPEC-0045 | — |
 | [SPEC-0042](SPEC-0042-w-o-por-desconexao-do-oponente.md) | W.O. por desconexão do oponente | full | feature | approved | 2026-09-29 | SPEC-0035 | SPEC-0041 | — |
-| [SPEC-0043](SPEC-0043-shell-e-primitivos-de-ui-cyber-arena.md) | Shell e primitivos de UI Cyber Arena | full | feature | approved | 2026-09-29 | SPEC-0028 | SPEC-0029 | — |
+| [SPEC-0043](SPEC-0043-shell-e-primitivos-de-ui-cyber-arena.md) | Shell e primitivos de UI Cyber Arena | full | feature | in-progress | 2026-09-29 | SPEC-0028 | SPEC-0029 | — |
 | [SPEC-0044](SPEC-0044-serie-melhor-de-5-interface-no-lobby-e-na-arena.md) | Série melhor de 5: interface no lobby e na arena | full | feature | approved | 2026-09-29 | SPEC-0035 | SPEC-0030, SPEC-0040 | — |
 | [SPEC-0045](SPEC-0045-gravacao-unica-do-resultado-da-partida.md) | Gravação única do resultado da partida | full | fix | in-progress | 2026-09-29 | SPEC-0035 | — | — |
 
