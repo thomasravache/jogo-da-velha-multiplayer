@@ -331,4 +331,68 @@ public class ChessSessionRematchTests
         Assert.True(completed);
         Assert.Equal(ChessRematchState.Expired, session.RematchState);
     }
+
+    [Fact(DisplayName = "SPEC-0061:UT-05 — Queda registrada por handler do evento de restart tem efeito")]
+    [Trait("Category", "SPEC-0061:UT-05")]
+    public void RestartHandler_SetConnection_ShouldTakeEffect()
+    {
+        using var session = Finished();
+        session.RequestRematch(PieceColor.White);
+        var handled = false;
+        session.OnStateChanged += () =>
+        {
+            if (handled)
+            {
+                return;
+            }
+
+            handled = true;
+            session.SetConnection(PieceColor.White, false);
+        };
+
+        Assert.True(session.AcceptRematch(PieceColor.Black));
+
+        Assert.True(handled);
+        Assert.Equal(ChessSession.DisconnectGraceSeconds, session.DisconnectSecondsLeft(PieceColor.White));
+    }
+
+    [Fact(DisplayName = "SPEC-0061:UT-05 — Leave chamado por handler do evento de restart tem efeito")]
+    [Trait("Category", "SPEC-0061:UT-05")]
+    public void RestartHandler_Leave_ShouldTakeEffect()
+    {
+        using var session = Finished();
+        session.RequestRematch(PieceColor.White);
+        var handled = false;
+        var leave = ChessLeaveResult.Rejected;
+        session.OnStateChanged += () =>
+        {
+            if (handled)
+            {
+                return;
+            }
+
+            handled = true;
+            leave = session.Leave(PieceColor.Black);
+        };
+
+        Assert.True(session.AcceptRematch(PieceColor.Black));
+
+        Assert.Equal(ChessLeaveResult.Forfeited, leave);
+        Assert.Equal(ChessEndReason.Abandon, session.Result!.Reason);
+        Assert.True(session.HasLeft(PieceColor.Black));
+    }
+
+    [Fact(DisplayName = "SPEC-0061:UT-06 — Revanche em solo com a partida em andamento é recusada")]
+    [Trait("Category", "SPEC-0061:UT-06")]
+    public void Solo_RequestRematch_InProgress_ShouldBeRefused()
+    {
+        using var session = ChessSessionTests.New();
+        session.Mode = ChessMode.Solo;
+        ChessSessionTests.Line(session, "e2e4");
+
+        Assert.False(session.RequestRematch(PieceColor.White));
+
+        Assert.Single(session.Snapshot().Moves);
+        Assert.Equal(PieceColor.White, session.ColorOf(0));
+    }
 }
