@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using TicTacToe.Modules.Gameplay;
 using TicTacToe.Web.Components.Pages;
+using TicTacToe.Web.Services.PlayerIdentity;
 using Xunit;
 
 namespace TicTacToe.Tests;
@@ -42,6 +43,8 @@ public class LeaderboardCyberArenaTests
     private static BunitContext NewContext(DbContextOptions<GameplayDbContext> options)
     {
         var ctx = new BunitContext();
+        ctx.Services.AddSingleton<IPlayerStorage>(new InMemoryPlayerStorage());
+        ctx.Services.AddSingleton<PlayerIdentityService>();
         ctx.Services.AddTransient(_ => new GameplayDbContext(options));
         ctx.Services.AddTransient(sp => new GameResultService(sp.GetRequiredService<GameplayDbContext>(), NullLogger<GameResultService>.Instance));
         return ctx;
