@@ -6,7 +6,7 @@ test_integration: "dotnet test --filter Category=Integration"
 test_e2e: "dotnet test --filter Category=E2E"
 smoke_test: "dotnet test --filter Category=Smoke"
 lint: "dotnet format --verify-no-changes"
-coverage: ""
+coverage: "dotnet test --collect:\"XPlat Code Coverage\""
 coverage_min_changed_lines: 80
 mutation: ""
 arch_test: "dotnet test --filter Category=Architecture"
