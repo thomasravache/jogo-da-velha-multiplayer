@@ -190,4 +190,33 @@ public class HistoryCyberArenaTests
         Assert.NotEmpty(cut.FindAll("th"));
         Assert.Contains(cut.FindAll("a"), a => a.TextContent.Contains("Novo duelo"));
     }
+
+    [Fact(DisplayName = "SPEC-0032:UT-01b — Formatador trata datas com Kind Unspecified como UTC (retorno do EF)")]
+    [Trait("Category", "SPEC-0032:UT-01")]
+    public void DateFormatter_ShouldTreatUnspecifiedKindAsUtc()
+    {
+        var local = new DateTime(2026, 9, 29, 19, 42, 0, DateTimeKind.Local);
+        var unspecified = DateTime.SpecifyKind(local.ToUniversalTime(), DateTimeKind.Unspecified);
+
+        Assert.Equal("Hoje, 19:42", HistoryDateFormatter.Format(unspecified, new DateTime(2026, 9, 29, 20, 0, 0, DateTimeKind.Local)));
+    }
+
+    [Fact(DisplayName = "SPEC-0032:UT-05b — Subtítulo: oculto sem partidas e singular com uma")]
+    [Trait("Category", "SPEC-0032:UT-05")]
+    public async Task Subtitle_ShouldHandleZeroAndOne()
+    {
+        var empty = NewOptions();
+        await using var ctxEmpty = NewContext(empty);
+        var none = ctxEmpty.Render<History>();
+        none.WaitForAssertion(() => Assert.Contains("Nenhuma partida registrada ainda", none.Markup));
+        Assert.DoesNotContain("Últimas 0", none.Markup);
+
+        var one = NewOptions();
+        await Seed(one, Match("A", "B", "A", DateTime.UtcNow));
+        await using var ctxOne = NewContext(one);
+        var single = ctxOne.Render<History>();
+        single.WaitForAssertion(() => Assert.Single(single.FindAll("tbody tr")));
+        Assert.Contains("Última partida", single.Markup);
+        Assert.DoesNotContain("Últimas 1 partidas", single.Markup);
+    }
 }
