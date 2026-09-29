@@ -48,7 +48,34 @@ public class GameResultService(GameplayDbContext db, ILogger<GameResultService> 
     }
 
     /// <summary>Grava uma partida de xadrez; falha vai para o log e não interrompe a partida.</summary>
-    public virtual Task SaveChessAsync(ChessMatchRecord record) => throw new NotImplementedException();
+    public virtual async Task SaveChessAsync(ChessMatchRecord record)
+    {
+        try
+        {
+            db.MatchResults.Add(new MatchResult
+            {
+                PlayerXName = record.WhiteName,
+                PlayerOName = record.BlackName,
+                WinnerName = record.WinnerSide switch { "X" => record.WhiteName, "O" => record.BlackName, _ => null },
+                DurationSeconds = record.DurationSeconds,
+                MoveCount = record.MoveCount,
+                EndReason = record.Reason,
+                WinnerSide = record.WinnerSide,
+                Mode = record.Mode,
+                PlayerXId = record.WhiteId,
+                PlayerOId = record.BlackId,
+                GameType = GameType.Chess,
+                TimeControl = record.TimeControl,
+                MovesSan = record.MovesSan,
+                FinalFen = record.FinalFen,
+            });
+            await db.SaveChangesAsync();
+        }
+        catch (System.Exception ex)
+        {
+            logger.LogError(ex, "Falha ao salvar partida de xadrez. A partida continuou normalmente.");
+        }
+    }
 
     /// <summary>Grava o resultado uma única vez por rodada, independente de quantos circuitos observam a partida.</summary>
     public async Task<bool> SaveOnceAsync(GameSession game)

@@ -14,11 +14,39 @@ public sealed class ChessMatch(ChessSession session)
 /// <summary>Registro singleton das partidas de xadrez em andamento (SPEC-0053).</summary>
 public sealed class ChessMatchRegistry
 {
-    public ChessMatch GetOrCreate(Guid matchId, Func<ChessMatch> factory) => throw new NotImplementedException();
+    // Lazy garante que o factory (e o sorteio de cores dentro dele) rode uma única vez por partida.
+    private readonly ConcurrentDictionary<Guid, Lazy<ChessMatch>> _matches = new();
 
-    public bool TryGet(Guid matchId, out ChessMatch match) => throw new NotImplementedException();
+    public ChessMatch GetOrCreate(Guid matchId, Func<ChessMatch> factory) =>
+        _matches.GetOrAdd(matchId, _ => new Lazy<ChessMatch>(factory, LazyThreadSafetyMode.ExecutionAndPublication)).Value;
 
-    public int? SeatOf(Guid matchId, string connectionId) => throw new NotImplementedException();
+    public bool TryGet(Guid matchId, out ChessMatch match)
+    {
+        if (_matches.TryGetValue(matchId, out var lazy) && lazy.IsValueCreated)
+        {
+            match = lazy.Value;
+            return true;
+        }
 
-    public bool Remove(Guid matchId) => throw new NotImplementedException();
+        match = null!;
+        return false;
+    }
+
+    public int? SeatOf(Guid matchId, string connectionId) =>
+        TryGet(matchId, out var match) && match.Seats.TryGetValue(connectionId, out var seat) ? seat : null;
+
+    public bool Remove(Guid matchId)
+    {
+        if (!_matches.TryRemove(matchId, out var lazy))
+        {
+            return false;
+        }
+
+        if (lazy.IsValueCreated)
+        {
+            lazy.Value.Session.Dispose();
+        }
+
+        return true;
+    }
 }

@@ -24,9 +24,10 @@ public class MatchmakingService
     public event Action<string, Guid>? OnPlayerMatched;
 
     /// <summary>Guarda a preferência (texto opaco, ex.: cor do xadrez) da conexão; chamar antes de entrar na fila ou sala.</summary>
-    public void SetMatchPreference(string connectionId, string preference) => throw new NotImplementedException();
+    public void SetMatchPreference(string connectionId, string preference) => _preferences[connectionId] = preference;
 
-    public string? GetPreference(string connectionId) => throw new NotImplementedException();
+    public string? GetPreference(string connectionId) =>
+        _preferences.TryGetValue(connectionId, out var preference) ? preference : null;
 
     private static string EffectiveKey(string? queueKey, int bestOf) =>
         string.IsNullOrWhiteSpace(queueKey) ? $"velha:{bestOf}" : queueKey;
