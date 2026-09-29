@@ -44,7 +44,7 @@ public class GameSession
             return false;
 
         Board[index] = player;
-        
+
         if (CheckWin(player))
         {
             Winner = player;
