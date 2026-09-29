@@ -1,0 +1,7 @@
+@typeparam TValue
+@code {
+    [Parameter] public IReadOnlyList<(TValue Value, string Label)> Items { get; set; } = [];
+    [Parameter] public TValue? Value { get; set; }
+    [Parameter] public EventCallback<TValue> ValueChanged { get; set; }
+    [Parameter] public string AriaLabel { get; set; } = "";
+}

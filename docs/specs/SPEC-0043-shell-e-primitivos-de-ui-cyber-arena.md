@@ -4,7 +4,7 @@ title: Shell e primitivos de UI Cyber Arena
 tier: full
 type: feature
 user_facing: true
-status: approved
+status: in-progress
 created: 2026-09-29
 parent: SPEC-0028
 depends_on: [SPEC-0029]
