@@ -195,10 +195,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | Gate | Status | Evidência | Data |
 |---|---|---|---|
 | G0 Spec | PASS | `spec_graph.py validate` das 18 specs: 0 erros, 0 avisos | 2026-09-29 |
-| G1 Red | PENDING | | |
-| G2 Green | PENDING | | |
-| G3 Arquitetura | PENDING | | |
-| G4 Review | PENDING | | |
+| G1 Red | PASS | `verify SPEC-0031`: CH-01 e Red antes do Green; 15/15 testes rastreados; 17 falhas iniciais pelos motivos esperados | 2026-09-29 |
+| G2 Green | PASS | `dotnet test` 148/148; `dotnet format --verify-no-changes` limpo; `build.sh --check` sem drift | 2026-09-29 |
+| G3 Arquitetura | N/A | Sem suíte `Category=Architecture`; ausência de `mud-` verificada por SPEC-0031:UT-12 | 2026-09-29 |
+| G4 Review | PASS | Reviewer independente: CHANGES_REQUESTED em c24d68d (major de escopo corrigido), APPROVED em d23a77a (0 blocker, 0 major) | 2026-09-29 |
 | G5 Integração & CI | PENDING | | |
 | H2 Integração aprovada | PENDING | | |
 | G6 Deploy | PENDING | | |
