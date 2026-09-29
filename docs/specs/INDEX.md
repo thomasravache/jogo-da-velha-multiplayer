@@ -5,12 +5,18 @@
 ## Saúde
 
 - Validação (G0): **76 erro(s), 14 aviso(s)** — rode `spec_graph.py validate`
-- Specs: implemented 21
+- Specs: proposed 1, implemented 21
 - Impedimentos: **0 aberto(s)**, 0 resolvido(s)
 
 ## Plano de Execução
 
-Nenhuma spec aberta.
+**Em andamento:** —  
+**Paradas por impedimento:** —  
+**Próximo lote:** —
+
+| Onda | Spec | Título | Tier/Tam. | Status | Prontidão | Observação |
+|---|---|---|---|---|---|---|
+| 1 | SPEC-0026 | Redesign de UI e Tema Escuro Imersivo com MudBlazor | full/M | proposed | ⏳ aguardando aprovação (H1) |  |
 
 ## Épicos
 
@@ -20,6 +26,20 @@ Nenhuma spec aberta.
 | SPEC-0005 | Jogo da Velha | implemented | 3/3 implementadas |
 | SPEC-0013 | Evolução do Jogo da Velha | implemented | 6/6 implementadas |
 | SPEC-0021 | Engenharia de Qualidade e Refatoração Arquitetural | implemented | 4/4 implementadas |
+
+## Grafo de Dependências
+
+Seta contínua: depende da implementação. Seta tracejada: consome contrato.
+
+```mermaid
+flowchart LR
+  S0026["SPEC-0026<br/>Redesign de UI e Tema Escuro Imersivo c…"]:::proposed
+  classDef proposed fill:#fef3c7,stroke:#d97706,color:#111
+  classDef approved fill:#dbeafe,stroke:#2563eb,color:#111
+  classDef inprogress fill:#ede9fe,stroke:#7c3aed,color:#111
+  classDef implemented fill:#dcfce7,stroke:#16a34a,color:#111
+  classDef deprecated fill:#f3f4f6,stroke:#9ca3af,color:#6b7280
+```
 
 ## Todas as Specs
 
@@ -50,6 +70,7 @@ Nenhuma spec aberta.
 | [SPEC-0023](SPEC-0023-infraestrutura-de-cobertura-de-codigo-e-testes-com-bunit.md) | Infraestrutura de Cobertura de Código e Testes com bUnit | full | foundation | implemented | 2026-09-29 | SPEC-0021 | SPEC-0022 | — |
 | [SPEC-0024](SPEC-0024-decomposicao-do-componente-home-e-isolamento-de-css.md) | Decomposição do Componente Home e Isolamento de CSS | full | refactor | implemented | 2026-09-29 | SPEC-0021 | SPEC-0023 | — |
 | [SPEC-0025](SPEC-0025-eventos-em-tempo-real-sem-polling-e-ef-core-migrations.md) | Eventos em Tempo Real sem Polling e EF Core Migrations | full | refactor | implemented | 2026-09-29 | SPEC-0021 | SPEC-0024 | — |
+| [SPEC-0026](SPEC-0026-redesign-de-ui-e-tema-escuro-com-mudblazor.md) | Redesign de UI e Tema Escuro Imersivo com MudBlazor | full | migration | proposed | 2026-09-29 | — | — | — |
 
 ## ADRs
 
@@ -61,3 +82,4 @@ Nenhuma spec aberta.
 | [ADR-0004](../adr/ADR-0004-arquitetura.md) | Arquitetura | accepted | — |
 | [ADR-0005](../adr/ADR-0005-padronizacao-de-analise-estatica-e-compilacao-estrita.md) | Padronização de Análise Estática e Compilação Estrita | accepted | Directory.Build.props e dotnet format |
 | [ADR-0006](../adr/ADR-0006-componentizacao-blazor-css-isolation-e-testes-com-bunit.md) | Componentização Blazor, CSS Isolation e Testes com bUnit | accepted | Testes de componentes bUnit |
+| [ADR-0007](../adr/ADR-0007-adocao-do-mudblazor-como-design-system-e-componentes.md) | Adoção do MudBlazor como Design System e Componentes | proposed | tests/TicTacToe.Tests/MudBlazorIntegrationTests.cs |
