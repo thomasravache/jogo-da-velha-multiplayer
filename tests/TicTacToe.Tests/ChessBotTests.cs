@@ -201,24 +201,107 @@ public class ChessBotTests
         Assert.InRange(bot.LastNodeCount, 1, MediumChessBot.DefaultMaxNodes);
     }
 
-    [Fact(DisplayName = "SPEC-0054:UT-05 — cancelar no meio da busca devolve lance legal em menos de 100 ms")]
+    [Fact(DisplayName = "SPEC-0054:UT-05 — cancelar no meio da busca devolve lance legal da última profundidade completa")]
     [Trait("Category", "SPEC-0054:UT-05")]
-    public async Task Medium_Cancellation_ReturnsLegalMoveQuickly()
+    public async Task Medium_CancelledMidSearch_ReturnsLegalMoveQuickly()
     {
         var position = Position.FromFen(KiwipeteFen);
-        var bot = new MediumChessBot(seed: 1, maxNodes: int.MaxValue);
-        using var cts = new CancellationTokenSource();
+        var full = new MediumChessBot(seed: 1, maxNodes: int.MaxValue);
+        await full.ChooseMoveAsync(position, CancellationToken.None);
 
-        var search = bot.ChooseMoveAsync(position, cts.Token);
-        await Task.Delay(30);
-        await cts.CancelAsync();
-        var sinceCancel = Stopwatch.StartNew();
-        var move = await search;
-        sinceCancel.Stop();
+        const int cancelAtNode = 300; // depois da profundidade 1 (≤ ~50 nós) e bem antes do fim da busca
+        using var cts = new CancellationTokenSource();
+        var bot = new MediumChessBot(seed: 1, maxNodes: int.MaxValue)
+        {
+            OnNodeVisited = nodes =>
+            {
+                if (nodes == cancelAtNode)
+                {
+                    cts.Cancel();
+                }
+            },
+        };
+
+        var watch = Stopwatch.StartNew();
+        var move = await bot.ChooseMoveAsync(position, cts.Token);
+        watch.Stop();
+
+        Assert.True(full.LastNodeCount > cancelAtNode, $"a busca completa precisa passar de {cancelAtNode} nós ({full.LastNodeCount})");
+        Assert.True(cts.IsCancellationRequested);
+        Assert.Equal(cancelAtNode, bot.LastNodeCount);
+        Assert.NotNull(move);
+        Assert.Contains(move.Value, position.LegalMoves());
+        Assert.True(watch.ElapsedMilliseconds < 1_000, $"Levou {watch.ElapsedMilliseconds} ms");
+
+        // Só conta a última profundidade concluída; a interrompida é descartada.
+        Assert.InRange(bot.LastCompletedDepth, 1, 2);
+        var reference = new MediumChessBot(seed: 1, maxNodes: cancelAtNode);
+        Assert.Equal(move, await reference.ChooseMoveAsync(position, CancellationToken.None));
+        Assert.Equal(bot.LastCompletedDepth, reference.LastCompletedDepth);
+    }
+
+    [Theory(DisplayName = "SPEC-0054:UT-05 — maxNodes menor ou igual a zero ainda devolve lance legal")]
+    [Trait("Category", "SPEC-0054:UT-05")]
+    [InlineData(0)]
+    [InlineData(-5)]
+    public async Task Medium_NonPositiveMaxNodes_ReturnsLegalMove(int maxNodes)
+    {
+        var position = Position.FromFen(KiwipeteFen);
+        var bot = new MediumChessBot(seed: 1, maxNodes: maxNodes);
+
+        var move = await bot.ChooseMoveAsync(position, CancellationToken.None);
 
         Assert.NotNull(move);
         Assert.Contains(move.Value, position.LegalMoves());
-        Assert.True(sinceCancel.ElapsedMilliseconds < 100, $"Levou {sinceCancel.ElapsedMilliseconds} ms após cancelar");
+        Assert.Equal(0, bot.LastNodeCount);
+    }
+
+    [Fact(DisplayName = "SPEC-0054:UT-03 — Médio acha o mate em 2")]
+    [Trait("Category", "SPEC-0054:UT-03")]
+    public async Task Medium_FindsMateInTwo()
+    {
+        var position = Position.FromFen("6k1/8/8/8/8/8/R7/1R4K1 w - - 0 1");
+
+        var move = await ChessBots.Create(ChessBotLevel.Medium, 1).ChooseMoveAsync(position, CancellationToken.None);
+
+        Assert.NotNull(move);
+        var afterFirst = position.Apply(move.Value);
+        Assert.NotEmpty(afterFirst.LegalMoves());
+        foreach (var reply in afterFirst.LegalMoves())
+        {
+            var afterReply = afterFirst.Apply(reply);
+            Assert.Contains(afterReply.LegalMoves(), m =>
+            {
+                var next = afterReply.Apply(m);
+                return next.IsInCheck(next.SideToMove) && next.LegalMoves().Count == 0;
+            });
+        }
+    }
+
+    [Fact(DisplayName = "SPEC-0054:UT-03 — mate em 1 é preferido a mates mais longos")]
+    [Trait("Category", "SPEC-0054:UT-03")]
+    public async Task Medium_PrefersShortestMate()
+    {
+        // Ra2-a8# é mate em 1; há também caminhos mais longos até o mate.
+        var position = Position.FromFen("6k1/5ppp/8/8/8/8/R7/R5K1 w - - 0 1");
+
+        var move = await ChessBots.Create(ChessBotLevel.Medium, 3).ChooseMoveAsync(position, CancellationToken.None);
+
+        Assert.NotNull(move);
+        var next = position.Apply(move.Value);
+        Assert.True(next.IsInCheck(PieceColor.Black));
+        Assert.Empty(next.LegalMoves());
+    }
+
+    [Fact(DisplayName = "SPEC-0054:UT-03 — mate com o relógio de meio-lance em 100 prevalece sobre o corte de 50 lances")]
+    [Trait("Category", "SPEC-0054:UT-03")]
+    public async Task Medium_MateAtHalfmoveClock100_BeatsFiftyMoveCut()
+    {
+        var position = Position.FromFen("6k1/5ppp/8/8/8/8/5PPP/R5K1 w - - 99 60");
+
+        var move = await ChessBots.Create(ChessBotLevel.Medium, 1).ChooseMoveAsync(position, CancellationToken.None);
+
+        Assert.Equal(new Move(Square.Parse("a1"), Square.Parse("a8")), move);
     }
 
     [Fact(DisplayName = "SPEC-0054:UT-05 — token já cancelado ainda devolve lance legal")]
