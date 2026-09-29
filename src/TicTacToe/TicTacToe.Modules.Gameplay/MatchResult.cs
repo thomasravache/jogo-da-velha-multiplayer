@@ -4,7 +4,12 @@ namespace TicTacToe.Modules.Gameplay;
 
 public enum GameMode { Online = 0, Private = 1, Solo = 2 }
 
-public enum EndReason { Line = 0, Draw = 1, Timeout = 2, Abandon = 3, Disconnect = 4 }
+public enum EndReason
+{
+    Line = 0, Draw = 1, Timeout = 2, Abandon = 3, Disconnect = 4,
+    // Motivos do xadrez (SPEC-0053): no máximo 16 caracteres, gravados como texto.
+    Checkmate = 5, Stalemate = 6, Insufficient = 7, FiftyMoves = 8, Repetition = 9
+}
 
 public enum GameType { TicTacToe = 0, Chess = 1 }
 
@@ -36,4 +41,24 @@ public class MatchResult
 
     // Jogo da partida (SPEC-0047): partidas antigas valem como jogo da velha.
     public GameType GameType { get; set; } = GameType.TicTacToe;
+
+    // Detalhes do xadrez (SPEC-0053): nulos no jogo da velha e em partidas antigas.
+    public string? TimeControl { get; set; }  // "blitz5+0"
+    public string? MovesSan { get; set; }     // lances em SAN separados por espaço
+    public string? FinalFen { get; set; }
 }
+
+/// <summary>Partida de xadrez pronta para gravar; brancas ocupam o lado X e pretas o O (SPEC-0053).</summary>
+public record ChessMatchRecord(
+    string WhiteName,
+    string BlackName,
+    Guid? WhiteId,
+    Guid? BlackId,
+    string? WinnerSide,
+    EndReason Reason,
+    int MoveCount,
+    int DurationSeconds,
+    string TimeControl,
+    string MovesSan,
+    string FinalFen,
+    GameMode Mode);

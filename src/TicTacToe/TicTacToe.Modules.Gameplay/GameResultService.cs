@@ -47,6 +47,9 @@ public class GameResultService(GameplayDbContext db, ILogger<GameResultService> 
         }
     }
 
+    /// <summary>Grava uma partida de xadrez; falha vai para o log e não interrompe a partida.</summary>
+    public virtual Task SaveChessAsync(ChessMatchRecord record) => throw new NotImplementedException();
+
     /// <summary>Grava o resultado uma única vez por rodada, independente de quantos circuitos observam a partida.</summary>
     public async Task<bool> SaveOnceAsync(GameSession game)
     {

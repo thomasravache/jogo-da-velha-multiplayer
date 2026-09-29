@@ -5,6 +5,7 @@ using TicTacToe.Modules.Matchmaking;
 using TicTacToe.Web.Components;
 using TicTacToe.Web.Components.Ui;
 using Microsoft.AspNetCore.Components.Server.Circuits;
+using TicTacToe.Web.Services.Chess;
 using TicTacToe.Web.Services.PlayerIdentity;
 using TicTacToe.Web.Services.Presence;
 
@@ -29,6 +30,8 @@ builder.Services.AddSingleton<ConcurrentDictionary<Guid, GameSession>>();
 // Módulo Gameplay — DbContext via Aspire (injeta connection string automaticamente)
 builder.AddSqlServerDbContext<GameplayDbContext>("TicTacToeDb");
 builder.Services.AddScoped<GameResultService>();
+builder.Services.AddSingleton<ChessMatchRegistry>();
+builder.Services.AddScoped<ChessResultRecorder>();
 
 var app = builder.Build();
 
