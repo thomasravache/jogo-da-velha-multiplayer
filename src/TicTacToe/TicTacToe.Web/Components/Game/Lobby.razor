@@ -22,7 +22,7 @@
 else if (IsWaiting)
 {
     <NeonCard Class="mx-auto flex w-full max-w-md flex-col items-center gap-4 p-6 text-center">
-        <span class="size-10 animate-spin rounded-full border-4 border-secondary border-t-transparent" aria-hidden="true"></span>
+        <span class="size-10 animate-spin motion-reduce:animate-none rounded-full border-4 border-secondary border-t-transparent" aria-hidden="true"></span>
         <StatusChip Tone="ChipTone.Waiting" Dot="true">Na fila</StatusChip>
         <p class="text-title-sm" role="status" aria-live="polite">Procurando oponente para @PlayerName…</p>
     </NeonCard>
@@ -131,6 +131,17 @@ else
     [Parameter] public EventCallback OnCreateRoom { get; set; }
     [Parameter] public EventCallback OnJoinRoom { get; set; }
 
+    private string? _copiedFor;
+
+    protected override void OnParametersSet()
+    {
+        if (_copiedFor != CreatedRoomCode)
+        {
+            _copy = CopyState.None;
+            _copiedFor = CreatedRoomCode;
+        }
+    }
+
     private bool HasName => !string.IsNullOrWhiteSpace(PlayerName);
 
     private async Task HandleNameInput(string value)
@@ -160,7 +171,7 @@ else
             await JS.InvokeVoidAsync("navigator.clipboard.writeText", CreatedRoomCode);
             _copy = CopyState.Copied;
         }
-        catch (JSException)
+        catch (Exception ex) when (ex is JSException or JSDisconnectedException or InvalidOperationException)
         {
             _copy = CopyState.Failed;
         }
