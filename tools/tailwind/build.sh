@@ -17,7 +17,7 @@ fi
 
 if [ "${1:-}" = "--check" ]; then
   tmp="$(mktemp)"; trap 'rm -f "$tmp"' EXIT
-  "$BIN" -i "$INPUT" -o "$tmp" --minify >/dev/null 2>&1
+  "$BIN" -i "$INPUT" -o "$tmp" --minify >/dev/null
   if ! diff -q "$tmp" "$OUTPUT" >/dev/null; then
     echo "build.sh --check: drift em cyber-arena.css. Rode tools/tailwind/build.sh e commite o resultado." >&2
     exit 1

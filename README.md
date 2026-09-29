@@ -30,7 +30,7 @@ tools/tailwind/build.sh            # regenera wwwroot/css/cyber-arena.css (commi
 tools/tailwind/build.sh --check    # falha se o arquivo versionado estiver desatualizado (usado no CI)
 ```
 
-Os scripts são POSIX (macOS, Linux ou WSL/Git Bash no Windows). As fontes **Outfit** e **Space Grotesk** (licença SIL OFL 1.1, via Google Fonts) são auto-hospedadas em `wwwroot/fonts`. A referência visual do Stitch fica em `docs/design/stitch/`.
+Os scripts são POSIX (macOS, Linux ou WSL/Git Bash no Windows). As fontes **Outfit** e **Space Grotesk** (licença SIL OFL 1.1, via Google Fonts; textos em `wwwroot/fonts/OFL-*.txt`) são auto-hospedadas em `wwwroot/fonts`. A referência visual do Stitch fica em `docs/design/stitch/`.
 
 ---
 
