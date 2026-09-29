@@ -5,23 +5,22 @@
 ## Saúde
 
 - Validação (G0): **0 erro(s), 0 aviso(s)**
-- Specs: approved 5, in-progress 1, implemented 33
+- Specs: approved 5, implemented 34
 - Impedimentos: **0 aberto(s)**, 0 resolvido(s)
 
 ## Plano de Execução
 
-**Em andamento:** SPEC-0038  
+**Em andamento:** —  
 **Paradas por impedimento:** —  
-**Próximo lote:** —
+**Próximo lote:** SPEC-0039
 
 | Onda | Spec | Título | Tier/Tam. | Status | Prontidão | Observação |
 |---|---|---|---|---|---|---|
-| 1 | SPEC-0038 | Histórico avançado | full/M | in-progress | 🔄 em andamento |  |
-| 2 | SPEC-0039 | Ranking avançado | full/M | approved | ⛔ aguarda implementação de SPEC-0038 |  |
-| 3 | SPEC-0040 | Série melhor de 5 (MD5) | full/M | approved | ✅ pronta | saiu da onda 1: arquivos em comum com SPEC-0038; saiu da onda 2: arquivos em comum com SPEC-0039 |
-| 4 | SPEC-0044 | Série melhor de 5: interface no lobby e na arena | full/M | approved | ⛔ aguarda implementação de SPEC-0040 |  |
-| 5 | SPEC-0041 | Abandonar partida e pedir revanche | full/M | approved | ⛔ aguarda implementação de SPEC-0044 |  |
-| 6 | SPEC-0042 | W.O. por desconexão do oponente | full/M | approved | ⛔ aguarda implementação de SPEC-0041 |  |
+| 1 | SPEC-0039 | Ranking avançado | full/M | approved | ✅ pronta |  |
+| 2 | SPEC-0040 | Série melhor de 5 (MD5) | full/M | approved | ✅ pronta | saiu da onda 1: arquivos em comum com SPEC-0039 |
+| 3 | SPEC-0044 | Série melhor de 5: interface no lobby e na arena | full/M | approved | ⛔ aguarda implementação de SPEC-0040 |  |
+| 4 | SPEC-0041 | Abandonar partida e pedir revanche | full/M | approved | ⛔ aguarda implementação de SPEC-0044 |  |
+| 5 | SPEC-0042 | W.O. por desconexão do oponente | full/M | approved | ⛔ aguarda implementação de SPEC-0041 |  |
 
 ## Épicos
 
@@ -32,7 +31,7 @@
 | SPEC-0013 | Evolução do Jogo da Velha | implemented | 6/6 implementadas |
 | SPEC-0021 | Engenharia de Qualidade e Refatoração Arquitetural | implemented | 4/4 implementadas |
 | SPEC-0028 | Redesign Cyber Arena — migração da UI para Tailwind (Fase 1 visual) | implemented | 7/7 implementadas |
-| SPEC-0035 | Evolução funcional a partir do Stitch (Fase 2) | approved | 3/9 implementadas |
+| SPEC-0035 | Evolução funcional a partir do Stitch (Fase 2) | approved | 4/9 implementadas |
 
 ## Grafo de Dependências
 
@@ -43,13 +42,12 @@ flowchart LR
   subgraph E0028["SPEC-0028 · Redesign Cyber Arena — migração da UI para Tailwind (Fase 1 visual)"]
     S0030["SPEC-0030<br/>Lobby Cyber Arena"]:::implemented
     S0031["SPEC-0031<br/>Arena da partida Cyber Arena"]:::implemented
-    S0032["SPEC-0032<br/>Histórico de partidas Cyber Arena"]:::implemented
     S0033["SPEC-0033<br/>Ranking Cyber Arena"]:::implemented
   end
   subgraph E0035["SPEC-0035 · Evolução funcional a partir do Stitch (Fase 2)"]
     S0036["SPEC-0036<br/>Persistência enriquecida de partidas"]:::implemented
     S0037["SPEC-0037<br/>Identidade anônima do jogador"]:::implemented
-    S0038["SPEC-0038<br/>Histórico avançado"]:::inprogress
+    S0038["SPEC-0038<br/>Histórico avançado"]:::implemented
     S0039["SPEC-0039<br/>Ranking avançado"]:::approved
     S0040["SPEC-0040<br/>Série melhor de 5 (MD5)"]:::approved
     S0041["SPEC-0041<br/>Abandonar partida e pedir revanche"]:::approved
@@ -60,7 +58,6 @@ flowchart LR
   S0031 --> S0036
   S0045 --> S0036
   S0036 --> S0037
-  S0032 --> S0038
   S0036 --> S0038
   S0037 --> S0038
   S0033 --> S0039
@@ -121,7 +118,7 @@ flowchart LR
 | [SPEC-0035](SPEC-0035-evolucao-funcional-a-partir-do-stitch-fase-2.md) | Evolução funcional a partir do Stitch (Fase 2) | epic | feature | approved | 2026-09-29 | — | — | — |
 | [SPEC-0036](SPEC-0036-persistencia-enriquecida-de-partidas.md) | Persistência enriquecida de partidas | full | feature | implemented | 2026-09-29 | SPEC-0035 | SPEC-0031, SPEC-0045 | — |
 | [SPEC-0037](SPEC-0037-identidade-anonima-do-jogador.md) | Identidade anônima do jogador | full | feature | implemented | 2026-09-29 | SPEC-0035 | SPEC-0036 | — |
-| [SPEC-0038](SPEC-0038-historico-avancado.md) | Histórico avançado | full | feature | in-progress | 2026-09-29 | SPEC-0035 | SPEC-0032, SPEC-0036, SPEC-0037 | — |
+| [SPEC-0038](SPEC-0038-historico-avancado.md) | Histórico avançado | full | feature | implemented | 2026-09-29 | SPEC-0035 | SPEC-0032, SPEC-0036, SPEC-0037 | — |
 | [SPEC-0039](SPEC-0039-ranking-avancado.md) | Ranking avançado | full | feature | approved | 2026-09-29 | SPEC-0035 | SPEC-0033, SPEC-0037, SPEC-0038 | — |
 | [SPEC-0040](SPEC-0040-serie-melhor-de-5-md5.md) | Série melhor de 5 (MD5) | full | feature | approved | 2026-09-29 | SPEC-0035 | SPEC-0031, SPEC-0036 | — |
 | [SPEC-0041](SPEC-0041-abandonar-partida-e-pedir-revanche.md) | Abandonar partida e pedir revanche | full | feature | approved | 2026-09-29 | SPEC-0035 | SPEC-0044, SPEC-0045 | — |

@@ -9,6 +9,7 @@ Cada entrada cita a spec de origem (`SPEC-NNNN`); gere-as com `spec_graph.py rep
 ## [Unreleased]
 
 ### Added
+- Histórico avançado: escopo pessoal, filtros, busca, ordenação, paginação e resumo de desempenho (SPEC-0038)
 - Identidade anônima do jogador no navegador (PlayerId e apelido lembrados, gravados nas partidas) (SPEC-0037)
 - Detalhes da partida gravados: duração, lances, motivo do fim, lado e linha vencedora, tabuleiro final e modo (SPEC-0036)
 - Arena da partida no visual Cyber Arena com linha vencedora (SPEC-0031)
