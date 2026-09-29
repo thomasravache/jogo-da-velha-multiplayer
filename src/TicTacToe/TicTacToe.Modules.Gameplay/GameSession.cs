@@ -218,7 +218,7 @@ public class GameSession : IDisposable
     {
         lock (_lock)
         {
-            if (!_disconnectedAt.TryGetValue(player, out var since)) return null;
+            if (RoundEnded || !_disconnectedAt.TryGetValue(player, out var since)) return null;
             var elapsed = (int)Math.Floor((_time.GetUtcNow() - since).TotalSeconds);
             return Math.Max(0, DisconnectGraceSeconds - elapsed);
         }

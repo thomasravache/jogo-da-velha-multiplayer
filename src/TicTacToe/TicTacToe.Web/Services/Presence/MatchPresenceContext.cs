@@ -19,6 +19,11 @@ public sealed class MatchPresenceContext
         get { lock (_gate) { return _player; } }
     }
 
+    public (GameSession? Session, Player Player) Current
+    {
+        get { lock (_gate) { return (_session, _player); } }
+    }
+
     public void Attach(GameSession session, Player player)
     {
         lock (_gate)

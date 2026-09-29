@@ -26,6 +26,10 @@
             @if (Game.Mode != GameMode.Solo)
             {
                 <p data-disconnect-notice aria-live="polite" class="min-h-6 text-body-md text-warning">@DisconnectNotice()</p>
+                @if (OpponentSecondsLeft() is { } left)
+                {
+                    <p data-disconnect-count aria-hidden="true" class="font-numeric text-label-numeric text-warning">@(left)s</p>
+                }
             }
             @if (series)
             {
@@ -59,13 +63,11 @@
         return Game.IsDraw ? "Rodada empatada, será repetida" : null;
     }
 
-    private string? DisconnectNotice()
-    {
-        var opponent = MyPlayer == Player.X ? Player.O : Player.X;
-        return Game.DisconnectSecondsLeft(opponent) is { } left
-            ? $"Oponente desconectado. Aguardando reconexão… {left}s"
-            : null;
-    }
+    private int? OpponentSecondsLeft() => Game.DisconnectSecondsLeft(MyPlayer == Player.X ? Player.O : Player.X);
+
+    // Texto estático: a região aria-live só muda ao iniciar e ao terminar; a contagem fica em elemento à parte.
+    private string? DisconnectNotice() =>
+        OpponentSecondsLeft() is not null ? "Oponente desconectado. Aguardando reconexão…" : null;
 
     private string StatusText()
     {

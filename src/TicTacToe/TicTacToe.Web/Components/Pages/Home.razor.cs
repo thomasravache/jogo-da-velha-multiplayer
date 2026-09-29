@@ -18,6 +18,7 @@ public partial class Home : IDisposable
 {
     [Inject] private ShellState Shell { get; set; } = default!;
     [Inject] private IServiceProvider Services { get; set; } = default!;
+    [Inject] private ILogger<Home> Logger { get; set; } = default!;
 
     // Serviços opcionais: presença (circuito) e relógio injetável.
     private MatchPresenceContext? Presence => Services.GetService<MatchPresenceContext>();
@@ -193,7 +194,10 @@ public partial class Home : IDisposable
                 catch { }
             }
 
-            await GameResultService.SaveOnceAsync(g);
+            if (await GameResultService.SaveOnceAsync(g) && g.EndReason == EndReason.Disconnect)
+            {
+                Logger.LogInformation("Partida {GameId} encerrada por W.O. de desconexão (vencedor: {Winner}).", g.Id, g.Winner);
+            }
         }
         await InvokeAsync(StateHasChanged);
     }
