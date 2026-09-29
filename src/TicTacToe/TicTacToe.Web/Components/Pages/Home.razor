@@ -9,42 +9,33 @@
 @inject GameResultService GameResultService
 @inject IJSRuntime JS
 
-<PageTitle>Jogo da Velha Multiplayer</PageTitle>
+<PageTitle>XO Arena</PageTitle>
 
-<div class="game-container">
-    <h1>Jogo da Velha ✕ ◯</h1>
+@if (MatchId == null)
+{
+    <Lobby PlayerName="@PlayerName"
+           PlayerNameChanged="v => PlayerName = v"
+           SelectedDifficulty="@SelectedDifficulty"
+           DifficultyChanged="d => SelectedDifficulty = d"
+           InputRoomCode="@InputRoomCode"
+           InputRoomCodeChanged="c => InputRoomCode = c"
+           IsWaiting="@IsWaiting"
+           CreatedRoomCode="@CreatedRoomCode"
+           RoomErrorMessage="@RoomErrorMessage"
+           OnPlayOnline="FindMatch"
+           OnPlaySolo="StartSoloGame"
+           OnCreateRoom="CreateRoom"
+           OnJoinRoom="JoinRoom" />
+}
+else
+{
+    var game = Games[MatchId.Value];
 
-    @if (MatchId == null)
-    {
-        <Lobby PlayerName="@PlayerName"
-               PlayerNameChanged="v => PlayerName = v"
-               SelectedDifficulty="@SelectedDifficulty"
-               DifficultyChanged="d => SelectedDifficulty = d"
-               InputRoomCode="@InputRoomCode"
-               InputRoomCodeChanged="c => InputRoomCode = c"
-               IsWaiting="@IsWaiting"
-               CreatedRoomCode="@CreatedRoomCode"
-               RoomErrorMessage="@RoomErrorMessage"
-               OnPlayOnline="FindMatch"
-               OnPlaySolo="StartSoloGame"
-               OnCreateRoom="CreateRoom"
-               OnJoinRoom="JoinRoom" />
-    }
-    else
-    {
-        var game = Games[MatchId.Value];
-
+    <div class="game-container mx-auto grid w-full grid-cols-2 gap-4 lg:grid-cols-[1fr_minmax(0,var(--size-board-desktop))_1fr] lg:items-start lg:gap-6">
         <Scoreboard Game="@game" MyPlayer="@MyPlayer" />
 
         <GameBoard Game="@game" MyPlayer="@MyPlayer" OnCellClick="MakeMove" />
 
-        @if (game.Winner != Player.None || game.IsDraw)
-        {
-            <div class="actions">
-                <button class="btn-rematch" @onclick="RestartGame">
-                    Jogar Novamente 🔄
-                </button>
-            </div>
-        }
-    }
-</div>
+        <RematchBar Finished="@(game.Winner != Player.None || game.IsDraw)" OnRematch="RestartGame" />
+    </div>
+}

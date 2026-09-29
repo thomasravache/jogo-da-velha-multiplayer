@@ -5,11 +5,14 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using TicTacToe.Modules.Gameplay;
 using TicTacToe.Modules.Matchmaking;
+using TicTacToe.Web.Components.Ui;
 
 namespace TicTacToe.Web.Components.Pages;
 
 public partial class Home : IDisposable
 {
+    [Inject] private ShellState Shell { get; set; } = default!;
+
     private string ConnectionId = Guid.NewGuid().ToString();
     private string PlayerName = "";
     private Guid? MatchId;
@@ -58,6 +61,19 @@ public partial class Home : IDisposable
             MyPlayer = Player.O;
             IsWaiting = false;
             EnsureGameExists();
+        }
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        // Modo imersivo do shell enquanto há partida ativa (esconde a barra inferior no mobile).
+        if (MatchId != null && !Shell.Immersive)
+        {
+            Shell.Set(true, "Partida ativa");
+        }
+        else if (MatchId == null && Shell.Immersive)
+        {
+            Shell.Reset();
         }
     }
 
@@ -187,6 +203,7 @@ public partial class Home : IDisposable
 
     public void Dispose()
     {
+        Shell.Reset();
         Matchmaking.OnPlayerMatched -= OnMatchedReceived;
         if (MatchId != null && Games.TryGetValue(MatchId.Value, out var g))
         {

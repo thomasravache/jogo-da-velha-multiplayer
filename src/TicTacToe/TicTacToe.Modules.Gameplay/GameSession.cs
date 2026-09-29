@@ -39,7 +39,18 @@ public class GameSession : IDisposable
 
     /// <summary>Marca atomicamente que o resultado da rodada foi gravado; verdadeiro só no primeiro chamador.</summary>
     /// <summary>Três índices (0–8, crescentes) da linha que deu a vitória por jogada; nulo em outros casos.</summary>
-    public IReadOnlyList<int>? WinningLine => throw new NotImplementedException();
+    public IReadOnlyList<int>? WinningLine
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return _winningLine;
+            }
+        }
+    }
+
+    private int[]? _winningLine;
 
     public bool TryMarkResultRecorded()
     {
@@ -88,6 +99,7 @@ public class GameSession : IDisposable
         {
             Array.Clear(Board, 0, Board.Length);
             _resultRecorded = false;
+            _winningLine = null;
             Winner = Player.None;
             IsTimedOut = false;
             CurrentTurn = Player.X;
@@ -105,9 +117,11 @@ public class GameSession : IDisposable
 
             Board[index] = player;
 
-            if (CheckWin(player))
+            var line = FindWinningLine(player);
+            if (line is not null)
             {
                 Winner = player;
+                _winningLine = line;
                 _scores[player] = GetScore(player) + 1;
             }
             else
@@ -120,21 +134,22 @@ public class GameSession : IDisposable
         return true;
     }
 
-    private bool CheckWin(Player player)
-    {
-        int[][] winLines = new int[][]
-        {
-            new[] {0, 1, 2}, new[] {3, 4, 5}, new[] {6, 7, 8}, // Rows
-            new[] {0, 3, 6}, new[] {1, 4, 7}, new[] {2, 5, 8}, // Cols
-            new[] {0, 4, 8}, new[] {2, 4, 6}                   // Diags
-        };
+    private static readonly int[][] WinLines =
+    [
+        [0, 1, 2], [3, 4, 5], [6, 7, 8], // linhas
+        [0, 3, 6], [1, 4, 7], [2, 5, 8], // colunas
+        [0, 4, 8], [2, 4, 6],            // diagonais
+    ];
 
-        foreach (var line in winLines)
+    private int[]? FindWinningLine(Player player)
+    {
+        foreach (var line in WinLines)
         {
             if (Board[line[0]] == player && Board[line[1]] == player && Board[line[2]] == player)
-                return true;
+                return line;
         }
-        return false;
+
+        return null;
     }
 
     public void Dispose()

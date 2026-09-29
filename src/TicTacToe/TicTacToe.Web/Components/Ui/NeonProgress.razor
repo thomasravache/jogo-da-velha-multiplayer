@@ -1,7 +1,32 @@
+@using System.Globalization
+
+<div class="flex w-full flex-col gap-1">
+    <div role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="@Percent.ToString("0", CultureInfo.InvariantCulture)"
+         aria-label="@(Label ?? "Progresso")" data-tone="@ToneName"
+         class="h-1.5 w-full overflow-hidden rounded-pill bg-surface-high">
+        <div class="@BarCss" style="width: @Percent.ToString("0.##", CultureInfo.InvariantCulture)%"></div>
+    </div>
+    @if (!string.IsNullOrWhiteSpace(Label))
+    {
+        <span class="self-end font-numeric text-label-numeric text-ink-muted">@Label</span>
+    }
+</div>
+
 @code {
     public enum ProgressTone { Success, Warning, Danger }
 
     [Parameter] public double Value { get; set; }
     [Parameter] public ProgressTone Tone { get; set; } = ProgressTone.Success;
     [Parameter] public string? Label { get; set; }
+
+    private double Percent => Math.Clamp(Value, 0, 100);
+
+    private string ToneName => Tone.ToString().ToLowerInvariant();
+
+    private string BarCss => "h-full rounded-pill transition-[width] duration-700 ease-linear " + Tone switch
+    {
+        ProgressTone.Warning => "bg-warning",
+        ProgressTone.Danger => "bg-primary motion-safe:animate-pulse",
+        _ => "bg-success",
+    };
 }
