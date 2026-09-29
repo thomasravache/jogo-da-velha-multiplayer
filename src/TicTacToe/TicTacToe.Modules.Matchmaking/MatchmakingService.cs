@@ -13,6 +13,7 @@ public class MatchmakingService
     private readonly Dictionary<string, (string QueueKey, int BestOf)> _roomInfo = [];
     private readonly ConcurrentDictionary<string, string> _playerNames = new();
     private readonly ConcurrentDictionary<string, Guid> _playerIds = new();
+    private readonly ConcurrentDictionary<string, string> _preferences = new();
 
     // playerConnectionId -> matchId
     public ConcurrentDictionary<string, Guid> ActiveMatches { get; } = new();
@@ -21,6 +22,12 @@ public class MatchmakingService
     private readonly ConcurrentDictionary<Guid, (string PlayerX, string PlayerO)> _matchPlayers = new();
 
     public event Action<string, Guid>? OnPlayerMatched;
+
+    /// <summary>Guarda a preferência (texto opaco, ex.: cor do xadrez) da conexão; chamar antes de entrar na fila ou sala.</summary>
+    public void SetMatchPreference(string connectionId, string preference) => _preferences[connectionId] = preference;
+
+    public string? GetPreference(string connectionId) =>
+        _preferences.TryGetValue(connectionId, out var preference) ? preference : null;
 
     private static string EffectiveKey(string? queueKey, int bestOf) =>
         string.IsNullOrWhiteSpace(queueKey) ? $"velha:{bestOf}" : queueKey;
@@ -58,7 +65,15 @@ public class MatchmakingService
 
         OnPlayerMatched?.Invoke(player1, matchId);
         OnPlayerMatched?.Invoke(player2, matchId);
+        ClearPreferences(player1, player2);
         return matchId;
+    }
+
+    // A preferência só vale até o pareamento; os handlers do evento já a leram.
+    private void ClearPreferences(string first, string second)
+    {
+        _preferences.TryRemove(first, out _);
+        _preferences.TryRemove(second, out _);
     }
 
     private void RemoveFromQueues(string connectionId)
@@ -72,7 +87,11 @@ public class MatchmakingService
     /// <summary>Remove a conexão de qualquer fila (idempotente); quem já foi pareado não é afetado.</summary>
     public void LeaveQueue(string connectionId)
     {
-        lock (_gate) RemoveFromQueues(connectionId);
+        lock (_gate)
+        {
+            RemoveFromQueues(connectionId);
+            _preferences.TryRemove(connectionId, out _);
+        }
     }
 
     /// <summary>Remove as salas privadas criadas pela conexão que ainda esperam.</summary>
@@ -85,6 +104,8 @@ public class MatchmakingService
                 _privateRooms.TryRemove(code, out _);
                 _roomInfo.Remove(code);
             }
+
+            _preferences.TryRemove(connectionId, out _);
         }
     }
 
@@ -189,6 +210,7 @@ public class MatchmakingService
 
         OnPlayerMatched?.Invoke(hostConnectionId, matchId);
         OnPlayerMatched?.Invoke(connectionId, matchId);
+        ClearPreferences(hostConnectionId, connectionId);
         return matchId;
     }
 }

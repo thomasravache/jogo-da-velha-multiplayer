@@ -25,6 +25,9 @@ public class GameplayDbContext(DbContextOptions<GameplayDbContext> options) : Db
             e.Property(m => m.WinningLine).HasMaxLength(5);
             e.Property(m => m.FinalBoard).HasMaxLength(9);
             e.Property(m => m.Mode).HasConversion<string>().HasMaxLength(8);
+            e.Property(m => m.TimeControl).HasMaxLength(16);
+            e.Property(m => m.MovesSan);
+            e.Property(m => m.FinalFen).HasMaxLength(100);
             e.Property(m => m.GameType).HasDefaultValue(GameType.TicTacToe);
             e.HasIndex(m => m.GameType);
             e.HasIndex(m => m.PlayerXId);
