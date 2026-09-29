@@ -5,12 +5,33 @@
 ## Saúde
 
 - Validação (G0): **0 erro(s), 0 aviso(s)**
-- Specs: implemented 23
+- Specs: proposed 16, implemented 23
 - Impedimentos: **0 aberto(s)**, 0 resolvido(s)
 
 ## Plano de Execução
 
-Nenhuma spec aberta.
+**Em andamento:** —  
+**Paradas por impedimento:** —  
+**Próximo lote:** —
+
+| Onda | Spec | Título | Tier/Tam. | Status | Prontidão | Observação |
+|---|---|---|---|---|---|---|
+| 1 | SPEC-0029 | Pipeline Tailwind, tokens e fontes Cyber Arena | full/M | proposed | ⏳ aguardando aprovação (H1) |  |
+| 1 | SPEC-0045 | Gravação única do resultado da partida | full/S | proposed | ⏳ aguardando aprovação (H1) |  |
+| 2 | SPEC-0043 | Shell e primitivos de UI Cyber Arena | full/M | proposed | ⏳ aguardando aprovação (H1) |  |
+| 3 | SPEC-0030 | Lobby Cyber Arena | full/M | proposed | ⏳ aguardando aprovação (H1) |  |
+| 3 | SPEC-0032 | Histórico de partidas Cyber Arena | full/S | proposed | ⏳ aguardando aprovação (H1) |  |
+| 3 | SPEC-0033 | Ranking Cyber Arena | full/S | proposed | ⏳ aguardando aprovação (H1) |  |
+| 4 | SPEC-0031 | Arena da partida Cyber Arena | full/M | proposed | ⏳ aguardando aprovação (H1) | saiu da onda 3: arquivos em comum com SPEC-0030 |
+| 5 | SPEC-0034 | Remoção do MudBlazor e do Bootstrap | full/M | proposed | ⏳ aguardando aprovação (H1) |  |
+| 5 | SPEC-0036 | Persistência enriquecida de partidas | full/M | proposed | ⏳ aguardando aprovação (H1) |  |
+| 6 | SPEC-0037 | Identidade anônima do jogador | full/M | proposed | ⏳ aguardando aprovação (H1) |  |
+| 7 | SPEC-0038 | Histórico avançado | full/M | proposed | ⏳ aguardando aprovação (H1) |  |
+| 8 | SPEC-0039 | Ranking avançado | full/M | proposed | ⏳ aguardando aprovação (H1) |  |
+| 9 | SPEC-0040 | Série melhor de 5 (MD5) | full/M | proposed | ⏳ aguardando aprovação (H1) | saiu da onda 6: arquivos em comum com SPEC-0037; saiu da onda 7: arquivos em comum com SPEC-0038; saiu da onda 8: arquivos em comum com SPEC-0039 |
+| 10 | SPEC-0044 | Série melhor de 5: interface no lobby e na arena | full/M | proposed | ⏳ aguardando aprovação (H1) |  |
+| 11 | SPEC-0041 | Abandonar partida e pedir revanche | full/M | proposed | ⏳ aguardando aprovação (H1) |  |
+| 12 | SPEC-0042 | W.O. por desconexão do oponente | full/M | proposed | ⏳ aguardando aprovação (H1) |  |
 
 ## Épicos
 
@@ -20,6 +41,66 @@ Nenhuma spec aberta.
 | SPEC-0005 | Jogo da Velha | implemented | 3/3 implementadas |
 | SPEC-0013 | Evolução do Jogo da Velha | implemented | 6/6 implementadas |
 | SPEC-0021 | Engenharia de Qualidade e Refatoração Arquitetural | implemented | 4/4 implementadas |
+| SPEC-0028 | Redesign Cyber Arena — migração da UI para Tailwind (Fase 1 visual) | proposed | 0/7 implementadas |
+| SPEC-0035 | Evolução funcional a partir do Stitch (Fase 2) | proposed | 0/9 implementadas |
+
+## Grafo de Dependências
+
+Seta contínua: depende da implementação. Seta tracejada: consome contrato.
+
+```mermaid
+flowchart LR
+  subgraph E0028["SPEC-0028 · Redesign Cyber Arena — migração da UI para Tailwind (Fase 1 visual)"]
+    S0029["SPEC-0029<br/>Pipeline Tailwind, tokens e fontes Cybe…"]:::proposed
+    S0030["SPEC-0030<br/>Lobby Cyber Arena"]:::proposed
+    S0031["SPEC-0031<br/>Arena da partida Cyber Arena"]:::proposed
+    S0032["SPEC-0032<br/>Histórico de partidas Cyber Arena"]:::proposed
+    S0033["SPEC-0033<br/>Ranking Cyber Arena"]:::proposed
+    S0034["SPEC-0034<br/>Remoção do MudBlazor e do Bootstrap"]:::proposed
+    S0043["SPEC-0043<br/>Shell e primitivos de UI Cyber Arena"]:::proposed
+  end
+  subgraph E0035["SPEC-0035 · Evolução funcional a partir do Stitch (Fase 2)"]
+    S0036["SPEC-0036<br/>Persistência enriquecida de partidas"]:::proposed
+    S0037["SPEC-0037<br/>Identidade anônima do jogador"]:::proposed
+    S0038["SPEC-0038<br/>Histórico avançado"]:::proposed
+    S0039["SPEC-0039<br/>Ranking avançado"]:::proposed
+    S0040["SPEC-0040<br/>Série melhor de 5 (MD5)"]:::proposed
+    S0041["SPEC-0041<br/>Abandonar partida e pedir revanche"]:::proposed
+    S0042["SPEC-0042<br/>W.O. por desconexão do oponente"]:::proposed
+    S0044["SPEC-0044<br/>Série melhor de 5: interface no lobby e…"]:::proposed
+    S0045["SPEC-0045<br/>Gravação única do resultado da partida"]:::proposed
+  end
+  S0043 --> S0030
+  S0043 --> S0031
+  S0043 --> S0032
+  S0043 --> S0033
+  S0030 --> S0034
+  S0031 --> S0034
+  S0032 --> S0034
+  S0033 --> S0034
+  S0031 --> S0036
+  S0045 --> S0036
+  S0036 --> S0037
+  S0032 --> S0038
+  S0036 --> S0038
+  S0037 --> S0038
+  S0033 --> S0039
+  S0037 --> S0039
+  S0038 --> S0039
+  S0031 --> S0040
+  S0036 --> S0040
+  S0044 --> S0041
+  S0045 --> S0041
+  S0041 --> S0042
+  S0029 --> S0043
+  S0030 --> S0044
+  S0040 --> S0044
+  classDef proposed fill:#fef3c7,stroke:#d97706,color:#111
+  classDef approved fill:#dbeafe,stroke:#2563eb,color:#111
+  classDef inprogress fill:#ede9fe,stroke:#7c3aed,color:#111
+  classDef implemented fill:#dcfce7,stroke:#16a34a,color:#111
+  classDef deprecated fill:#f3f4f6,stroke:#9ca3af,color:#6b7280
+```
 
 ## Todas as Specs
 
@@ -52,6 +133,24 @@ Nenhuma spec aberta.
 | [SPEC-0025](SPEC-0025-eventos-em-tempo-real-sem-polling-e-ef-core-migrations.md) | Eventos em Tempo Real sem Polling e EF Core Migrations | full | refactor | implemented | 2026-09-29 | SPEC-0021 | SPEC-0024 | — |
 | [SPEC-0026](SPEC-0026-redesign-de-ui-e-tema-escuro-com-mudblazor.md) | Redesign de UI e Tema Escuro Imersivo com MudBlazor | full | migration | implemented | 2026-09-29 | — | — | — |
 | [SPEC-0027](SPEC-0027-timer-de-turno-e-timeout-por-w-o.md) | Timer de turno e timeout por W.O. | full | feature | implemented | 2026-09-29 | — | — | — |
+| [SPEC-0028](SPEC-0028-redesign-cyber-arena-migracao-da-ui-para-tailwind-fase-1-vis.md) | Redesign Cyber Arena — migração da UI para Tailwind (Fase 1 visual) | epic | migration | proposed | 2026-09-29 | — | — | — |
+| [SPEC-0029](SPEC-0029-pipeline-tailwind-tokens-e-fontes-cyber-arena.md) | Pipeline Tailwind, tokens e fontes Cyber Arena | full | migration | proposed | 2026-09-29 | SPEC-0028 | — | — |
+| [SPEC-0030](SPEC-0030-lobby-cyber-arena.md) | Lobby Cyber Arena | full | feature | proposed | 2026-09-29 | SPEC-0028 | SPEC-0043 | — |
+| [SPEC-0031](SPEC-0031-arena-da-partida-cyber-arena.md) | Arena da partida Cyber Arena | full | feature | proposed | 2026-09-29 | SPEC-0028 | SPEC-0043 | — |
+| [SPEC-0032](SPEC-0032-historico-de-partidas-cyber-arena.md) | Histórico de partidas Cyber Arena | full | feature | proposed | 2026-09-29 | SPEC-0028 | SPEC-0043 | — |
+| [SPEC-0033](SPEC-0033-ranking-cyber-arena.md) | Ranking Cyber Arena | full | feature | proposed | 2026-09-29 | SPEC-0028 | SPEC-0043 | — |
+| [SPEC-0034](SPEC-0034-remocao-do-mudblazor-e-do-bootstrap.md) | Remoção do MudBlazor e do Bootstrap | full | migration | proposed | 2026-09-29 | SPEC-0028 | SPEC-0030, SPEC-0031, SPEC-0032, SPEC-0033 | — |
+| [SPEC-0035](SPEC-0035-evolucao-funcional-a-partir-do-stitch-fase-2.md) | Evolução funcional a partir do Stitch (Fase 2) | epic | feature | proposed | 2026-09-29 | — | — | — |
+| [SPEC-0036](SPEC-0036-persistencia-enriquecida-de-partidas.md) | Persistência enriquecida de partidas | full | feature | proposed | 2026-09-29 | SPEC-0035 | SPEC-0031, SPEC-0045 | — |
+| [SPEC-0037](SPEC-0037-identidade-anonima-do-jogador.md) | Identidade anônima do jogador | full | feature | proposed | 2026-09-29 | SPEC-0035 | SPEC-0036 | — |
+| [SPEC-0038](SPEC-0038-historico-avancado.md) | Histórico avançado | full | feature | proposed | 2026-09-29 | SPEC-0035 | SPEC-0032, SPEC-0036, SPEC-0037 | — |
+| [SPEC-0039](SPEC-0039-ranking-avancado.md) | Ranking avançado | full | feature | proposed | 2026-09-29 | SPEC-0035 | SPEC-0033, SPEC-0037, SPEC-0038 | — |
+| [SPEC-0040](SPEC-0040-serie-melhor-de-5-md5.md) | Série melhor de 5 (MD5) | full | feature | proposed | 2026-09-29 | SPEC-0035 | SPEC-0031, SPEC-0036 | — |
+| [SPEC-0041](SPEC-0041-abandonar-partida-e-pedir-revanche.md) | Abandonar partida e pedir revanche | full | feature | proposed | 2026-09-29 | SPEC-0035 | SPEC-0044, SPEC-0045 | — |
+| [SPEC-0042](SPEC-0042-w-o-por-desconexao-do-oponente.md) | W.O. por desconexão do oponente | full | feature | proposed | 2026-09-29 | SPEC-0035 | SPEC-0041 | — |
+| [SPEC-0043](SPEC-0043-shell-e-primitivos-de-ui-cyber-arena.md) | Shell e primitivos de UI Cyber Arena | full | feature | proposed | 2026-09-29 | SPEC-0028 | SPEC-0029 | — |
+| [SPEC-0044](SPEC-0044-serie-melhor-de-5-interface-no-lobby-e-na-arena.md) | Série melhor de 5: interface no lobby e na arena | full | feature | proposed | 2026-09-29 | SPEC-0035 | SPEC-0030, SPEC-0040 | — |
+| [SPEC-0045](SPEC-0045-gravacao-unica-do-resultado-da-partida.md) | Gravação única do resultado da partida | full | fix | proposed | 2026-09-29 | SPEC-0035 | — | — |
 
 ## ADRs
 
@@ -64,3 +163,5 @@ Nenhuma spec aberta.
 | [ADR-0005](../adr/ADR-0005-padronizacao-de-analise-estatica-e-compilacao-estrita.md) | Padronização de Análise Estática e Compilação Estrita | accepted | Directory.Build.props e dotnet format |
 | [ADR-0006](../adr/ADR-0006-componentizacao-blazor-css-isolation-e-testes-com-bunit.md) | Componentização Blazor, CSS Isolation e Testes com bUnit | accepted | Testes de componentes bUnit |
 | [ADR-0007](../adr/ADR-0007-adocao-do-mudblazor-como-design-system-e-componentes.md) | Adoção do MudBlazor como Design System e Componentes | accepted | tests/TicTacToe.Tests/MudBlazorIntegrationTests.cs |
+| [ADR-0008](../adr/ADR-0008-tailwind-css-standalone-como-camada-de-estilo-e-design-syste.md) | Tailwind CSS standalone como camada de estilo e design system próprio | proposed | tests/TicTacToe.Tests/TailwindDesignSystemTests.cs |
+| [ADR-0009](../adr/ADR-0009-identidade-anonima-persistente-do-jogador.md) | Identidade anônima persistente do jogador | proposed | tests/TicTacToe.Tests/PlayerIdentityTests.cs |
