@@ -172,6 +172,8 @@ public partial class Home : IDisposable
     {
         if (MatchId != null && Games.TryGetValue(MatchId.Value, out var g))
         {
+            if (g.Winner == Player.None) _confettiFired = false;
+
             if (g.Winner == MyPlayer && !_confettiFired)
             {
                 _confettiFired = true;
@@ -247,6 +249,58 @@ public partial class Home : IDisposable
                 // Página descartada durante o atraso: nada a fazer.
             }
         });
+    }
+
+    private void RequestRematch() => WithGame(g => g.RequestRematch(MyPlayer));
+
+    private void AcceptRematch() => WithGame(g => g.AcceptRematch(MyPlayer));
+
+    private void DeclineRematch() => WithGame(g => g.DeclineRematch(MyPlayer));
+
+    private void WithGame(Action<GameSession> action)
+    {
+        if (MatchId != null && Games.TryGetValue(MatchId.Value, out var game))
+        {
+            action(game);
+        }
+    }
+
+    private async Task LeaveGame()
+    {
+        if (MatchId == null || !Games.TryGetValue(MatchId.Value, out var game)) return;
+
+        if (game.Leave(MyPlayer) == LeaveResult.Forfeited)
+        {
+            await GameResultService.SaveOnceAsync(game);
+        }
+
+        ReturnToLobby();
+    }
+
+    private void BackToLobby()
+    {
+        WithGame(g => g.Leave(MyPlayer));
+        ReturnToLobby();
+    }
+
+    // Volta ao lobby: solta a partida e, se ninguém mais depende dela, remove a sessão.
+    private void ReturnToLobby()
+    {
+        if (MatchId is { } id && Games.TryGetValue(id, out var game))
+        {
+            game.OnStateChanged -= OnGameStateChanged;
+            if (IsSoloGame || (game.HasLeft(Player.X) && game.HasLeft(Player.O)))
+            {
+                Games.TryRemove(id, out _);
+                game.Dispose();
+            }
+        }
+
+        MatchId = null;
+        IsSoloGame = false;
+        IsWaiting = false;
+        CreatedRoomCode = null;
+        _confettiFired = false;
     }
 
     private void RestartGame()

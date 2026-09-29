@@ -40,6 +40,15 @@ else
 
         <GameBoard Game="@game" MyPlayer="@MyPlayer" OnCellClick="MakeMove" />
 
-        <RematchBar Finished="@(game.Winner != Player.None || game.IsDraw)" Kind="@RematchKindFor(game)" OnRematch="RestartGame" />
+        <RematchBar Finished="@(game.Winner != Player.None || game.IsDraw)" Kind="@RematchKindFor(game)"
+                    Consent="@(!IsSoloGame && RematchKindFor(game) != RematchBar.RematchKind.NextRound)"
+                    State="@game.RematchState" RequestedByMe="@(game.RematchRequestedBy == MyPlayer)"
+                    RequesterName="@(game.RematchRequestedBy is { } requester ? game.GetPlayerName(requester) : null)"
+                    OpponentLeft="@game.HasLeft(MyPlayer == Player.X ? Player.O : Player.X)"
+                    OnRematch="RestartGame" OnRequest="RequestRematch" OnAccept="AcceptRematch" OnDecline="DeclineRematch" OnBackToLobby="BackToLobby" />
+
+        <div class="col-span-2 flex justify-center lg:col-span-1 lg:col-start-2 lg:row-start-3">
+            <ArenaActions InProgress="@(game.Winner == Player.None && !game.IsDraw)" OnLeave="LeaveGame" />
+        </div>
     </div>
 }
