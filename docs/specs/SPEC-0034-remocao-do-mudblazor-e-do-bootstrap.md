@@ -4,7 +4,7 @@ title: Remoção do MudBlazor e do Bootstrap
 tier: full
 type: migration
 user_facing: true
-status: proposed
+status: approved
 created: 2026-09-29
 parent: SPEC-0028
 depends_on: [SPEC-0030, SPEC-0031, SPEC-0032, SPEC-0033]
@@ -14,8 +14,8 @@ touches: [src/TicTacToe/TicTacToe.Web/TicTacToe.Web.csproj, tests/TicTacToe.Test
 adrs: [ADR-0008, ADR-0007]
 external: []
 size: M
-approved_by:
-approved_at:
+approved_by: thomas
+approved_at: 2026-09-29
 ---
 
 # SPEC-0034 — Remoção do MudBlazor e do Bootstrap

@@ -4,7 +4,7 @@ title: Série melhor de 5: interface no lobby e na arena
 tier: full
 type: feature
 user_facing: true
-status: proposed
+status: approved
 created: 2026-09-29
 parent: SPEC-0035
 depends_on: [SPEC-0030, SPEC-0040]
@@ -14,8 +14,8 @@ touches: [src/TicTacToe/TicTacToe.Web/Components/Game/Lobby.razor, src/TicTacToe
 adrs: [ADR-0008]
 external: []
 size: M
-approved_by:
-approved_at:
+approved_by: thomas
+approved_at: 2026-09-29
 ---
 
 # SPEC-0044 — Série melhor de 5: interface no lobby e na arena

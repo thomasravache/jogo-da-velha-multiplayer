@@ -4,7 +4,7 @@ title: Abandonar partida e pedir revanche
 tier: full
 type: feature
 user_facing: true
-status: proposed
+status: approved
 created: 2026-09-29
 parent: SPEC-0035
 depends_on: [SPEC-0044, SPEC-0045]
@@ -14,8 +14,8 @@ touches: [src/TicTacToe/TicTacToe.Modules.Gameplay/GameSession.cs, src/TicTacToe
 adrs: [ADR-0008]
 external: []
 size: M
-approved_by:
-approved_at:
+approved_by: thomas
+approved_at: 2026-09-29
 ---
 
 # SPEC-0041 — Abandonar partida e pedir revanche

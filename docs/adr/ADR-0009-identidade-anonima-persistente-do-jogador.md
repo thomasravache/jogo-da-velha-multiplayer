@@ -1,7 +1,7 @@
 ---
 id: ADR-0009
 title: Identidade anônima persistente do jogador
-status: proposed
+status: accepted
 origin: decision
 date: 2026-09-29
 decision_makers: [thomas]

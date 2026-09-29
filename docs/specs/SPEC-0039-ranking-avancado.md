@@ -4,7 +4,7 @@ title: Ranking avançado
 tier: full
 type: feature
 user_facing: true
-status: proposed
+status: approved
 created: 2026-09-29
 parent: SPEC-0035
 depends_on: [SPEC-0033, SPEC-0037, SPEC-0038]
@@ -14,8 +14,8 @@ touches: [src/TicTacToe/TicTacToe.Modules.Gameplay/GameResultService.cs, src/Tic
 adrs: [ADR-0009]
 external: []
 size: M
-approved_by:
-approved_at:
+approved_by: thomas
+approved_at: 2026-09-29
 ---
 
 # SPEC-0039 — Ranking avançado

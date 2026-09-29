@@ -4,7 +4,7 @@ title: Pipeline Tailwind, tokens e fontes Cyber Arena
 tier: full
 type: migration
 user_facing: false
-status: proposed
+status: approved
 created: 2026-09-29
 parent: SPEC-0028
 depends_on: []
@@ -14,8 +14,8 @@ touches: [tools/tailwind/**, src/TicTacToe/TicTacToe.Web/Styles/**, src/TicTacTo
 adrs: [ADR-0008]
 external: []
 size: M
-approved_by:
-approved_at:
+approved_by: thomas
+approved_at: 2026-09-29
 ---
 
 # SPEC-0029 — Pipeline Tailwind, tokens e fontes Cyber Arena

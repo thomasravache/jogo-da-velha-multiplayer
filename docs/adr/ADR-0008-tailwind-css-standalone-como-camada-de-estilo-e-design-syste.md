@@ -1,7 +1,7 @@
 ---
 id: ADR-0008
 title: Tailwind CSS standalone como camada de estilo e design system próprio
-status: proposed
+status: accepted
 origin: decision
 date: 2026-09-29
 decision_makers: [thomas]

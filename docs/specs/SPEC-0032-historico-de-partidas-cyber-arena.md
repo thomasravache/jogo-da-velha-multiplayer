@@ -4,7 +4,7 @@ title: Histórico de partidas Cyber Arena
 tier: full
 type: feature
 user_facing: true
-status: proposed
+status: approved
 created: 2026-09-29
 parent: SPEC-0028
 depends_on: [SPEC-0043]
@@ -14,8 +14,8 @@ touches: [src/TicTacToe/TicTacToe.Web/Components/Pages/History.razor, src/TicTac
 adrs: [ADR-0008]
 external: []
 size: S
-approved_by:
-approved_at:
+approved_by: thomas
+approved_at: 2026-09-29
 ---
 
 # SPEC-0032 — Histórico de partidas Cyber Arena

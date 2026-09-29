@@ -4,7 +4,7 @@ title: Série melhor de 5 (MD5)
 tier: full
 type: feature
 user_facing: false
-status: proposed
+status: approved
 created: 2026-09-29
 parent: SPEC-0035
 depends_on: [SPEC-0031, SPEC-0036]
@@ -14,8 +14,8 @@ touches: [src/TicTacToe/TicTacToe.Modules.Gameplay/GameSession.cs, src/TicTacToe
 adrs: []
 external: []
 size: M
-approved_by:
-approved_at:
+approved_by: thomas
+approved_at: 2026-09-29
 ---
 
 # SPEC-0040 — Série melhor de 5 (MD5)

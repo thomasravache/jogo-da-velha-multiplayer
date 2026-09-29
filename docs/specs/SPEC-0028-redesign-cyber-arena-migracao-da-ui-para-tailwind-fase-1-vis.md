@@ -3,13 +3,13 @@ id: SPEC-0028
 title: Redesign Cyber Arena — migração da UI para Tailwind (Fase 1 visual)
 tier: epic
 type: migration
-status: proposed
+status: approved
 created: 2026-09-29
 depends_on: []
 adrs: [ADR-0008]
 external: []
-approved_by:
-approved_at:
+approved_by: thomas
+approved_at: 2026-09-29
 ---
 
 # SPEC-0028 — Redesign Cyber Arena — migração da UI para Tailwind (Fase 1 visual) (Épico)

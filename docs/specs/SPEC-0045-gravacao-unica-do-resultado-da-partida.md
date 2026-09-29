@@ -4,7 +4,7 @@ title: Gravação única do resultado da partida
 tier: full
 type: fix
 user_facing: false
-status: proposed
+status: approved
 created: 2026-09-29
 parent: SPEC-0035
 depends_on: []
@@ -14,8 +14,8 @@ touches: [src/TicTacToe/TicTacToe.Modules.Gameplay/GameSession.cs, src/TicTacToe
 adrs: []
 external: []
 size: S
-approved_by:
-approved_at:
+approved_by: thomas
+approved_at: 2026-09-29
 ---
 
 # SPEC-0045 — Gravação única do resultado da partida

@@ -3,13 +3,13 @@ id: SPEC-0035
 title: Evolução funcional a partir do Stitch (Fase 2)
 tier: epic
 type: feature
-status: proposed
+status: approved
 created: 2026-09-29
 depends_on: []
 adrs: [ADR-0009]
 external: []
-approved_by:
-approved_at:
+approved_by: thomas
+approved_at: 2026-09-29
 ---
 
 # SPEC-0035 — Evolução funcional a partir do Stitch (Fase 2) (Épico)
