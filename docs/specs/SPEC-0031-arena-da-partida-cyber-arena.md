@@ -4,13 +4,13 @@ title: Arena da partida Cyber Arena
 tier: full
 type: feature
 user_facing: true
-status: approved
+status: in-progress
 created: 2026-09-29
 parent: SPEC-0028
 depends_on: [SPEC-0043]
 consumes_contract: []
 contract_version: 1
-touches: [src/TicTacToe/TicTacToe.Web/Components/Pages/Home.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/Home.razor.cs, src/TicTacToe/TicTacToe.Web/Components/Pages/Home.razor.css, src/TicTacToe/TicTacToe.Web/Components/Game/GameBoard.razor, src/TicTacToe/TicTacToe.Web/Components/Game/Scoreboard.razor, src/TicTacToe/TicTacToe.Web/Components/Game/PlayerCard.razor, src/TicTacToe/TicTacToe.Web/Components/Game/RematchBar.razor, src/TicTacToe/TicTacToe.Web/Components/Ui/NeonProgress.razor, src/TicTacToe/TicTacToe.Modules.Gameplay/GameSession.cs, src/TicTacToe/TicTacToe.Web/wwwroot/app.js, tests/TicTacToe.Tests/ArenaCyberArenaTests.cs, tests/TicTacToe.Tests/GameSessionWinningLineTests.cs, tests/TicTacToe.Tests/DecomposedComponentsTests.cs, tests/TicTacToe.Tests/GameBoardTimerTests.cs, tests/TicTacToe.Tests/MudBlazorIntegrationTests.cs]
+touches: [src/TicTacToe/TicTacToe.Web/Components/Pages/Home.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/Home.razor.cs, src/TicTacToe/TicTacToe.Web/Components/Pages/Home.razor.css, src/TicTacToe/TicTacToe.Web/Components/Game/GameBoard.razor, src/TicTacToe/TicTacToe.Web/Components/Game/Scoreboard.razor, src/TicTacToe/TicTacToe.Web/Components/Game/PlayerCard.razor, src/TicTacToe/TicTacToe.Web/Components/Game/RematchBar.razor, src/TicTacToe/TicTacToe.Web/Components/Ui/NeonProgress.razor, src/TicTacToe/TicTacToe.Modules.Gameplay/GameSession.cs, src/TicTacToe/TicTacToe.Web/wwwroot/app.js, tests/TicTacToe.Tests/ArenaCyberArenaTests.cs, tests/TicTacToe.Tests/GameSessionWinningLineTests.cs, tests/TicTacToe.Tests/DecomposedComponentsTests.cs, tests/TicTacToe.Tests/GameBoardTimerTests.cs, tests/TicTacToe.Tests/MudBlazorIntegrationTests.cs, tests/TicTacToe.Tests/SingleResultRecordingTests.cs]
 adrs: [ADR-0008]
 external: []
 size: M
@@ -248,3 +248,4 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 <!-- Mudança em spec aprovada: uma linha por emenda. Mudou o contrato? Incremente `contract_version` e rode `spec_graph.py impacted SPEC-0031`. -->
 | Versão do contrato | Data | Mudança | Motivo | Specs impactadas | Aprovado por |
 |---|---|---|---|---|---|
+| 1 (contrato inalterado) | 2026-09-29 | `touches` inclui `SingleResultRecordingTests.cs` | A `Home` passa a injetar `ShellState` (modo imersivo); o contexto de teste que renderiza a `Home` precisa registrá-lo | SPEC-0045 (teste) | thomas (2026-09-29) |
