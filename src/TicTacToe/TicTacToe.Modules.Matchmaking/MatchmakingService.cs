@@ -17,8 +17,9 @@ public class MatchmakingService
 
     public event Action<string, Guid>? OnPlayerMatched;
 
-    public Guid? JoinQueue(string connectionId, string playerName = "", Guid? playerId = null)
+    public Guid? JoinQueue(string connectionId, string playerName = "", Guid? playerId = null, int bestOf = 1)
     {
+        _ = bestOf;
         RememberId(connectionId, playerId);
         _playerNames[connectionId] = string.IsNullOrWhiteSpace(playerName) ? connectionId : playerName;
         _waitingPlayers.Enqueue(connectionId);
@@ -82,12 +83,18 @@ public class MatchmakingService
         return null;
     }
 
+    /// <summary>Formato da partida: 1 = partida única, 5 = melhor de 5.</summary>
+    public int GetMatchBestOf(Guid matchId) => _matchBestOf.TryGetValue(matchId, out var bestOf) ? bestOf : 1;
+
+    private readonly ConcurrentDictionary<Guid, int> _matchBestOf = new();
+
     private readonly ConcurrentDictionary<string, string> _privateRooms = new();
 
-    public string CreatePrivateRoom(string connectionId, string playerName, Guid? playerId = null)
+    public string CreatePrivateRoom(string connectionId, string playerName, Guid? playerId = null, int bestOf = 1)
     {
         RememberId(connectionId, playerId);
         _playerNames[connectionId] = string.IsNullOrWhiteSpace(playerName) ? connectionId : playerName;
+        _ = bestOf;
         string code = "SALA-" + Guid.NewGuid().ToString("N")[..4].ToUpperInvariant();
         _privateRooms[code] = connectionId;
         return code;

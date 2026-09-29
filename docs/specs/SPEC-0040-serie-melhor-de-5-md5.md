@@ -4,7 +4,7 @@ title: Série melhor de 5 (MD5)
 tier: full
 type: feature
 user_facing: false
-status: approved
+status: in-progress
 created: 2026-09-29
 parent: SPEC-0035
 depends_on: [SPEC-0031, SPEC-0036]

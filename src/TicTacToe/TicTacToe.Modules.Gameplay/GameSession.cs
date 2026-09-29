@@ -7,6 +7,10 @@ namespace TicTacToe.Modules.Gameplay;
 
 public enum Player { None, X, O }
 
+#pragma warning disable CA1720 // nome definido pelo contrato da SPEC-0040
+public enum SeriesFormat { Single = 0, BestOf5 = 1 }
+#pragma warning restore CA1720
+
 public class GameSession : IDisposable
 {
     public const int DefaultTurnTimeSeconds = 15;
@@ -28,8 +32,10 @@ public class GameSession : IDisposable
 
     public event Action? OnStateChanged;
 
-    public GameSession(bool enableBackgroundTimer = true, TimeProvider? timeProvider = null)
+    public GameSession(bool enableBackgroundTimer = true, TimeProvider? timeProvider = null, SeriesFormat format = SeriesFormat.Single)
     {
+        _format = format;
+        _seriesId = format == SeriesFormat.BestOf5 ? Guid.NewGuid() : null;
         _time = timeProvider ?? TimeProvider.System;
         _startedAt = _time.GetUtcNow();
         if (enableBackgroundTimer)
@@ -143,6 +149,24 @@ public class GameSession : IDisposable
             return _playerIds.TryGetValue(player, out var id) ? id : null;
         }
     }
+
+    // Série melhor de 5 (SPEC-0040). Scaffold: as regras da série ainda não estão implementadas.
+    private readonly SeriesFormat _format;
+    private Guid? _seriesId;
+
+    public SeriesFormat Format => _format;
+    public Guid? SeriesId => _seriesId;
+    private int RoundsDecided { get; set; }
+    private bool SeriesOver { get; set; }
+    private Player _seriesWinner = Player.None;
+    private Player _roundStarter = Player.X;
+
+    public int RoundNumber => RoundsDecided + 1;
+    public int SeriesTarget => _format == SeriesFormat.BestOf5 ? 3 : 1;
+    public bool IsSeriesOver => SeriesOver;
+    public Player SeriesWinner => _seriesWinner;
+    public Player RoundStarter => _roundStarter;
+    public bool IsMatchPoint(Player player) => !SeriesOver && _format == SeriesFormat.BestOf5 && GetScore(player) == SeriesTarget - 1;
 
     public void SetPlayerName(Player player, string name) =>
         _playerNames[player] = name;
