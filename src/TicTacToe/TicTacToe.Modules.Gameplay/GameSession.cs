@@ -38,6 +38,9 @@ public class GameSession : IDisposable
     private bool _resultRecorded;
 
     /// <summary>Marca atomicamente que o resultado da rodada foi gravado; verdadeiro só no primeiro chamador.</summary>
+    /// <summary>Três índices (0–8, crescentes) da linha que deu a vitória por jogada; nulo em outros casos.</summary>
+    public IReadOnlyList<int>? WinningLine => throw new NotImplementedException();
+
     public bool TryMarkResultRecorded()
     {
         lock (_lock)

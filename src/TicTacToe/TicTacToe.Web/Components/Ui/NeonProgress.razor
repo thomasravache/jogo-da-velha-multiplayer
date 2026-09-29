@@ -1,0 +1,7 @@
+@code {
+    public enum ProgressTone { Success, Warning, Danger }
+
+    [Parameter] public double Value { get; set; }
+    [Parameter] public ProgressTone Tone { get; set; } = ProgressTone.Success;
+    [Parameter] public string? Label { get; set; }
+}

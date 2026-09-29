@@ -1,0 +1,8 @@
+@using TicTacToe.Modules.Gameplay
+@code {
+    [Parameter] public Player Player { get; set; }
+    [Parameter] public string Name { get; set; } = "";
+    [Parameter] public int Score { get; set; }
+    [Parameter] public bool IsMe { get; set; }
+    [Parameter] public bool IsActive { get; set; }
+}
