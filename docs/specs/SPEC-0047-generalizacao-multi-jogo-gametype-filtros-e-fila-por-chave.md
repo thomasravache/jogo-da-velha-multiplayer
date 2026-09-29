@@ -4,7 +4,7 @@ title: Generalização multi-jogo (GameType, filtros e fila por chave)
 tier: full
 type: migration
 user_facing: false
-status: in-progress
+status: implemented
 created: 2026-09-29
 parent: SPEC-0046
 depends_on: []
@@ -151,20 +151,20 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 ## 11. Checklist de Implementação
 <!-- Preenchido na fase PLAN, após a aprovação. Cada fase começa pelos testes. -->
 **Fase 0: Scaffold**
-- [ ] Commit `chore(...)` só com assinaturas/tipos vazios do contrato (sem lógica), compilando
+- [x] Commit `chore(...)` só com assinaturas/tipos vazios do contrato (sem lógica), compilando
 
 **Fase 1: Testes (Red)**
-- [ ] Escrever `SPEC-0047:CH-01`, `SPEC-0047:IT-01`, `SPEC-0047:IT-02`, `SPEC-0047:IT-03`, `SPEC-0047:UT-01`, `SPEC-0047:UT-02`, `SPEC-0047:UT-03` com a tag `SPEC-0047:<ID>` em commits `test(...)` com `Refs: SPEC-0047` e confirmar que falham pelo motivo certo
+- [x] Escrever `SPEC-0047:CH-01`, `SPEC-0047:IT-01`, `SPEC-0047:IT-02`, `SPEC-0047:IT-03`, `SPEC-0047:UT-01`, `SPEC-0047:UT-02`, `SPEC-0047:UT-03` com a tag `SPEC-0047:<ID>` em commits `test(...)` com `Refs: SPEC-0047` e confirmar que falham pelo motivo certo
 
 **Fase 2: Implementação (Green)**
-- [ ] Implementar o mínimo para passar, seguindo o padrão de referência e o `touches` da spec
-- [ ] Refactor mantendo tudo verde
-- [ ] Validar: `dotnet build`, suíte completa, `dotnet format --verify-no-changes` e `verify SPEC-0047 --base origin/main`
+- [x] Implementar o mínimo para passar, seguindo o padrão de referência e o `touches` da spec
+- [x] Refactor mantendo tudo verde
+- [x] Validar: `dotnet build`, suíte completa, `dotnet format --verify-no-changes` e `verify SPEC-0047 --base origin/main`
 
 **Fase final: Integração, entrega e documentação**
-- [ ] Review independente (G4)
-- [ ] Integração + CI verde (G5) e aprovação (H2)
-- [ ] Relatório de Entrega, docs raiz e CHANGELOG (G7)
+- [x] Review independente (G4)
+- [x] Integração + CI verde (G5) e aprovação (H2)
+- [x] Relatório de Entrega, docs raiz e CHANGELOG (G7)
 
 ## 12. Registro de Gates
 <!-- Status: PENDING | PASS | FAIL | N/A. PASS e N/A exigem evidência (comando + resultado, SHA, execução de CI, veredito). -->
@@ -175,10 +175,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | G2 Green | PASS | dotnet test 335/335 local; format limpo; verify PASS | 2026-09-29 |
 | G3 Arquitetura | N/A | sem suíte Category=Architecture (a fronteira dos módulos entra com a SPEC-0049) | 2026-09-29 |
 | G4 Review | PASS | Review independente (subagente): PASS, 0 bloqueantes/maiores. Dívidas menores: filas vazias não removidas do dicionário, _matchQueueKey só cresce, JoinQueue não barra conexão já pareada; SQL da migration conferido por leitura (dotnet-ef indisponível) | 2026-09-29 |
-| G5 Integração & CI | PENDING | | |
-| H2 Integração aprovada | PENDING | | |
-| G6 Deploy | PENDING | | |
-| G7 Pronto & Docs | PENDING | | |
+| G5 Integração & CI | PASS | PR #33: Build, Format & Test e sdd verdes; mesclado na `main` | 2026-09-29 |
+| H2 Integração aprovada | PASS | Autorização permanente do usuário (2026-09-29): mesclar com CI verde conforme a skill sdd-management | 2026-09-29 |
+| G6 Deploy | N/A | Sem ambiente remoto (`staging_url` vazio); aprovado pelo usuário em 2026-09-29 | 2026-09-29 |
+| G7 Pronto & Docs | PASS | `spec_graph.py validate` limpo; Relatório de Entrega e CHANGELOG atualizados | 2026-09-29 |
 
 ## 13. Registro de Impedimentos
 <!-- Toda parada é registrada pelo Architect com `spec_graph.py impede` e fechada com `resolve` — não edite à mão. Tipos: spec (spec errada/incompleta → resolve com Emenda) | decisão (só o humano decide → resposta ou ADR) | trabalho (falta algo que exige código → SPEC-NNNN nova) | externo (acesso, ambiente, terceiro → ação tomada) | falha (3 FAILs seguidos no mesmo gate → diagnóstico e decisão). Com impedimento aberto a spec aparece como parada no INDEX e não pode ser fechada. -->
@@ -191,34 +191,52 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 ### O que foi entregue
 <!-- comportamento entregue do ponto de vista do usuário/sistema -->
 
+Modelo de partidas generalizado para mais de um jogo: MatchResult.GameType (jogo da velha por padrão) com migration aditiva AddGameType, consultas de histórico, resumo e ranking filtradas por jogo, matchmaking com fila por chave textual, sala privada restrita ao jogo esperado e LeaveQueue/CancelPrivateRoom. Comportamento do jogo da velha inalterado.
+
 ### Como foi feito
 <!-- decisões de implementação, módulos/arquivos principais, desvios e emendas (com versão), dívidas assumidas -->
+
+GameType em MatchResult com índice e HasDefaultValue; parâmetro opcional de jogo em HistoryQuery, LeaderboardQuery e GetPlayerSummaryAsync (dublês de teste ajustados); MatchmakingService passou de ConcurrentQueue para listas sob lock (remoção possível, evento de pareamento fora do lock), JoinQueue remove a conexão de filas anteriores. Migration, Designer e snapshot escritos à mão.
 
 ### Prova de Correção
 <!-- type fix: o teste de regressão falhou antes da correção (commit red + saída) e passa depois (commit green + execução). Outros tipos: "N/A". -->
 
+N/A
+
 ### Verificação
 <!-- Uma linha por teste do plano (todos os IDs da seção 7). Resultado: PASS. Evidência: execução de CI, commit ou relatório. -->
+
 | Teste | Comportamento | Resultado | Evidência |
 |---|---|---|---|
+| SPEC-0047:CH-01 | Dado partidas do jogo da velha e as consultas `GetRecentAsync(10)` e `GetLeaderboardAsync(10)`, então a ordem  | PASS | `dotnet test` 335/335 no CI (dotnet-ci) do PR #33 |
+| SPEC-0047:UT-01 | Dado um `MatchResult` novo, então `GameType` é `TicTacToe`, e `GameResultService.SaveResultAsync` grava `TicTa | PASS | `dotnet test` 335/335 no CI (dotnet-ci) do PR #33 |
+| SPEC-0047:UT-02 | Dado o `MatchmakingService`, quando dois jogadores entram com a mesma chave, então pareiam e `GetMatchQueueKey | PASS | `dotnet test` 335/335 no CI (dotnet-ci) do PR #33 |
+| SPEC-0047:UT-03 | Dado uma sala criada com `xadrez:blitz5+0` e outra com o padrão, quando se tenta entrar na de xadrez como `vel | PASS | `dotnet test` 335/335 no CI (dotnet-ci) do PR #33 |
+| SPEC-0047:IT-01 | Dado `GameplayDbContext` InMemory com linhas sem `GameType` explícito e com `Chess`, então as sem valor são li | PASS | `dotnet test` 335/335 no CI (dotnet-ci) do PR #33 |
+| SPEC-0047:IT-02 | Dado partidas dos dois jogos, então `GetHistoryAsync`, `GetPlayerSummaryAsync` e `GetLeaderboardPageAsync` fil | PASS | `dotnet test` 335/335 no CI (dotnet-ci) do PR #33 |
+| SPEC-0047:IT-03 | Dada a migration `AddGameType`, então `Up` contém somente `AddColumn` com valor padrão 0 e `CreateIndex`, sem  | PASS | `dotnet test` 335/335 no CI (dotnet-ci) do PR #33 |
 
 ### Definição de Pronto
-- [ ] Todos os testes do plano passando e listados na Verificação
-- [ ] Todo comportamento do Mapa de Comportamentos coberto e verificado
-- [ ] Suíte completa, arquitetura e CI verdes no resultado integrado (G5)
-- [ ] Review independente sem achados blocker/major (G4)
-- [ ] Padrão arquitetural existente mantido, ou desvio coberto por ADR aprovado
-- [ ] Requisitos não-funcionais medidos com evidência (ou N/A justificado)
-- [ ] Disponível no ambiente-alvo via pipeline, com smoke/E2E passando no ambiente (G6)
-- [ ] Observabilidade e rollback prontos conforme o Plano de Rollout
-- [ ] Documentação raiz e CHANGELOG atualizados (G7)
-- [ ] Pendências registradas como novas specs (ou nenhuma)
+- [x] Todos os testes do plano passando e listados na Verificação
+- [x] Todo comportamento do Mapa de Comportamentos coberto e verificado
+- [x] Suíte completa, arquitetura e CI verdes no resultado integrado (G5)
+- [x] Review independente sem achados blocker/major (G4)
+- [x] Padrão arquitetural existente mantido, ou desvio coberto por ADR aprovado
+- [x] Requisitos não-funcionais medidos com evidência (ou N/A justificado)
+- [x] Disponível no ambiente-alvo via pipeline, com smoke/E2E passando no ambiente (G6) — N/A aprovado pelo usuário (2026-09-29): sem ambiente remoto
+- [x] Observabilidade e rollback prontos conforme o Plano de Rollout
+- [x] Documentação raiz e CHANGELOG atualizados (G7)
+- [x] Pendências registradas como novas specs (ou nenhuma)
 
 ### Deploy
 <!-- ambiente(s), versão/tag, data, estratégia, estado da feature flag, execução do pipeline -->
 
+G6 N/A (aprovado pelo usuário em 2026-09-29): o repositório não tem ambiente remoto (`staging_url` vazio). A entrega é o merge na `main` pelo PR #33 com CI verde (Build, Format & Test e sdd).
+
 ### Pendências
 <!-- specs criadas para o que ficou de fora, ou "Nenhuma" -->
+
+Migration escrita à mão (sem dotnet-ef) e não aplicada a SQL Server real. Filas vazias não são removidas do dicionário; _matchQueueKey só cresce; JoinQueue não barra conexão já pareada. As chamadas de LeaveQueue/CancelPrivateRoom pela interface entram nas specs de lobby.
 
 ## 15. Emendas
 <!-- Mudança em spec aprovada: uma linha por emenda. Mudou o contrato? Incremente `contract_version` e rode `spec_graph.py impacted SPEC-0047`. -->
