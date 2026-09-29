@@ -100,13 +100,15 @@ public class MatchDetailsPersistenceTests
     public async Task Migration_ShouldOnlyAddNullableColumns_AndLegacyRowsStillLoad()
     {
         var file = Directory.GetFiles(Migrations, "*_AddMatchDetails.cs").Single(f => !f.EndsWith(".Designer.cs", StringComparison.Ordinal));
-        var source = File.ReadAllText(file);
+        var full = File.ReadAllText(file);
+        // O método Up é a evolução do esquema; o Down apenas desfaz as mesmas colunas.
+        var up = full[full.IndexOf("void Up(", StringComparison.Ordinal)..full.IndexOf("void Down(", StringComparison.Ordinal)];
 
-        Assert.Equal(7, Regex.Matches(source, @"AddColumn<").Count);
-        Assert.DoesNotContain("DropColumn", source);
-        Assert.DoesNotContain("AlterColumn", source);
-        Assert.DoesNotContain("DropTable", source);
-        Assert.Equal(7, Regex.Matches(source, @"nullable: true").Count);
+        Assert.Equal(7, Regex.Matches(up, @"AddColumn<").Count);
+        Assert.DoesNotContain("DropColumn", up);
+        Assert.DoesNotContain("AlterColumn", up);
+        Assert.DoesNotContain("DropTable", up);
+        Assert.Equal(7, Regex.Matches(up, @"nullable: true").Count);
 
         var options = NewOptions();
         var when = DateTime.UtcNow;
