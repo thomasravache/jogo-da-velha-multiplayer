@@ -30,14 +30,14 @@
     else
     {
         <ol aria-label="Pódio" class="grid grid-cols-3 items-end gap-3">
-            @foreach (var i in _podiumOrder)
+            @foreach (var i in PodiumOrder)
             {
                 var rank = _ranks[i];
                 var first = i == 0;
                 <li data-podium="@(i + 1)" class="@PodiumCss(first)">
                     <Icon Name="@(first ? "trophy" : "medal")" Size="24" />
                     <span class="font-numeric text-label-badge uppercase text-gold">@(i + 1)º</span>
-                    <span class="w-full break-words text-title-sm">@rank.PlayerName</span>
+                    <span class="w-full min-w-0 break-words text-title-sm">@rank.PlayerName</span>
                     <span class="font-numeric text-label-numeric text-ink-muted">@rank.Wins @(rank.Wins == 1 ? "vitória" : "vitórias")</span>
                 </li>
             }
@@ -75,10 +75,10 @@
     private bool _loading = true;
 
     // Ordem visual do pódio: 2º à esquerda, 1º ao centro, 3º à direita (só os que existem).
-    private IEnumerable<int> _podiumOrder => new[] { 1, 0, 2 }.Where(i => i < _ranks.Count);
+    private IEnumerable<int> PodiumOrder => new[] { 1, 0, 2 }.Where(i => i < _ranks.Count);
 
     private static string PodiumCss(bool first) =>
-        "flex flex-col items-center gap-1 rounded-card border bg-surface/80 p-4 text-center backdrop-blur-md " +
+        "flex min-w-0 flex-col items-center gap-1 rounded-card border bg-surface/80 p-4 text-center backdrop-blur-md " +
         (first ? "min-h-56 border-gold shadow-[0_0_24px_rgb(243_156_18/0.35)]" : "min-h-44 border-stroke");
 
     private static string FormatDate(DateTime lastWinUtc) =>
