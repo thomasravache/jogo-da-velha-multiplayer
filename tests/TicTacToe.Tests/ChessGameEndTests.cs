@@ -171,7 +171,7 @@ public class ChessGameEndTests
         SanReplay.Line(game, cycle);
         Assert.Null(game.Result); // sem considerar o roque, a posição inicial já teria 3 ocorrências
 
-        SanReplay.Line(game, cycle);
+        SanReplay.Line(game, cycle[0], cycle[1]); // com os direitos já perdidos, a posição após o 2º lance aparece pela 3ª vez
         Assert.Equal(new ChessResult(ChessOutcome.Draw, ChessEndReason.ThreefoldRepetition), game.Result);
     }
 
@@ -202,7 +202,7 @@ public class ChessGameEndTests
         SanReplay.Line(game, cycle);
         Assert.Null(game.Result); // sem o en passant na chave, já seriam 3 ocorrências
 
-        SanReplay.Line(game, cycle);
+        SanReplay.Line(game, cycle[0]);
         Assert.Equal(new ChessResult(ChessOutcome.Draw, ChessEndReason.ThreefoldRepetition), game.Result);
     }
 }

@@ -107,8 +107,8 @@ public class ChessSanTests
     public void San_ShouldWritePromotion()
     {
         Assert.Equal("exf8=Q+", SanOf("5r1k/4P3/8/8/8/8/8/K7 w - - 0 1", "e7", "f8", PieceType.Queen));
-        Assert.Equal("a8=N", SanOf("7k/P7/8/8/8/8/8/K7 w - - 0 1", "a7", "a8", PieceType.Knight));
-        Assert.Equal("a8=R", SanOf("7k/P7/8/8/8/8/8/K7 w - - 0 1", "a7", "a8", PieceType.Rook));
+        Assert.Equal("a8=N", SanOf("8/P6k/8/8/8/8/8/K7 w - - 0 1", "a7", "a8", PieceType.Knight));
+        Assert.Equal("a8=R", SanOf("8/P6k/8/8/8/8/8/K7 w - - 0 1", "a7", "a8", PieceType.Rook));
     }
 
     [Fact(DisplayName = "SPEC-0050:UT-02 — SAN de en passant usa a coluna de origem")]
@@ -206,7 +206,7 @@ public class ChessSanTests
     public void LoydStalemate_ShouldEndInStalemate()
     {
         const string Line =
-            "e3 a5 Qh5 Ra6 Qxa5 h5 h4 Rah6 Qc7 f6 Qxd7+ Kf7 Qxb7 Qd3 Qxb8 Qh7 Qxc8 Kg6 Qe6";
+            "e3 a5 Qh5 Ra6 Qxa5 h5 h4 Rah6 Qxc7 f6 Qxd7+ Kf7 Qxb7 Qd3 Qxb8 Qh7 Qxc8 Kg6 Qe6";
 
         var game = SanReplay.Play(Line);
 
@@ -219,7 +219,7 @@ public class ChessSanTests
     [InlineData("e4 e5 Nf3 d6 d4 Bg4 dxe5 Bxf3 Qxf3 dxe5 Bc4 Nf6 Qb3 Qe7 Nc3 c6 Bg5 b5 Nxb5 cxb5 Bxb5+ Nbd7 O-O-O Rd8 Rxd7 Rxd7 Rd1 Qe6 Bxd7+ Nxd7 Qb8+ Nxb8 Rd8#")]
     [InlineData("e4 Nf6 e5 d5 exd6 Qxd6 Nf3 Nc6 Bc4 e5 O-O Be6 Bxe6 fxe6")]
     [InlineData("h4 g5 hxg5 h6 gxh6 Nf6 h7 Rg8 hxg8=Q Nxg8")]
-    [InlineData("e3 a5 Qh5 Ra6 Qxa5 h5 h4 Rah6 Qc7 f6 Qxd7+ Kf7 Qxb7 Qd3 Qxb8 Qh7 Qxc8 Kg6 Qe6")]
+    [InlineData("e3 a5 Qh5 Ra6 Qxa5 h5 h4 Rah6 Qxc7 f6 Qxd7+ Kf7 Qxb7 Qd3 Qxb8 Qh7 Qxc8 Kg6 Qe6")]
     public void MovesSan_ShouldRoundTripToSameFinalPosition(string line)
     {
         var original = SanReplay.Play(line);
