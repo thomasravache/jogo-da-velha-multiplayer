@@ -9,6 +9,9 @@ Cada entrada cita a spec de origem (`SPEC-NNNN`); gere-as com `spec_graph.py rep
 ## [Unreleased]
 
 ### Added
+- Arena da partida no visual Cyber Arena com linha vencedora (SPEC-0031)
+- Ranking no visual Cyber Arena com pódio e tabela (SPEC-0033)
+- Histórico de partidas no visual Cyber Arena (SPEC-0032)
 - Lobby no visual Cyber Arena com cartões de modo, dificuldade e sala privada (SPEC-0030)
 - Shell Cyber Arena responsivo e primitivos de UI (SPEC-0043)
 - Pipeline do Tailwind CSS standalone com tokens Cyber Arena e fontes locais (SPEC-0029)

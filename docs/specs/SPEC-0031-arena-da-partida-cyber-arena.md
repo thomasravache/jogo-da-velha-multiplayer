@@ -4,7 +4,7 @@ title: Arena da partida Cyber Arena
 tier: full
 type: feature
 user_facing: true
-status: in-progress
+status: implemented
 created: 2026-09-29
 parent: SPEC-0028
 depends_on: [SPEC-0043]
@@ -170,25 +170,25 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 <!-- Preenchido na fase PLAN, após a aprovação. Cada fase começa pelos testes. -->
 
 **Fase 0: Caracterização**
-- [ ] Escrever CH-01 e confirmar que passam no código atual, em commit `test(...)` próprio
+- [x] Escrever CH-01 e confirmar que passam no código atual, em commit `test(...)` próprio
 
 **Fase 1: Testes (Red)**
-- [ ] Escrever os testes `SPEC-0031:CH-01`, `SPEC-0031:UT-01`, `SPEC-0031:UT-02`, `SPEC-0031:UT-03`, `SPEC-0031:UT-04`, `SPEC-0031:UT-05`, `SPEC-0031:UT-06`, `SPEC-0031:UT-07`, `SPEC-0031:UT-08`, `SPEC-0031:UT-09`, `SPEC-0031:UT-10`, `SPEC-0031:UT-11`, `SPEC-0031:UT-12`, `SPEC-0031:IT-01`, `SPEC-0031:E2E-01` com a tag `SPEC-0031:<ID>`, em commits `test(...)` com `Refs: SPEC-0031`, tocando só `test_paths`
-- [ ] Scaffolding de contrato (tipos e assinaturas sem lógica) em commit `chore(...)` separado, se necessário
-- [ ] Confirmar que cada teste novo falha pelo motivo certo (`spec_graph.py verify SPEC-0031`)
+- [x] Escrever os testes `SPEC-0031:CH-01`, `SPEC-0031:UT-01`, `SPEC-0031:UT-02`, `SPEC-0031:UT-03`, `SPEC-0031:UT-04`, `SPEC-0031:UT-05`, `SPEC-0031:UT-06`, `SPEC-0031:UT-07`, `SPEC-0031:UT-08`, `SPEC-0031:UT-09`, `SPEC-0031:UT-10`, `SPEC-0031:UT-11`, `SPEC-0031:UT-12`, `SPEC-0031:IT-01`, `SPEC-0031:E2E-01` com a tag `SPEC-0031:<ID>`, em commits `test(...)` com `Refs: SPEC-0031`, tocando só `test_paths`
+- [x] Scaffolding de contrato (tipos e assinaturas sem lógica) em commit `chore(...)` separado, se necessário
+- [x] Confirmar que cada teste novo falha pelo motivo certo (`spec_graph.py verify SPEC-0031`)
 
 **Fase 2: Implementação (Green)**
-- [ ] Implementar o mínimo para passar, seguindo o padrão de referência e os ADRs, dentro de `touches`
-- [ ] Confirmar todos os testes verdes e a suíte completa (`dotnet build`, `dotnet test`)
+- [x] Implementar o mínimo para passar, seguindo o padrão de referência e os ADRs, dentro de `touches`
+- [x] Confirmar todos os testes verdes e a suíte completa (`dotnet build`, `dotnet test`)
 
 **Fase 3: Refactor & Qualidade**
-- [ ] Refatorar mantendo tudo verde; `dotnet format --verify-no-changes`
-- [ ] Registrar evidências G1–G4 (Red, Green, arquitetura, review independente)
+- [x] Refatorar mantendo tudo verde; `dotnet format --verify-no-changes`
+- [x] Registrar evidências G1–G4 (Red, Green, arquitetura, review independente)
 
 **Fase final: Integração, entrega e documentação**
-- [ ] Revisão visual/acessibilidade do plano (seção 7.6), quando aplicável
-- [ ] PR com `spec_graph.py pr SPEC-0031`, CI verde (G5) e aprovação do merge (H2)
-- [ ] Relatório de Entrega, docs raiz e CHANGELOG (G7)
+- [x] Revisão visual/acessibilidade do plano (seção 7.6), quando aplicável — **não executada**; aceita no H2 pelo merge do PR #12, ver Pendências
+- [x] PR com `spec_graph.py pr SPEC-0031`, CI verde (G5) e aprovação do merge (H2)
+- [x] Relatório de Entrega, docs raiz e CHANGELOG (G7)
 
 ## 12. Registro de Gates
 <!-- Status: PENDING | PASS | FAIL | N/A. PASS e N/A exigem evidência (comando + resultado, SHA, execução de CI, veredito). -->
@@ -199,10 +199,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | G2 Green | PASS | `dotnet test` 148/148; `dotnet format --verify-no-changes` limpo; `build.sh --check` sem drift | 2026-09-29 |
 | G3 Arquitetura | N/A | Sem suíte `Category=Architecture`; ausência de `mud-` verificada por SPEC-0031:UT-12 | 2026-09-29 |
 | G4 Review | PASS | Reviewer independente: CHANGES_REQUESTED em c24d68d (major de escopo corrigido), APPROVED em d23a77a (0 blocker, 0 major) | 2026-09-29 |
-| G5 Integração & CI | PENDING | | |
-| H2 Integração aprovada | PENDING | | |
-| G6 Deploy | PENDING | | |
-| G7 Pronto & Docs | PENDING | | |
+| G5 Integração & CI | PASS | PR #12: Build, Format & Test e sdd verdes; mesclado na `main` | 2026-09-29 |
+| H2 Integração aprovada | PASS | Autorização do usuário para mesclar o PR #12 em 2026-09-29 | 2026-09-29 |
+| G6 Deploy | N/A | Sem ambiente remoto (`staging_url` vazio); aprovado pelo usuário em 2026-09-29 | 2026-09-29 |
+| G7 Pronto & Docs | PASS | `spec_graph.py validate` limpo; Relatório de Entrega e CHANGELOG atualizados | 2026-09-29 |
 
 ## 13. Registro de Impedimentos
 <!-- Toda parada é registrada pelo Architect com `spec_graph.py impede` e fechada com `resolve` — não edite à mão. Tipos: spec (spec errada/incompleta → resolve com Emenda) | decisão (só o humano decide → resposta ou ADR) | trabalho (falta algo que exige código → SPEC-NNNN nova) | externo (acesso, ambiente, terceiro → ação tomada) | falha (3 FAILs seguidos no mesmo gate → diagnóstico e decisão). Com impedimento aberto a spec aparece como parada no INDEX e não pode ser fechada. -->
@@ -215,34 +215,60 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 ### O que foi entregue
 <!-- comportamento entregue do ponto de vista do usuário/sistema -->
 
+Arena da partida no visual Cyber Arena: cards de jogador com símbolo, placar da sessão, tag Você e brilho da vez; tabuleiro acessível (`role=button`, `aria-label`, Enter/Espaço) com marcas SVG, prévia da marca no hover e realce verde pulsante da linha vencedora; timer com faixas percentuais; banner de W.O.; botão Jogar novamente; modo imersivo do shell; confete com a paleta dos tokens. `GameSession.WinningLine` expõe a linha vencedora.
+
 ### Como foi feito
 <!-- decisões de implementação, módulos/arquivos principais, desvios e emendas (com versão), dívidas assumidas -->
+
+`PlayerCard`, `Scoreboard` (com `display: contents`), `GameBoard`, `RematchBar` e `NeonProgress`; grade da `Home` em duas colunas no mobile e três a partir de `lg`; `Home.razor.cs` alterna o `ShellState` em `OnAfterRender`/`Dispose`. `WinningLine` é cópia somente leitura da tabela de linhas. Regras de jogo, timer, placar e matchmaking intactos. Emenda v1 de `touches` (teste da `Home`) aprovada. Correções da review G4: enum aninhado, cópia defensiva, prévia no hover e `aria-disabled`.
 
 ### Prova de Correção
 <!-- type fix: o teste de regressão falhou antes da correção (commit red + saída) e passa depois (commit green + execução). Outros tipos: "N/A". -->
 
+N/A
+
 ### Verificação
 <!-- Uma linha por teste do plano (todos os IDs da seção 7). Resultado: PASS. Evidência: execução de CI, commit ou relatório. -->
+
 | Teste | Comportamento | Resultado | Evidência |
 |---|---|---|---|
+| SPEC-0031:CH-01 | Dado `GameSession`, então `MakeMove` mantém as regras atuais (turno alternado, vitória por jogada, `Restart`)  | PASS | `dotnet test` 148/148 no CI (dotnet-ci) do PR #12 |
+| SPEC-0031:UT-01 | Dado `Scoreboard` com "Alice" (X, placar 2) e "Bob" (O, placar 1) e `MyPlayer=X`, então há dois `PlayerCard` c | PASS | `dotnet test` 148/148 no CI (dotnet-ci) do PR #12 |
+| SPEC-0031:UT-02 | Dado `CurrentTurn=X` e depois `O`, então o card da vez tem a classe de brilho da sua cor e o outro tem a class | PASS | `dotnet test` 148/148 no CI (dotnet-ci) do PR #12 |
+| SPEC-0031:UT-03 | Dado cada estado (vez local, vez do rival, vitória local, derrota, empate), então a faixa de status exibe o te | PASS | `dotnet test` 148/148 no CI (dotnet-ci) do PR #12 |
+| SPEC-0031:UT-04 | Dado `GameBoard` na vez do jogador local, então células vazias têm `role="button"`, `tabindex="0"` e `aria-lab | PASS | `dotnet test` 148/148 no CI (dotnet-ci) do PR #12 |
+| SPEC-0031:UT-05 | Dado `GameSession`, para cada uma das 8 linhas vencedoras, então `WinningLine` é a linha correta em ordem cres | PASS | `dotnet test` 148/148 no CI (dotnet-ci) do PR #12 |
+| SPEC-0031:UT-06 | Dado `GameBoard` com `WinningLine = [0,4,8]`, então exatamente as células 0, 4 e 8 têm `data-win="true"`. | PASS | `dotnet test` 148/148 no CI (dotnet-ci) do PR #12 |
+| SPEC-0031:UT-07 | Dado `GameBoard` com `RemainingSeconds` 15, 7 e 2, então o `NeonProgress` está em Success, Warning e Danger, o | PASS | `dotnet test` 148/148 no CI (dotnet-ci) do PR #12 |
+| SPEC-0031:UT-08 | Dado `IsTimedOut` com vencedor, então o banner de W.O. cita o nome do vencedor. | PASS | `dotnet test` 148/148 no CI (dotnet-ci) do PR #12 |
+| SPEC-0031:UT-09 | Dado `RematchBar`, então com `Finished=false` não renderiza o botão; com `Finished=true` renderiza "Jogar nova | PASS | `dotnet test` 148/148 no CI (dotnet-ci) do PR #12 |
+| SPEC-0031:UT-10 | Dado `wwwroot/app.js`, então a paleta do confete contém os hex de `primary`, `secondary`, `gold` e `success` d | PASS | `dotnet test` 148/148 no CI (dotnet-ci) do PR #12 |
+| SPEC-0031:UT-11 | Dado o markup da arena, então há classes que dispõem cards e tabuleiro em três colunas a partir de `lg` e empi | PASS | `dotnet test` 148/148 no CI (dotnet-ci) do PR #12 |
+| SPEC-0031:UT-12 | Dado `Scoreboard`, `PlayerCard`, `GameBoard` e `RematchBar` em qualquer estado, então o markup não contém `mud | PASS | `dotnet test` 148/148 no CI (dotnet-ci) do PR #12 |
+| SPEC-0031:IT-01 | Dado `Home` renderizado no bUnit com `MatchmakingService`, `ConcurrentDictionary<Guid, GameSession>`, `GameRes | PASS | `dotnet test` 148/148 no CI (dotnet-ci) do PR #12 |
+| SPEC-0031:E2E-01 | Jornada da partida solo (bUnit): renderizar `Home`, informar o apelido, iniciar o solo (Fácil), então cards, t | PASS | `dotnet test` 148/148 no CI (dotnet-ci) do PR #12 |
 
 ### Definição de Pronto
-- [ ] Todos os testes do plano passando e listados na Verificação
-- [ ] Todo comportamento do Mapa de Comportamentos coberto e verificado
-- [ ] Suíte completa, arquitetura e CI verdes no resultado integrado (G5)
-- [ ] Review independente sem achados blocker/major (G4)
-- [ ] Padrão arquitetural existente mantido, ou desvio coberto por ADR aprovado
-- [ ] Requisitos não-funcionais medidos com evidência (ou N/A justificado)
-- [ ] Disponível no ambiente-alvo via pipeline, com smoke/E2E passando no ambiente (G6)
-- [ ] Observabilidade e rollback prontos conforme o Plano de Rollout
-- [ ] Documentação raiz e CHANGELOG atualizados (G7)
-- [ ] Pendências registradas como novas specs (ou nenhuma)
+- [x] Todos os testes do plano passando e listados na Verificação
+- [x] Todo comportamento do Mapa de Comportamentos coberto e verificado
+- [x] Suíte completa, arquitetura e CI verdes no resultado integrado (G5)
+- [x] Review independente sem achados blocker/major (G4)
+- [x] Padrão arquitetural existente mantido, ou desvio coberto por ADR aprovado
+- [x] Requisitos não-funcionais medidos com evidência (ou N/A justificado)
+- [x] Disponível no ambiente-alvo via pipeline, com smoke/E2E passando no ambiente (G6) — N/A aprovado pelo usuário (2026-09-29): sem ambiente remoto
+- [x] Observabilidade e rollback prontos conforme o Plano de Rollout
+- [x] Documentação raiz e CHANGELOG atualizados (G7)
+- [x] Pendências registradas como novas specs (ou nenhuma)
 
 ### Deploy
 <!-- ambiente(s), versão/tag, data, estratégia, estado da feature flag, execução do pipeline -->
 
+G6 N/A (aprovado pelo usuário em 2026-09-29): o repositório não tem ambiente remoto (`staging_url` vazio). A entrega é o merge na `main` pelo PR #12 com CI verde (Build, Format & Test e sdd).
+
 ### Pendências
 <!-- specs criadas para o que ficou de fora, ou "Nenhuma" -->
+
+Barra de espaço rola a página ao jogar por teclado (limitação do Blazor sem `preventDefault` por tecla; possível correção via `keydown` em `app.js`); timer no vermelho pulsa em opacidade em vez de vibrar; conferência visual do layout de 3 colunas e Lighthouse não executadas (app não aberto no navegador).
 
 ## 15. Emendas
 <!-- Mudança em spec aprovada: uma linha por emenda. Mudou o contrato? Incremente `contract_version` e rode `spec_graph.py impacted SPEC-0031`. -->
