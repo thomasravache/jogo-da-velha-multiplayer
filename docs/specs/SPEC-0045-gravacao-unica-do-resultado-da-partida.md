@@ -4,7 +4,7 @@ title: Gravação única do resultado da partida
 tier: full
 type: fix
 user_facing: false
-status: in-progress
+status: implemented
 created: 2026-09-29
 parent: SPEC-0035
 depends_on: []
@@ -138,25 +138,25 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 <!-- Preenchido na fase PLAN, após a aprovação. Cada fase começa pelos testes. -->
 
 **Fase 0: Caracterização**
-- [ ] Escrever CH-01 e confirmar que passam no código atual, em commit `test(...)` próprio
+- [x] Escrever CH-01 e confirmar que passam no código atual, em commit `test(...)` próprio
 
 **Fase 1: Testes (Red)**
-- [ ] Escrever os testes `SPEC-0045:CH-01`, `SPEC-0045:UT-01`, `SPEC-0045:UT-02`, `SPEC-0045:UT-03`, `SPEC-0045:UT-04`, `SPEC-0045:IT-01`, `SPEC-0045:IT-02` com a tag `SPEC-0045:<ID>`, em commits `test(...)` com `Refs: SPEC-0045`, tocando só `test_paths`
-- [ ] Scaffolding de contrato (tipos e assinaturas sem lógica) em commit `chore(...)` separado, se necessário
-- [ ] Confirmar que cada teste novo falha pelo motivo certo (`spec_graph.py verify SPEC-0045`)
+- [x] Escrever os testes `SPEC-0045:CH-01`, `SPEC-0045:UT-01`, `SPEC-0045:UT-02`, `SPEC-0045:UT-03`, `SPEC-0045:UT-04`, `SPEC-0045:IT-01`, `SPEC-0045:IT-02` com a tag `SPEC-0045:<ID>`, em commits `test(...)` com `Refs: SPEC-0045`, tocando só `test_paths`
+- [x] Scaffolding de contrato (tipos e assinaturas sem lógica) em commit `chore(...)` separado, se necessário
+- [x] Confirmar que cada teste novo falha pelo motivo certo (`spec_graph.py verify SPEC-0045`)
 
 **Fase 2: Implementação (Green)**
-- [ ] Implementar o mínimo para passar, seguindo o padrão de referência e os ADRs, dentro de `touches`
-- [ ] Confirmar todos os testes verdes e a suíte completa (`dotnet build`, `dotnet test`)
+- [x] Implementar o mínimo para passar, seguindo o padrão de referência e os ADRs, dentro de `touches`
+- [x] Confirmar todos os testes verdes e a suíte completa (`dotnet build`, `dotnet test`)
 
 **Fase 3: Refactor & Qualidade**
-- [ ] Refatorar mantendo tudo verde; `dotnet format --verify-no-changes`
-- [ ] Registrar evidências G1–G4 (Red, Green, arquitetura, review independente)
+- [x] Refatorar mantendo tudo verde; `dotnet format --verify-no-changes`
+- [x] Registrar evidências G1–G4 (Red, Green, arquitetura, review independente)
 
 **Fase final: Integração, entrega e documentação**
-- [ ] Revisão visual/acessibilidade do plano (seção 7.6), quando aplicável
-- [ ] PR com `spec_graph.py pr SPEC-0045`, CI verde (G5) e aprovação do merge (H2)
-- [ ] Relatório de Entrega, docs raiz e CHANGELOG (G7)
+- [x] Revisão visual/acessibilidade do plano (seção 7.6), quando aplicável — N/A (sem UI)
+- [x] PR com `spec_graph.py pr SPEC-0045`, CI verde (G5) e aprovação do merge (H2)
+- [x] Relatório de Entrega, docs raiz e CHANGELOG (G7)
 
 ## 12. Registro de Gates
 <!-- Status: PENDING | PASS | FAIL | N/A. PASS e N/A exigem evidência (comando + resultado, SHA, execução de CI, veredito). -->
@@ -169,8 +169,8 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | G4 Review | PASS | Reviewer independente APPROVED em 80e2b69 (0 blocker, 0 major, 5 minor) | 2026-09-29 |
 | G5 Integração & CI | PASS | PR #4: Build, Format & Test e sdd verdes; mesclado em 228e738 | 2026-09-29 |
 | H2 Integração aprovada | PASS | Autorização do merge do PR #4 pelo usuário em 2026-09-29 | 2026-09-29 |
-| G6 Deploy | PENDING | | |
-| G7 Pronto & Docs | PENDING | | |
+| G6 Deploy | N/A | Sem ambiente remoto (`staging_url` vazio); aprovado pelo usuário em 2026-09-29 | 2026-09-29 |
+| G7 Pronto & Docs | PASS | `spec_graph.py validate` limpo; Relatório de Entrega, README/CHANGELOG atualizados | 2026-09-29 |
 
 ## 13. Registro de Impedimentos
 <!-- Toda parada é registrada pelo Architect com `spec_graph.py impede` e fechada com `resolve` — não edite à mão. Tipos: spec (spec errada/incompleta → resolve com Emenda) | decisão (só o humano decide → resposta ou ADR) | trabalho (falta algo que exige código → SPEC-NNNN nova) | externo (acesso, ambiente, terceiro → ação tomada) | falha (3 FAILs seguidos no mesmo gate → diagnóstico e decisão). Com impedimento aberto a spec aparece como parada no INDEX e não pode ser fechada. -->
@@ -183,34 +183,52 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 ### O que foi entregue
 <!-- comportamento entregue do ponto de vista do usuário/sistema -->
 
+Cada partida terminada passa a gerar exatamente uma linha em `MatchResult`, mesmo com dois jogadores (circuitos) observando a mesma partida.
+
 ### Como foi feito
 <!-- decisões de implementação, módulos/arquivos principais, desvios e emendas (com versão), dívidas assumidas -->
+
+`GameSession.TryMarkResultRecorded()` atômico sob o `lock` (zerado no `Restart`) e `GameResultService.SaveOnceAsync`; `Home.razor.cs` passou a usar `SaveOnceAsync` nos três pontos de gravação e perdeu o `_resultSaved` por circuito. Correção adicional do CI: `LogDebug` protegido por `IsEnabled` (CA1873). Duplicatas já gravadas antes da correção foram mantidas (decisão registrada no H1).
 
 ### Prova de Correção
 <!-- type fix: o teste de regressão falhou antes da correção (commit red + saída) e passa depois (commit green + execução). Outros tipos: "N/A". -->
 
+Regressão `SPEC-0045:IT-02`: falhou no commit 4f34318 (2 linhas em vez de 1) e passou no commit 42c0370.
+
 ### Verificação
 <!-- Uma linha por teste do plano (todos os IDs da seção 7). Resultado: PASS. Evidência: execução de CI, commit ou relatório. -->
+
 | Teste | Comportamento | Resultado | Evidência |
 |---|---|---|---|
+| SPEC-0045:CH-01 | Dado `SaveResultAsync` com uma vitória e um empate, então grava `WinnerName` e `null` como hoje (já coberto po | PASS | `dotnet test` 76/76 no CI (dotnet-ci) do PR #4 |
+| SPEC-0045:UT-01 | Dado uma partida terminada, então a primeira chamada a `TryMarkResultRecorded()` devolve verdadeiro e as segui | PASS | `dotnet test` 76/76 no CI (dotnet-ci) do PR #4 |
+| SPEC-0045:UT-02 | Dado 50 tarefas chamando `TryMarkResultRecorded()` ao mesmo tempo, então exatamente uma recebe verdadeiro. | PASS | `dotnet test` 76/76 no CI (dotnet-ci) do PR #4 |
+| SPEC-0045:UT-03 | Dado uma partida já marcada, quando `Restart()` acontece e a nova rodada termina, então `TryMarkResultRecorded | PASS | `dotnet test` 76/76 no CI (dotnet-ci) do PR #4 |
+| SPEC-0045:UT-04 | Dado uma partida em andamento, então `SaveOnceAsync` devolve falso e nenhuma linha é gravada; dada uma partida | PASS | `dotnet test` 76/76 no CI (dotnet-ci) do PR #4 |
+| SPEC-0045:IT-01 | Dado `GameplayDbContext` InMemory, quando `SaveOnceAsync` é chamado duas vezes seguidas e depois 20 vezes em p | PASS | `dotnet test` 76/76 no CI (dotnet-ci) do PR #4 |
+| SPEC-0045:IT-02 | **Regressão (falha antes da correção):** dado dois `Home` no bUnit assinados na mesma partida online, quando a | PASS | `dotnet test` 76/76 no CI (dotnet-ci) do PR #4 |
 
 ### Definição de Pronto
-- [ ] Todos os testes do plano passando e listados na Verificação
-- [ ] Todo comportamento do Mapa de Comportamentos coberto e verificado
-- [ ] Suíte completa, arquitetura e CI verdes no resultado integrado (G5)
-- [ ] Review independente sem achados blocker/major (G4)
-- [ ] Padrão arquitetural existente mantido, ou desvio coberto por ADR aprovado
-- [ ] Requisitos não-funcionais medidos com evidência (ou N/A justificado)
-- [ ] Disponível no ambiente-alvo via pipeline, com smoke/E2E passando no ambiente (G6)
-- [ ] Observabilidade e rollback prontos conforme o Plano de Rollout
-- [ ] Documentação raiz e CHANGELOG atualizados (G7)
-- [ ] Pendências registradas como novas specs (ou nenhuma)
+- [x] Todos os testes do plano passando e listados na Verificação
+- [x] Todo comportamento do Mapa de Comportamentos coberto e verificado
+- [x] Suíte completa, arquitetura e CI verdes no resultado integrado (G5)
+- [x] Review independente sem achados blocker/major (G4)
+- [x] Padrão arquitetural existente mantido, ou desvio coberto por ADR aprovado
+- [x] Requisitos não-funcionais medidos com evidência (ou N/A justificado)
+- [x] Disponível no ambiente-alvo via pipeline, com smoke/E2E passando no ambiente (G6) — N/A aprovado pelo usuário (2026-09-29): sem ambiente remoto
+- [x] Observabilidade e rollback prontos conforme o Plano de Rollout
+- [x] Documentação raiz e CHANGELOG atualizados (G7)
+- [x] Pendências registradas como novas specs (ou nenhuma)
 
 ### Deploy
 <!-- ambiente(s), versão/tag, data, estratégia, estado da feature flag, execução do pipeline -->
 
+G6 N/A (aprovado pelo usuário em 2026-09-29): o repositório não tem ambiente remoto (`staging_url` vazio). A entrega é o merge na `main` pelo PR #4 com CI verde (Build, Format & Test e sdd).
+
 ### Pendências
 <!-- specs criadas para o que ficou de fora, ou "Nenhuma" -->
+
+Nenhuma. Minors sem correção: janela estreita entre o teste de fim de partida e a marcação; IT-02 com espera fixa de 500 ms; sem teste de empate em `SaveOnceAsync`.
 
 ## 15. Emendas
 <!-- Mudança em spec aprovada: uma linha por emenda. Mudou o contrato? Incremente `contract_version` e rode `spec_graph.py impacted SPEC-0045`. -->

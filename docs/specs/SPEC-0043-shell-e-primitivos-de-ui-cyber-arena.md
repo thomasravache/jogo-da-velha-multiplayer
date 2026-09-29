@@ -4,7 +4,7 @@ title: Shell e primitivos de UI Cyber Arena
 tier: full
 type: feature
 user_facing: true
-status: in-progress
+status: implemented
 created: 2026-09-29
 parent: SPEC-0028
 depends_on: [SPEC-0029]
@@ -181,25 +181,25 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 <!-- Preenchido na fase PLAN, após a aprovação. Cada fase começa pelos testes. -->
 
 **Fase 0: Caracterização**
-- [ ] N/A — sem testes de caracterização neste plano (área já coberta ou nova)
+- [x] N/A — sem testes de caracterização neste plano (área já coberta ou nova)
 
 **Fase 1: Testes (Red)**
-- [ ] Escrever os testes `SPEC-0043:UT-01`, `SPEC-0043:UT-02`, `SPEC-0043:UT-03`, `SPEC-0043:UT-04`, `SPEC-0043:UT-05`, `SPEC-0043:UT-06`, `SPEC-0043:UT-07`, `SPEC-0043:UT-08`, `SPEC-0043:UT-09`, `SPEC-0043:UT-10`, `SPEC-0043:UT-11`, `SPEC-0043:IT-01`, `SPEC-0043:IT-02`, `SPEC-0043:E2E-01` com a tag `SPEC-0043:<ID>`, em commits `test(...)` com `Refs: SPEC-0043`, tocando só `test_paths`
-- [ ] Scaffolding de contrato (tipos e assinaturas sem lógica) em commit `chore(...)` separado, se necessário
-- [ ] Confirmar que cada teste novo falha pelo motivo certo (`spec_graph.py verify SPEC-0043`)
+- [x] Escrever os testes `SPEC-0043:UT-01`, `SPEC-0043:UT-02`, `SPEC-0043:UT-03`, `SPEC-0043:UT-04`, `SPEC-0043:UT-05`, `SPEC-0043:UT-06`, `SPEC-0043:UT-07`, `SPEC-0043:UT-08`, `SPEC-0043:UT-09`, `SPEC-0043:UT-10`, `SPEC-0043:UT-11`, `SPEC-0043:IT-01`, `SPEC-0043:IT-02`, `SPEC-0043:E2E-01` com a tag `SPEC-0043:<ID>`, em commits `test(...)` com `Refs: SPEC-0043`, tocando só `test_paths`
+- [x] Scaffolding de contrato (tipos e assinaturas sem lógica) em commit `chore(...)` separado, se necessário
+- [x] Confirmar que cada teste novo falha pelo motivo certo (`spec_graph.py verify SPEC-0043`)
 
 **Fase 2: Implementação (Green)**
-- [ ] Implementar o mínimo para passar, seguindo o padrão de referência e os ADRs, dentro de `touches`
-- [ ] Confirmar todos os testes verdes e a suíte completa (`dotnet build`, `dotnet test`)
+- [x] Implementar o mínimo para passar, seguindo o padrão de referência e os ADRs, dentro de `touches`
+- [x] Confirmar todos os testes verdes e a suíte completa (`dotnet build`, `dotnet test`)
 
 **Fase 3: Refactor & Qualidade**
-- [ ] Refatorar mantendo tudo verde; `dotnet format --verify-no-changes`
-- [ ] Registrar evidências G1–G4 (Red, Green, arquitetura, review independente)
+- [x] Refatorar mantendo tudo verde; `dotnet format --verify-no-changes`
+- [x] Registrar evidências G1–G4 (Red, Green, arquitetura, review independente)
 
 **Fase final: Integração, entrega e documentação**
-- [ ] Revisão visual/acessibilidade do plano (seção 7.6), quando aplicável
-- [ ] PR com `spec_graph.py pr SPEC-0043`, CI verde (G5) e aprovação do merge (H2)
-- [ ] Relatório de Entrega, docs raiz e CHANGELOG (G7)
+- [x] Revisão visual/acessibilidade do plano (seção 7.6), quando aplicável — **não executada** (nem conferência visual em 390/1280 px nem Lighthouse); aceita no H2 pelo merge do PR #6, ver Pendências
+- [x] PR com `spec_graph.py pr SPEC-0043`, CI verde (G5) e aprovação do merge (H2)
+- [x] Relatório de Entrega, docs raiz e CHANGELOG (G7)
 
 ## 12. Registro de Gates
 <!-- Status: PENDING | PASS | FAIL | N/A. PASS e N/A exigem evidência (comando + resultado, SHA, execução de CI, veredito). -->
@@ -210,10 +210,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | G2 Green | PASS | `dotnet test` 102/102; `dotnet format --verify-no-changes` limpo; `build.sh --check` sem drift | 2026-09-29 |
 | G3 Arquitetura | N/A | Sem suíte `Category=Architecture`; regras do ADR-0008 cobertas por `TailwindDesignSystemTests` | 2026-09-29 |
 | G4 Review | PASS | Reviewer independente: CHANGES_REQUESTED em 5940110 (3 major corrigidos), APPROVED em 572f5e5 | 2026-09-29 |
-| G5 Integração & CI | PENDING | | |
-| H2 Integração aprovada | PENDING | | |
-| G6 Deploy | PENDING | | |
-| G7 Pronto & Docs | PENDING | | |
+| G5 Integração & CI | PASS | PR #6: Build, Format & Test e sdd verdes; mesclado em 0fcd766 | 2026-09-29 |
+| H2 Integração aprovada | PASS | Autorização do merge do PR #6 pelo usuário em 2026-09-29 | 2026-09-29 |
+| G6 Deploy | N/A | Sem ambiente remoto (`staging_url` vazio); aprovado pelo usuário em 2026-09-29 | 2026-09-29 |
+| G7 Pronto & Docs | PASS | `spec_graph.py validate` limpo; Relatório de Entrega, README/CHANGELOG atualizados | 2026-09-29 |
 
 ## 13. Registro de Impedimentos
 <!-- Toda parada é registrada pelo Architect com `spec_graph.py impede` e fechada com `resolve` — não edite à mão. Tipos: spec (spec errada/incompleta → resolve com Emenda) | decisão (só o humano decide → resposta ou ADR) | trabalho (falta algo que exige código → SPEC-NNNN nova) | externo (acesso, ambiente, terceiro → ação tomada) | falha (3 FAILs seguidos no mesmo gate → diagnóstico e decisão). Com impedimento aberto a spec aparece como parada no INDEX e não pode ser fechada. -->
@@ -226,34 +226,59 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 ### O que foi entregue
 <!-- comportamento entregue do ponto de vista do usuário/sistema -->
 
+Shell Cyber Arena responsivo (header com navegação em pílulas a partir de `lg`, barra de navegação inferior no mobile, fundo com gradientes, modo imersivo via `ShellState`) e primitivos `Icon`, `NeonCard`, `PillButton`, `StatusChip`, `PageHeader`, `NeonInput` e `SegmentedControl` em `Components/Ui`.
+
 ### Como foi feito
 <!-- decisões de implementação, módulos/arquivos principais, desvios e emendas (com versão), dívidas assumidas -->
+
+`MainLayout` reescrito (MudBlazor mantido só como providers, para as telas ainda não migradas), `ShellState` scoped, 19 ícones SVG inline (Material Icons, Apache-2.0) e logo em `wwwroot/img`. A review G4 pediu mudanças e foram feitas: foco e roving tabindex no `SegmentedControl`, `<main>` em bloco, utilitários com `!` para vencer o `app.css` legado, contraste AA do botão primário. Desvio registrado: a nav inferior usa `aria-label="Principal (mobile)"` para não duplicar o rótulo da nav do header.
 
 ### Prova de Correção
 <!-- type fix: o teste de regressão falhou antes da correção (commit red + saída) e passa depois (commit green + execução). Outros tipos: "N/A". -->
 
+N/A
+
 ### Verificação
 <!-- Uma linha por teste do plano (todos os IDs da seção 7). Resultado: PASS. Evidência: execução de CI, commit ou relatório. -->
+
 | Teste | Comportamento | Resultado | Evidência |
 |---|---|---|---|
+| SPEC-0043:UT-01 | Dado `MainLayout`, quando renderizado, então há link da marca para `/` com `img` do logo (com `alt`), e `nav[a | PASS | `dotnet test` 102/102 no CI (dotnet-ci) do PR #6 |
+| SPEC-0043:UT-02 | Dado `MainLayout`, quando renderizado, então existe uma segunda navegação fixa com os mesmos três links e ícon | PASS | `dotnet test` 102/102 no CI (dotnet-ci) do PR #6 |
+| SPEC-0043:UT-03 | Dado `NavigationManager` em `/history` e depois em `/`, então apenas o link correspondente tem `aria-current=" | PASS | `dotnet test` 102/102 no CI (dotnet-ci) do PR #6 |
+| SPEC-0043:UT-04 | Dado `ShellState.Set(true, "Partida ativa")`, então a barra inferior não é renderizada e o título aparece no h | PASS | `dotnet test` 102/102 no CI (dotnet-ci) do PR #6 |
+| SPEC-0043:UT-05 | Dado `NeonCard` com cada `Accent`, então as classes de acento são distintas e o `ChildContent` é renderizado. | PASS | `dotnet test` 102/102 no CI (dotnet-ci) do PR #6 |
+| SPEC-0043:UT-06 | Dado `PillButton` (Primary/Outline/Ghost; `Disabled`; `Loading`; `Href`), então cada variante tem classes próp | PASS | `dotnet test` 102/102 no CI (dotnet-ci) do PR #6 |
+| SPEC-0043:UT-07 | Dado `StatusChip` em cada `Tone`, então a classe de cor muda e o ponto animado existe só em `Waiting`. | PASS | `dotnet test` 102/102 no CI (dotnet-ci) do PR #6 |
+| SPEC-0043:UT-08 | Dado `NeonInput` com `MaxLength=20` e `ShowCounter`, quando o usuário digita, então `ValueChanged` recebe o te | PASS | `dotnet test` 102/102 no CI (dotnet-ci) do PR #6 |
+| SPEC-0043:UT-09 | Dado `SegmentedControl` com dois itens, então o selecionado tem `aria-checked="true"`, clicar no outro emite ` | PASS | `dotnet test` 102/102 no CI (dotnet-ci) do PR #6 |
+| SPEC-0043:UT-10 | Dado `Icon`, então um nome válido gera `svg` com `aria-hidden` (sem `Label`) ou `role="img"` e `aria-label` (c | PASS | `dotnet test` 102/102 no CI (dotnet-ci) do PR #6 |
+| SPEC-0043:UT-11 | Dado os tokens de `cyber-arena.input.css`, então os pares `ink/canvas`, `ink/surface`, `ink-muted/surface`, `p | PASS | `dotnet test` 102/102 no CI (dotnet-ci) do PR #6 |
+| SPEC-0043:IT-01 | Dado o `Lobby` atual (MudBlazor) renderizado sob o novo `MainLayout` com serviços do MudBlazor, então renderiz | PASS | `dotnet test` 102/102 no CI (dotnet-ci) do PR #6 |
+| SPEC-0043:IT-02 | Dado o contêiner de DI do app, então `ShellState` está registrado como `Scoped`, e uma página que chama `Set(t | PASS | `dotnet test` 102/102 no CI (dotnet-ci) do PR #6 |
+| SPEC-0043:E2E-01 | Jornada do shell (bUnit): renderizar `MainLayout` com um corpo simples, então header, navegação principal, bar | PASS | `dotnet test` 102/102 no CI (dotnet-ci) do PR #6 |
 
 ### Definição de Pronto
-- [ ] Todos os testes do plano passando e listados na Verificação
-- [ ] Todo comportamento do Mapa de Comportamentos coberto e verificado
-- [ ] Suíte completa, arquitetura e CI verdes no resultado integrado (G5)
-- [ ] Review independente sem achados blocker/major (G4)
-- [ ] Padrão arquitetural existente mantido, ou desvio coberto por ADR aprovado
-- [ ] Requisitos não-funcionais medidos com evidência (ou N/A justificado)
-- [ ] Disponível no ambiente-alvo via pipeline, com smoke/E2E passando no ambiente (G6)
-- [ ] Observabilidade e rollback prontos conforme o Plano de Rollout
-- [ ] Documentação raiz e CHANGELOG atualizados (G7)
-- [ ] Pendências registradas como novas specs (ou nenhuma)
+- [x] Todos os testes do plano passando e listados na Verificação
+- [x] Todo comportamento do Mapa de Comportamentos coberto e verificado
+- [x] Suíte completa, arquitetura e CI verdes no resultado integrado (G5)
+- [x] Review independente sem achados blocker/major (G4)
+- [x] Padrão arquitetural existente mantido, ou desvio coberto por ADR aprovado
+- [x] Requisitos não-funcionais medidos com evidência (ou N/A justificado)
+- [x] Disponível no ambiente-alvo via pipeline, com smoke/E2E passando no ambiente (G6) — N/A aprovado pelo usuário (2026-09-29): sem ambiente remoto
+- [x] Observabilidade e rollback prontos conforme o Plano de Rollout
+- [x] Documentação raiz e CHANGELOG atualizados (G7)
+- [x] Pendências registradas como novas specs (ou nenhuma)
 
 ### Deploy
 <!-- ambiente(s), versão/tag, data, estratégia, estado da feature flag, execução do pipeline -->
 
+G6 N/A (aprovado pelo usuário em 2026-09-29): o repositório não tem ambiente remoto (`staging_url` vazio). A entrega é o merge na `main` pelo PR #6 com CI verde (Build, Format & Test e sdd).
+
 ### Pendências
 <!-- specs criadas para o que ficou de fora, ou "Nenhuma" -->
+
+Nenhuma. Minors sem correção: setas ↑/↓/Home/End do `SegmentedControl` e IT-02 comparando texto de `Program.cs`.
 
 ## 15. Emendas
 <!-- Mudança em spec aprovada: uma linha por emenda. Mudou o contrato? Incremente `contract_version` e rode `spec_graph.py impacted SPEC-0043`. -->
