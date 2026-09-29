@@ -1,76 +1,80 @@
 @page "/history"
 @using TicTacToe.Modules.Gameplay
+@using TicTacToe.Web.Components.Ui
 @rendermode InteractiveServer
 @inject GameResultService GameResultService
 
-<PageTitle>Histórico de Partidas</PageTitle>
+<PageTitle>Histórico de Partidas · XO Arena</PageTitle>
 
-<div class="history-container">
-    <div class="header">
-        <a href="/" class="back-link">← Jogar</a>
-        <h1>Histórico de Partidas</h1>
-    </div>
+<div class="mx-auto flex w-full max-w-[var(--size-frame)] flex-col gap-6 py-4">
+    <PageHeader Eyebrow="Partidas" Title="Histórico de Partidas"
+                Subtitle="@(_loading ? null : $"Últimas {_results.Count} partidas")">
+        <PillButton Href="/" Icon="play">Novo duelo</PillButton>
+    </PageHeader>
 
     @if (_loading)
     {
-        <div class="loading">Carregando... ⏳</div>
+        <NeonCard Class="flex items-center justify-center gap-3 p-8">
+            <span class="size-6 animate-spin motion-reduce:animate-none rounded-full border-2 border-secondary border-t-transparent" aria-hidden="true"></span>
+            <p role="status" class="text-body-lg text-ink-muted">Carregando…</p>
+        </NeonCard>
     }
     else if (_results.Count == 0)
     {
-        <div class="empty">
-            <p>🎮 Nenhuma partida registrada ainda.</p>
-            <p><a href="/">Jogue agora</a> e volte aqui!</p>
-        </div>
+        <NeonCard Class="flex flex-col items-center gap-4 p-8 text-center">
+            <Icon Name="trophy" Size="24" />
+            <p class="text-title-sm">Nenhuma partida registrada ainda.</p>
+            <PillButton Href="/" Icon="play">Jogar agora</PillButton>
+        </NeonCard>
     }
     else
     {
-        <table class="results-table">
-            <thead>
-                <tr>
-                    <th scope="col">✕ Jogador X</th>
-                    <th scope="col">◯ Jogador O</th>
-                    <th scope="col">Resultado</th>
-                    <th scope="col">Data</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var r in _results)
-                {
-                    <tr>
-                        <td class="player-x">@r.PlayerXName</td>
-                        <td class="player-o">@r.PlayerOName</td>
-                        <td class="result @(r.WinnerName == null ? "draw" : "win")">
-                            @(r.WinnerName != null ? $"🏆 {r.WinnerName}" : "🤝 Empate")
-                        </td>
-                        <td class="date">@r.PlayedAt.ToLocalTime().ToString("dd/MM HH:mm")</td>
+        <NeonCard Class="overflow-hidden">
+            <table class="w-full border-collapse text-left">
+                <thead class="hidden md:table-header-group">
+                    <tr class="border-b border-stroke font-numeric text-label-badge uppercase text-ink-muted">
+                        <th scope="col" class="px-5 py-3">Resultado</th>
+                        <th scope="col" class="px-5 py-3">Duelo (✕ vs ◯)</th>
+                        <th scope="col" class="px-5 py-3">Data e hora</th>
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach (var r in _results)
+                    {
+                        var xWins = r.WinnerName is not null && r.WinnerName == r.PlayerXName && r.PlayerXName != r.PlayerOName;
+                        var oWins = r.WinnerName is not null && r.WinnerName == r.PlayerOName && r.PlayerXName != r.PlayerOName;
+                        <tr class="block border-b border-stroke px-5 py-4 last:border-b-0 md:table-row md:px-0 md:py-0">
+                            <td class="block md:table-cell md:px-5 md:py-4">
+                                @if (r.WinnerName is not null)
+                                {
+                                    <StatusChip Tone="ChipTone.Gold">Vitória de @r.WinnerName</StatusChip>
+                                }
+                                else
+                                {
+                                    <StatusChip Tone="ChipTone.Neutral">Deu velha</StatusChip>
+                                }
+                            </td>
+                            <td class="block py-2 md:table-cell md:px-5 md:py-4">
+                                <span class="flex flex-wrap items-center gap-2 text-body-lg">
+                                    <span class="text-primary" data-winner="@(xWins ? "true" : null)">
+                                        ✕ @r.PlayerXName@if (xWins) {<Icon Name="trophy" Size="16" Label="Vencedor" />}
+                                    </span>
+                                    <span class="text-ink-muted">vs</span>
+                                    <span class="text-secondary" data-winner="@(oWins ? "true" : null)">
+                                        ◯ @r.PlayerOName@if (oWins) {<Icon Name="trophy" Size="16" Label="Vencedor" />}
+                                    </span>
+                                </span>
+                            </td>
+                            <td class="block font-numeric text-label-numeric text-ink-muted md:table-cell md:px-5 md:py-4">
+                                @HistoryDateFormatter.Format(r.PlayedAt, DateTime.Now)
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </NeonCard>
     }
 </div>
-
-<style>
-    :root { --x-color: #e74c3c; --o-color: #3498db; --bg: #1a1a2e; --surface: #16213e; --text: #e0e0e0; }
-    body { background: var(--bg); color: var(--text); margin: 0; }
-    .history-container { font-family: 'Segoe UI', sans-serif; max-width: 700px; margin: 0 auto; padding: 40px 20px; }
-    .header { display: flex; align-items: center; gap: 20px; margin-bottom: 32px; }
-    .back-link { color: #888; text-decoration: none; font-size: 1rem; }
-    .back-link:hover { color: var(--text); }
-    h1 { font-size: 1.6rem; margin: 0; }
-    .loading, .empty { text-align: center; padding: 60px; color: #888; font-size: 1.1rem; }
-    .empty a { color: var(--x-color); text-decoration: none; }
-    .results-table { width: 100%; border-collapse: collapse; }
-    .results-table th { background: var(--surface); padding: 12px 16px; text-align: left; font-size: .85rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
-    .results-table td { padding: 14px 16px; border-bottom: 1px solid #1f2a45; font-size: .95rem; }
-    .results-table tr:last-child td { border-bottom: none; }
-    .results-table tr:hover td { background: rgba(255,255,255,0.03); }
-    .player-x { color: var(--x-color); font-weight: 500; }
-    .player-o { color: var(--o-color); font-weight: 500; }
-    .result.win { color: #f1c40f; }
-    .result.draw { color: #888; }
-    .date { color: #555; font-size: .85rem; }
-</style>
 
 @code {
     private List<MatchResult> _results = [];
