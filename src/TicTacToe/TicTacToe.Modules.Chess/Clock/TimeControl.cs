@@ -10,5 +10,6 @@ public sealed record TimeControl(string Id, string Name, TimeSpan Initial, TimeS
 
     public static IReadOnlyList<TimeControl> All { get; } = [Bullet, Blitz, Rapid];
 
-    public static TimeControl? FromId(string id) => id is null ? null : null;
+    public static TimeControl? FromId(string id) =>
+        All.FirstOrDefault(c => string.Equals(c.Id, id, StringComparison.Ordinal));
 }
