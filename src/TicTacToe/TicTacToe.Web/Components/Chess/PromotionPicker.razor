@@ -1,0 +1,63 @@
+<div role="dialog" aria-modal="true" aria-label="Promoção de peão" @onkeydown="HandleKeyAsync"
+     class="flex flex-col gap-3 rounded-card border border-stroke-active bg-surface p-4">
+    <p class="text-title-sm text-ink">Promover peão para:</p>
+    <div class="grid grid-cols-4 gap-2">
+        @foreach (var (type, name, key) in Choices)
+        {
+            <button type="button" data-promotion="@key" @ref="_buttons[type]" autofocus="@(type == PieceType.Queen ? true : null)"
+                    class="flex flex-col items-center gap-1 rounded-cell border border-stroke bg-board-dark p-2 text-body-md text-ink focus-visible:outline-2 focus-visible:outline-secondary"
+                    @onclick="() => OnChosen.InvokeAsync(type)">
+                <ChessPiece Color="Color" Type="type" Size="48" />
+                <span>@name</span>
+                <span aria-hidden="true" class="text-label-badge text-ink-muted">@key</span>
+            </button>
+        }
+    </div>
+</div>
+
+@code {
+    private static readonly (PieceType Type, string Name, string Key)[] Choices =
+    [
+        (PieceType.Queen, "Dama", "Q"),
+        (PieceType.Rook, "Torre", "R"),
+        (PieceType.Bishop, "Bispo", "B"),
+        (PieceType.Knight, "Cavalo", "N"),
+    ];
+
+    private readonly Dictionary<PieceType, ElementReference> _buttons = [];
+
+    [Parameter] public PieceColor Color { get; set; }
+    [Parameter] public EventCallback<PieceType> OnChosen { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await _buttons[PieceType.Queen].FocusAsync();
+        }
+    }
+
+    private Task HandleKeyAsync(KeyboardEventArgs e)
+    {
+        if (e.CtrlKey || e.MetaKey || e.AltKey || e.Repeat)
+        {
+            return Task.CompletedTask;
+        }
+
+        if (e.Key == "Escape")
+        {
+            return OnCancel.InvokeAsync();
+        }
+
+        foreach (var (type, _, key) in Choices)
+        {
+            if (string.Equals(e.Key, key, StringComparison.OrdinalIgnoreCase))
+            {
+                return OnChosen.InvokeAsync(type);
+            }
+        }
+
+        return Task.CompletedTask;
+    }
+}
