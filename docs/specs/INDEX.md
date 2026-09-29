@@ -5,23 +5,22 @@
 ## Saúde
 
 - Validação (G0): **0 erro(s), 0 aviso(s)**
-- Specs: approved 5, in-progress 1, implemented 48
+- Specs: approved 5, implemented 49
 - Impedimentos: **0 aberto(s)**, 0 resolvido(s)
 
 ## Plano de Execução
 
-**Em andamento:** SPEC-0053  
+**Em andamento:** —  
 **Paradas por impedimento:** —  
-**Próximo lote:** —
+**Próximo lote:** SPEC-0056
 
 | Onda | Spec | Título | Tier/Tam. | Status | Prontidão | Observação |
 |---|---|---|---|---|---|---|
-| 1 | SPEC-0053 | Pareamento e persistência do xadrez | full/M | in-progress | 🔄 em andamento |  |
-| 2 | SPEC-0056 | Lobby de xadrez | full/M | approved | ⛔ aguarda implementação de SPEC-0053 |  |
-| 3 | SPEC-0058 | Treino solo de xadrez contra o robô | full/M | approved | ⛔ aguarda implementação de SPEC-0056 |  |
-| 4 | SPEC-0060 | Abandono, revanche e desconexão no xadrez | full/M | approved | ⛔ aguarda implementação de SPEC-0056; aguarda implementação de SPEC-0058 |  |
-| 5 | SPEC-0048 | Seleção de jogos e navegação por jogo | full/S | approved | ⛔ aguarda implementação de SPEC-0058; aguarda implementação de SPEC-0060 |  |
-| 6 | SPEC-0059 | Histórico e ranking do xadrez | full/M | approved | ⛔ aguarda implementação de SPEC-0048; aguarda implementação de SPEC-0053 |  |
+| 1 | SPEC-0056 | Lobby de xadrez | full/M | approved | ✅ pronta |  |
+| 2 | SPEC-0058 | Treino solo de xadrez contra o robô | full/M | approved | ⛔ aguarda implementação de SPEC-0056 |  |
+| 3 | SPEC-0060 | Abandono, revanche e desconexão no xadrez | full/M | approved | ⛔ aguarda implementação de SPEC-0056; aguarda implementação de SPEC-0058 |  |
+| 4 | SPEC-0048 | Seleção de jogos e navegação por jogo | full/S | approved | ⛔ aguarda implementação de SPEC-0058; aguarda implementação de SPEC-0060 |  |
+| 5 | SPEC-0059 | Histórico e ranking do xadrez | full/M | approved | ⛔ aguarda implementação de SPEC-0048 |  |
 
 ## Épicos
 
@@ -33,7 +32,7 @@
 | SPEC-0021 | Engenharia de Qualidade e Refatoração Arquitetural | implemented | 4/4 implementadas |
 | SPEC-0028 | Redesign Cyber Arena — migração da UI para Tailwind (Fase 1 visual) | implemented | 7/7 implementadas |
 | SPEC-0035 | Evolução funcional a partir do Stitch (Fase 2) | implemented | 9/9 implementadas |
-| SPEC-0046 | Xadrez multiplayer | approved | 9/15 implementadas |
+| SPEC-0046 | Xadrez multiplayer | approved | 10/15 implementadas |
 
 ## Grafo de Dependências
 
@@ -44,10 +43,8 @@ flowchart LR
   subgraph E0046["SPEC-0046 · Xadrez multiplayer"]
     S0047["SPEC-0047<br/>Generalização multi-jogo (GameType, fil…"]:::implemented
     S0048["SPEC-0048<br/>Seleção de jogos e navegação por jogo"]:::approved
-    S0052["SPEC-0052<br/>Sessão de xadrez compartilhada"]:::implemented
-    S0053["SPEC-0053<br/>Pareamento e persistência do xadrez"]:::inprogress
+    S0053["SPEC-0053<br/>Pareamento e persistência do xadrez"]:::implemented
     S0054["SPEC-0054<br/>Robô de xadrez com níveis de dificuldade"]:::implemented
-    S0055["SPEC-0055<br/>Peças SVG e tabuleiro interativo"]:::implemented
     S0056["SPEC-0056<br/>Lobby de xadrez"]:::approved
     S0057["SPEC-0057<br/>Arena de xadrez: relógios, lances e fim…"]:::implemented
     S0058["SPEC-0058<br/>Treino solo de xadrez contra o robô"]:::approved
@@ -59,13 +56,9 @@ flowchart LR
   S0058 --> S0048
   S0060 --> S0048
   S0047 --> S0053
-  S0052 --> S0053
-  S0055 --> S0053
   S0061 --> S0053
   S0053 --> S0056
   S0057 --> S0056
-  S0052 --> S0057
-  S0055 --> S0057
   S0054 --> S0058
   S0056 --> S0058
   S0057 --> S0058
@@ -75,7 +68,6 @@ flowchart LR
   S0057 --> S0060
   S0058 --> S0060
   S0061 --> S0060
-  S0052 --> S0061
   classDef proposed fill:#fef3c7,stroke:#d97706,color:#111
   classDef approved fill:#dbeafe,stroke:#2563eb,color:#111
   classDef inprogress fill:#ede9fe,stroke:#7c3aed,color:#111
@@ -139,7 +131,7 @@ flowchart LR
 | [SPEC-0050](SPEC-0050-regras-de-partida-do-xadrez-lances-san-e-fim-de-jogo.md) | Regras de partida do xadrez: lances, SAN e fim de jogo | full | feature | implemented | 2026-09-29 | SPEC-0046 | SPEC-0049 | — |
 | [SPEC-0051](SPEC-0051-relogio-de-xadrez-com-incremento.md) | Relógio de xadrez com incremento | full | feature | implemented | 2026-09-29 | SPEC-0046 | SPEC-0049 | — |
 | [SPEC-0052](SPEC-0052-sessao-de-xadrez-compartilhada.md) | Sessão de xadrez compartilhada | full | feature | implemented | 2026-09-29 | SPEC-0046 | SPEC-0050, SPEC-0051 | — |
-| [SPEC-0053](SPEC-0053-pareamento-e-persistencia-do-xadrez.md) | Pareamento e persistência do xadrez | full | feature | in-progress | 2026-09-29 | SPEC-0046 | SPEC-0047, SPEC-0052, SPEC-0055, SPEC-0061 | — |
+| [SPEC-0053](SPEC-0053-pareamento-e-persistencia-do-xadrez.md) | Pareamento e persistência do xadrez | full | feature | implemented | 2026-09-29 | SPEC-0046 | SPEC-0047, SPEC-0052, SPEC-0055, SPEC-0061 | — |
 | [SPEC-0054](SPEC-0054-robo-de-xadrez-com-niveis-de-dificuldade.md) | Robô de xadrez com níveis de dificuldade | full | feature | implemented | 2026-09-29 | SPEC-0046 | SPEC-0050 | — |
 | [SPEC-0055](SPEC-0055-pecas-svg-e-tabuleiro-interativo.md) | Peças SVG e tabuleiro interativo | full | feature | implemented | 2026-09-29 | SPEC-0046 | SPEC-0050 | — |
 | [SPEC-0056](SPEC-0056-lobby-de-xadrez.md) | Lobby de xadrez | full | feature | approved | 2026-09-29 | SPEC-0046 | SPEC-0053, SPEC-0057 | — |

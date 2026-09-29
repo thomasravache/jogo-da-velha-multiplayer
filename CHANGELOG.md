@@ -9,6 +9,7 @@ Cada entrada cita a spec de origem (`SPEC-NNNN`); gere-as com `spec_graph.py rep
 ## [Unreleased]
 
 ### Added
+- Pareamento por controle de tempo com preferência de cor e gravação das partidas de xadrez (SPEC-0053)
 - Arena de xadrez com relógios, lista de lances, capturas e fim de partida (SPEC-0057)
 - Ciclo de vida da sessão de xadrez: abandono, revanche com troca de cores e W.O. por desconexão (SPEC-0061)
 - Peças SVG, tabuleiro interativo e seletor de promoção do xadrez (SPEC-0055)
