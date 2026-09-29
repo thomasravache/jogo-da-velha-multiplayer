@@ -177,7 +177,17 @@ public class GameSession : IDisposable
     public int GetScore(Player player) =>
         _scores.TryGetValue(player, out var score) ? score : 0;
 
-    public void ResetScores() => _scores.Clear();
+    public void ResetScores()
+    {
+        lock (_lock)
+        {
+            _scores.Clear();
+            RoundsDecided = 0;
+            SeriesOver = false;
+            _seriesWinner = Player.None;
+            _roundStarter = Player.X;
+        }
+    }
 
     public void Tick()
     {
@@ -252,6 +262,7 @@ public class GameSession : IDisposable
         if (_format != SeriesFormat.BestOf5) return;
 
         RoundsDecided++;
+        _roundStarter = RoundsDecided % 2 == 0 ? Player.X : Player.O;
         if (GetScore(winner) >= SeriesTarget)
         {
             SeriesOver = true;

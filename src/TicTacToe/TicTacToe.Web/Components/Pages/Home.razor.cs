@@ -224,11 +224,12 @@ public partial class Home : IDisposable
     // O robô joga depois de um atraso, também ao abrir uma rodada da série; cancelado ao sair da página.
     private void RunBot(GameSession game)
     {
+        var token = _botCts.Token;
         _ = Task.Run(async () =>
         {
             try
             {
-                await BotRunner.RunAsync(game, Player.O, SelectedDifficulty, TimeSpan.FromMilliseconds(250), _botCts.Token);
+                await BotRunner.RunAsync(game, Player.O, SelectedDifficulty, TimeSpan.FromMilliseconds(250), token);
                 if (game.Winner != Player.None || game.IsDraw)
                 {
                     await GameResultService.SaveOnceAsync(game);
