@@ -13,6 +13,7 @@ using TicTacToe.Web.Components.Game;
 using TicTacToe.Web.Components.Layout;
 using TicTacToe.Web.Components.Pages;
 using TicTacToe.Web.Components.Ui;
+using TicTacToe.Web.Services.PlayerIdentity;
 using Xunit;
 
 namespace TicTacToe.Tests;
@@ -157,6 +158,8 @@ public class TailwindDesignSystemTests
         var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         ctx.Services.AddSingleton(new ShellState());
+        ctx.Services.AddSingleton<IPlayerStorage>(new InMemoryPlayerStorage());
+        ctx.Services.AddSingleton<PlayerIdentityService>();
         ctx.Services.AddTransient(_ => new GameplayDbContext(options));
         ctx.Services.AddTransient(sp => new GameResultService(sp.GetRequiredService<GameplayDbContext>(), NullLogger<GameResultService>.Instance));
         return ctx;
@@ -184,6 +187,8 @@ public class TailwindDesignSystemTests
         Assert.Equal(9, arena.FindAll("[data-cell]").Count);
 
         var history = ctx.Render<History>();
+        // O histórico abre no escopo pessoal (SPEC-0038); a partida semeada é antiga, então só aparece em "Todos".
+        history.WaitForAssertion(() => history.FindAll("[role='radiogroup'][aria-label='Escopo'] [role='radio']").Single(r => r.TextContent.Trim() == "Todos").Click());
         history.WaitForAssertion(() => Assert.Single(history.FindAll("tbody tr")));
 
         var leaderboard = ctx.Render<Leaderboard>();

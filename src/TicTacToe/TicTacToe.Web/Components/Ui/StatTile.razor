@@ -1,0 +1,15 @@
+<div class="flex min-w-0 flex-col gap-1 rounded-card border border-stroke bg-surface/80 p-4 backdrop-blur-md" data-stat="@Key">
+    <span class="font-numeric text-label-badge uppercase text-ink-muted">@Label</span>
+    <span class="font-numeric text-title-sm text-ink">@Value</span>
+    @if (!string.IsNullOrWhiteSpace(Hint))
+    {
+        <span class="text-label-numeric text-ink-muted">@Hint</span>
+    }
+</div>
+
+@code {
+    [Parameter] public string Label { get; set; } = "";
+    [Parameter] public string Value { get; set; } = "";
+    [Parameter] public string? Hint { get; set; }
+    [Parameter] public string? Key { get; set; }
+}
