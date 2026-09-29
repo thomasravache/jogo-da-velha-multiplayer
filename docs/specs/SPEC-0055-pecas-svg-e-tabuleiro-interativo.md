@@ -4,7 +4,7 @@ title: Peças SVG e tabuleiro interativo
 tier: full
 type: feature
 user_facing: true
-status: in-progress
+status: implemented
 created: 2026-09-29
 parent: SPEC-0046
 depends_on: [SPEC-0050]
@@ -162,20 +162,20 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 ## 11. Checklist de Implementação
 <!-- Preenchido na fase PLAN, após a aprovação. Cada fase começa pelos testes. -->
 **Fase 0: Scaffold**
-- [ ] Commit `chore(...)` só com assinaturas/tipos vazios do contrato (sem lógica), compilando
+- [x] Commit `chore(...)` só com assinaturas/tipos vazios do contrato (sem lógica), compilando
 
 **Fase 1: Testes (Red)**
-- [ ] Escrever `SPEC-0055:E2E-01`, `SPEC-0055:IT-01`, `SPEC-0055:UT-01`, `SPEC-0055:UT-02`, `SPEC-0055:UT-03`, `SPEC-0055:UT-04`, `SPEC-0055:UT-05`, `SPEC-0055:UT-06`, `SPEC-0055:UT-07`, `SPEC-0055:UT-08`, `SPEC-0055:UT-09` com a tag `SPEC-0055:<ID>` em commits `test(...)` com `Refs: SPEC-0055` e confirmar que falham pelo motivo certo
+- [x] Escrever `SPEC-0055:E2E-01`, `SPEC-0055:IT-01`, `SPEC-0055:UT-01`, `SPEC-0055:UT-02`, `SPEC-0055:UT-03`, `SPEC-0055:UT-04`, `SPEC-0055:UT-05`, `SPEC-0055:UT-06`, `SPEC-0055:UT-07`, `SPEC-0055:UT-08`, `SPEC-0055:UT-09` com a tag `SPEC-0055:<ID>` em commits `test(...)` com `Refs: SPEC-0055` e confirmar que falham pelo motivo certo
 
 **Fase 2: Implementação (Green)**
-- [ ] Implementar o mínimo para passar, seguindo o padrão de referência e o `touches` da spec
-- [ ] Refactor mantendo tudo verde
-- [ ] Validar: `dotnet build`, suíte completa, `dotnet format --verify-no-changes`, `tools/tailwind/build.sh --check` e `verify SPEC-0055 --base origin/main`
+- [x] Implementar o mínimo para passar, seguindo o padrão de referência e o `touches` da spec
+- [x] Refactor mantendo tudo verde
+- [x] Validar: `dotnet build`, suíte completa, `dotnet format --verify-no-changes`, `tools/tailwind/build.sh --check` e `verify SPEC-0055 --base origin/main`
 
 **Fase final: Integração, entrega e documentação**
-- [ ] Review independente (G4)
-- [ ] Integração + CI verde (G5) e aprovação (H2)
-- [ ] Relatório de Entrega, docs raiz e CHANGELOG (G7)
+- [x] Review independente (G4)
+- [x] Integração + CI verde (G5) e aprovação (H2)
+- [x] Relatório de Entrega, docs raiz e CHANGELOG (G7)
 
 ## 12. Registro de Gates
 <!-- Status: PENDING | PASS | FAIL | N/A. PASS e N/A exigem evidência (comando + resultado, SHA, execução de CI, veredito). -->
@@ -186,10 +186,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | G2 Green | PASS | dotnet test 625 verdes (1 pulado: perft pesado); format e tailwind --check limpos; verify PASS | 2026-09-29 |
 | G3 Arquitetura | N/A | fronteira de módulos coberta por ChessModuleBoundaryTests (SPEC-0049) | 2026-09-29 |
 | G4 Review | PASS | Review independente (subagente): PASS, 0 bloqueantes/maiores; contraste WCAG recalculado (contorno preto 3,60/5,10; casas 1,42); menores tratados (atalhos ignoram modificadores; marca de teclado zerada no keyup). Dívidas: sem trap de foco no diálogo, arrastar em botão pode não funcionar no Firefox, rolagem da página em setas/Espaço (herdada do GameBoard), revisão visual e Lighthouse no H2 | 2026-09-29 |
-| G5 Integração & CI | PENDING | | |
-| H2 Integração aprovada | PENDING | | |
-| G6 Deploy | PENDING | | |
-| G7 Pronto & Docs | PENDING | | |
+| G5 Integração & CI | PASS | PR #40: Build, Format & Test e sdd verdes; mesclado na `main` | 2026-09-29 |
+| H2 Integração aprovada | PASS | Autorização permanente do usuário (2026-09-29): mesclar com CI verde conforme a skill sdd-management | 2026-09-29 |
+| G6 Deploy | N/A | Sem ambiente remoto (`staging_url` vazio); aprovado pelo usuário em 2026-09-29 | 2026-09-29 |
+| G7 Pronto & Docs | PASS | `spec_graph.py validate` limpo; Relatório de Entrega e CHANGELOG atualizados | 2026-09-29 |
 
 ## 13. Registro de Impedimentos
 <!-- Toda parada é registrada pelo Architect com `spec_graph.py impede` e fechada com `resolve` — não edite à mão. Tipos: spec (spec errada/incompleta → resolve com Emenda) | decisão (só o humano decide → resposta ou ADR) | trabalho (falta algo que exige código → SPEC-NNNN nova) | externo (acesso, ambiente, terceiro → ação tomada) | falha (3 FAILs seguidos no mesmo gate → diagnóstico e decisão). Com impedimento aberto a spec aparece como parada no INDEX e não pode ser fechada. -->
@@ -202,34 +202,56 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 ### O que foi entregue
 <!-- comportamento entregue do ponto de vista do usuário/sistema -->
 
+Componentes do xadrez: 12 peças SVG do conjunto do Stitch, tabuleiro interativo acessível (orientação, seleção, destinos legais, último lance, xeque, clique, teclado e arrastar), seletor de promoção e tokens de cor com contraste verificado por teste; o projeto Web passa a referenciar o módulo Chess.
+
 ### Como foi feito
 <!-- decisões de implementação, módulos/arquivos principais, desvios e emendas (com versão), dívidas assumidas -->
+
+ChessPiece com cores por tokens, ChessBoard em role=grid com botões por casa e roving tabindex, PromotionPicker em diálogo com atalhos Q R B N; tokens no cyber-arena.input.css (casas escuras, razões ≥ 3:1 para contornos e destaques); destaques como anéis internos.
 
 ### Prova de Correção
 <!-- type fix: o teste de regressão falhou antes da correção (commit red + saída) e passa depois (commit green + execução). Outros tipos: "N/A". -->
 
+N/A
+
 ### Verificação
 <!-- Uma linha por teste do plano (todos os IDs da seção 7). Resultado: PASS. Evidência: execução de CI, commit ou relatório. -->
+
 | Teste | Comportamento | Resultado | Evidência |
 |---|---|---|---|
+| SPEC-0055:UT-01 | Dado as 12 combinações de cor e tipo, então cada `ChessPiece` renderiza um `<svg role="img">` com o título em  | PASS | `dotnet test` 645/645 no CI (dotnet-ci) do PR #40 |
+| SPEC-0055:UT-02 | Dado `Position.Start` com orientação branca e preta, então há 64 casas `data-square`, 32 peças, coordenadas a– | PASS | `dotnet test` 645/645 no CI (dotnet-ci) do PR #40 |
+| SPEC-0055:UT-03 | Dado casa selecionada, destinos (vazios e com captura), último lance e rei em xeque, então cada estado tem mar | PASS | `dotnet test` 645/645 no CI (dotnet-ci) do PR #40 |
+| SPEC-0055:UT-04 | Dado clique em uma peça e depois em um destino, então `OnSquareActivated` é chamado na ordem; com `Interactive | PASS | `dotnet test` 645/645 no CI (dotnet-ci) do PR #40 |
+| SPEC-0055:UT-05 | Dado setas, Enter, Espaço e Esc disparados em uma casa (`KeyDown` do bUnit), então o roving tabindex (`tabinde | PASS | `dotnet test` 645/645 no CI (dotnet-ci) do PR #40 |
+| SPEC-0055:UT-06 | Dado arrastar uma peça e soltá-la em um destino ou fora do tabuleiro, então `OnDragMove` só é chamado com orig | PASS | `dotnet test` 645/645 no CI (dotnet-ci) do PR #40 |
+| SPEC-0055:UT-07 | Dado `PromotionPicker`, então há quatro botões (Dama, Torre, Bispo, Cavalo), as teclas Q/R/B/N escolhem a peça | PASS | `dotnet test` 645/645 no CI (dotnet-ci) do PR #40 |
+| SPEC-0055:UT-08 | Dado o CSS de entrada, então os tokens de contorno de peça e de casa atendem razão ≥ 3,0 em todos os pares def | PASS | `dotnet test` 645/645 no CI (dotnet-ci) do PR #40 |
+| SPEC-0055:UT-09 | Dado a marcação, então não há `<style>` inline nem `mud-`, e o contêiner do tabuleiro tem as classes `w-full`, | PASS | `dotnet test` 645/645 no CI (dotnet-ci) do PR #40 |
+| SPEC-0055:IT-01 | Dado o `ChessBoard` ligado a um `ChessGame` de teste que responde aos callbacks (seleciona, destina, promove), | PASS | `dotnet test` 645/645 no CI (dotnet-ci) do PR #40 |
+| SPEC-0055:E2E-01 | Jornada (bUnit): tabuleiro na posição inicial, jogar `e2→e4` por clique e depois `e7→e5` para as pretas com or | PASS | `dotnet test` 645/645 no CI (dotnet-ci) do PR #40 |
 
 ### Definição de Pronto
-- [ ] Todos os testes do plano passando e listados na Verificação
-- [ ] Todo comportamento do Mapa de Comportamentos coberto e verificado
-- [ ] Suíte completa, arquitetura e CI verdes no resultado integrado (G5)
-- [ ] Review independente sem achados blocker/major (G4)
-- [ ] Padrão arquitetural existente mantido, ou desvio coberto por ADR aprovado
-- [ ] Requisitos não-funcionais medidos com evidência (ou N/A justificado)
-- [ ] Disponível no ambiente-alvo via pipeline, com smoke/E2E passando no ambiente (G6)
-- [ ] Observabilidade e rollback prontos conforme o Plano de Rollout
-- [ ] Documentação raiz e CHANGELOG atualizados (G7)
-- [ ] Pendências registradas como novas specs (ou nenhuma)
+- [x] Todos os testes do plano passando e listados na Verificação
+- [x] Todo comportamento do Mapa de Comportamentos coberto e verificado
+- [x] Suíte completa, arquitetura e CI verdes no resultado integrado (G5)
+- [x] Review independente sem achados blocker/major (G4)
+- [x] Padrão arquitetural existente mantido, ou desvio coberto por ADR aprovado
+- [x] Requisitos não-funcionais medidos com evidência (ou N/A justificado)
+- [x] Disponível no ambiente-alvo via pipeline, com smoke/E2E passando no ambiente (G6) — N/A aprovado pelo usuário (2026-09-29): sem ambiente remoto
+- [x] Observabilidade e rollback prontos conforme o Plano de Rollout
+- [x] Documentação raiz e CHANGELOG atualizados (G7)
+- [x] Pendências registradas como novas specs (ou nenhuma)
 
 ### Deploy
 <!-- ambiente(s), versão/tag, data, estratégia, estado da feature flag, execução do pipeline -->
 
+G6 N/A (aprovado pelo usuário em 2026-09-29): o repositório não tem ambiente remoto (`staging_url` vazio). A entrega é o merge na `main` pelo PR #40 com CI verde (Build, Format & Test e sdd).
+
 ### Pendências
 <!-- specs criadas para o que ficou de fora, ou "Nenhuma" -->
+
+Setas e Espaço rolam a página (limitação herdada do GameBoard); sem trap de foco no diálogo; arrastar dentro de botão pode não funcionar no Firefox; revisão visual (390px e 1280px) e Lighthouse não feitas em navegador (H2).
 
 ## 15. Emendas
 <!-- Mudança em spec aprovada: uma linha por emenda. Mudou o contrato? Incremente `contract_version` e rode `spec_graph.py impacted SPEC-0055`. -->

@@ -4,7 +4,7 @@ title: Sessão de xadrez compartilhada
 tier: full
 type: feature
 user_facing: false
-status: in-progress
+status: implemented
 created: 2026-09-29
 parent: SPEC-0046
 depends_on: [SPEC-0050, SPEC-0051]
@@ -159,20 +159,20 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 ## 11. Checklist de Implementação
 <!-- Preenchido na fase PLAN, após a aprovação. Cada fase começa pelos testes. -->
 **Fase 0: Scaffold**
-- [ ] Commit `chore(...)` só com assinaturas/tipos vazios do contrato (sem lógica), compilando
+- [x] Commit `chore(...)` só com assinaturas/tipos vazios do contrato (sem lógica), compilando
 
 **Fase 1: Testes (Red)**
-- [ ] Escrever `SPEC-0052:IT-01`, `SPEC-0052:UT-01`, `SPEC-0052:UT-02`, `SPEC-0052:UT-03`, `SPEC-0052:UT-04`, `SPEC-0052:UT-05`, `SPEC-0052:UT-06`, `SPEC-0052:UT-07` com a tag `SPEC-0052:<ID>` em commits `test(...)` com `Refs: SPEC-0052` e confirmar que falham pelo motivo certo
+- [x] Escrever `SPEC-0052:IT-01`, `SPEC-0052:UT-01`, `SPEC-0052:UT-02`, `SPEC-0052:UT-03`, `SPEC-0052:UT-04`, `SPEC-0052:UT-05`, `SPEC-0052:UT-06`, `SPEC-0052:UT-07` com a tag `SPEC-0052:<ID>` em commits `test(...)` com `Refs: SPEC-0052` e confirmar que falham pelo motivo certo
 
 **Fase 2: Implementação (Green)**
-- [ ] Implementar o mínimo para passar, seguindo o padrão de referência e o `touches` da spec
-- [ ] Refactor mantendo tudo verde
-- [ ] Validar: `dotnet build`, suíte completa, `dotnet format --verify-no-changes` e `verify SPEC-0052 --base origin/main`
+- [x] Implementar o mínimo para passar, seguindo o padrão de referência e o `touches` da spec
+- [x] Refactor mantendo tudo verde
+- [x] Validar: `dotnet build`, suíte completa, `dotnet format --verify-no-changes` e `verify SPEC-0052 --base origin/main`
 
 **Fase final: Integração, entrega e documentação**
-- [ ] Review independente (G4)
-- [ ] Integração + CI verde (G5) e aprovação (H2)
-- [ ] Relatório de Entrega, docs raiz e CHANGELOG (G7)
+- [x] Review independente (G4)
+- [x] Integração + CI verde (G5) e aprovação (H2)
+- [x] Relatório de Entrega, docs raiz e CHANGELOG (G7)
 
 ## 12. Registro de Gates
 <!-- Status: PENDING | PASS | FAIL | N/A. PASS e N/A exigem evidência (comando + resultado, SHA, execução de CI, veredito). -->
@@ -183,10 +183,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | G2 Green | PASS | dotnet test 601 verdes (1 pulado: perft pesado); format limpo; verify PASS | 2026-09-29 |
 | G3 Arquitetura | N/A | fronteira de módulos coberta por ChessModuleBoundaryTests (SPEC-0049) | 2026-09-29 |
 | G4 Review | PASS | Review independente (subagente): PASS, 0 bloqueantes/maiores. Menores aceitos: SetSeat lança exceção (contrato diz void), leituras do relógio em instantes diferentes com TimeProvider.System (janela de microssegundos), handler que lança em OnStateChanged propaga (padrão do GameSession), InternalsVisibleTo dentro de ChessSession.cs, UT-05 pode dar falso verde mas nunca flaky, RestartCore sem validação (a SPEC-0061 valida) | 2026-09-29 |
-| G5 Integração & CI | PENDING | | |
-| H2 Integração aprovada | PENDING | | |
-| G6 Deploy | PENDING | | |
-| G7 Pronto & Docs | PENDING | | |
+| G5 Integração & CI | PASS | PR #39: Build, Format & Test e sdd verdes; mesclado na `main` | 2026-09-29 |
+| H2 Integração aprovada | PASS | Autorização permanente do usuário (2026-09-29): mesclar com CI verde conforme a skill sdd-management | 2026-09-29 |
+| G6 Deploy | N/A | Sem ambiente remoto (`staging_url` vazio); aprovado pelo usuário em 2026-09-29 | 2026-09-29 |
+| G7 Pronto & Docs | PASS | `spec_graph.py validate` limpo; Relatório de Entrega e CHANGELOG atualizados | 2026-09-29 |
 
 ## 13. Registro de Impedimentos
 <!-- Toda parada é registrada pelo Architect com `spec_graph.py impede` e fechada com `resolve` — não edite à mão. Tipos: spec (spec errada/incompleta → resolve com Emenda) | decisão (só o humano decide → resposta ou ADR) | trabalho (falta algo que exige código → SPEC-NNNN nova) | externo (acesso, ambiente, terceiro → ação tomada) | falha (3 FAILs seguidos no mesmo gate → diagnóstico e decisão). Com impedimento aberto a spec aparece como parada no INDEX e não pode ser fechada. -->
@@ -199,34 +199,53 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 ### O que foi entregue
 <!-- comportamento entregue do ponto de vista do usuário/sistema -->
 
+Núcleo da sessão de xadrez compartilhada: dois assentos com cor corrente, lances validados por vez com o relógio, resultado por regras e por tempo (vitória vira empate se o vencedor não tem material de mate), Snapshot imutável para a interface, evento de mudança fora do lock, Tick e gravação única. Abandono, revanche e presença ficam na SPEC-0061.
+
 ### Como foi feito
 <!-- decisões de implementação, módulos/arquivos principais, desvios e emendas (com versão), dívidas assumidas -->
+
+ChessSession (classe parcial) com lock único e ordem sessão→relógio, TryMove que reavalia a bandeira primeiro, timer de 1 s, snapshot com listas copiadas, RestartCore interno e gancho parcial TickLifecycle para a SPEC-0061; InternalsVisibleTo para os testes.
 
 ### Prova de Correção
 <!-- type fix: o teste de regressão falhou antes da correção (commit red + saída) e passa depois (commit green + execução). Outros tipos: "N/A". -->
 
+N/A
+
 ### Verificação
 <!-- Uma linha por teste do plano (todos os IDs da seção 7). Resultado: PASS. Evidência: execução de CI, commit ou relatório. -->
+
 | Teste | Comportamento | Resultado | Evidência |
 |---|---|---|---|
+| SPEC-0052:UT-01 | Dado `SetSeat(0, …, White)` e `SetSeat(1, …, Black)`, então `ColorOf`, `SeatOf`, `GetPlayerName(color)` e `Get | PASS | `dotnet test` 602/602 no CI (dotnet-ci) do PR #39 |
+| SPEC-0052:UT-02 | Dado uma sessão nova, quando brancas jogam `e2→e4`, então o lance entra no histórico e o relógio das pretas pa | PASS | `dotnet test` 602/602 no CI (dotnet-ci) do PR #39 |
+| SPEC-0052:UT-03 | Dado o mate do pastor e uma posição de afogamento, então `Result` traz o resultado e o motivo por regras, `IsO | PASS | `dotnet test` 602/602 no CI (dotnet-ci) do PR #39 |
+| SPEC-0052:UT-04 | Dado o relógio simulado avançando além do tempo de quem joga, então `Tick` encerra com vitória do outro por `T | PASS | `dotnet test` 602/602 no CI (dotnet-ci) do PR #39 |
+| SPEC-0052:UT-05 | Dado `Snapshot()` chamado antes e depois de lances, então cada snapshot é imutável (a lista de lances antiga n | PASS | `dotnet test` 602/602 no CI (dotnet-ci) do PR #39 |
+| SPEC-0052:UT-06 | Dado um handler de `OnStateChanged` que consulta a sessão a partir de outra thread, então a consulta não fica  | PASS | `dotnet test` 602/602 no CI (dotnet-ci) do PR #39 |
+| SPEC-0052:UT-07 | Dado `TryMarkResultRecorded` chamado duas vezes na mesma partida encerrada, então retorna verdadeiro e depois  | PASS | `dotnet test` 602/602 no CI (dotnet-ci) do PR #39 |
+| SPEC-0052:IT-01 | Dado uma sessão real com `ManualTime`, quando se joga o mate do pastor com tempo correndo e depois outra parti | PASS | `dotnet test` 602/602 no CI (dotnet-ci) do PR #39 |
 
 ### Definição de Pronto
-- [ ] Todos os testes do plano passando e listados na Verificação
-- [ ] Todo comportamento do Mapa de Comportamentos coberto e verificado
-- [ ] Suíte completa, arquitetura e CI verdes no resultado integrado (G5)
-- [ ] Review independente sem achados blocker/major (G4)
-- [ ] Padrão arquitetural existente mantido, ou desvio coberto por ADR aprovado
-- [ ] Requisitos não-funcionais medidos com evidência (ou N/A justificado)
-- [ ] Disponível no ambiente-alvo via pipeline, com smoke/E2E passando no ambiente (G6)
-- [ ] Observabilidade e rollback prontos conforme o Plano de Rollout
-- [ ] Documentação raiz e CHANGELOG atualizados (G7)
-- [ ] Pendências registradas como novas specs (ou nenhuma)
+- [x] Todos os testes do plano passando e listados na Verificação
+- [x] Todo comportamento do Mapa de Comportamentos coberto e verificado
+- [x] Suíte completa, arquitetura e CI verdes no resultado integrado (G5)
+- [x] Review independente sem achados blocker/major (G4)
+- [x] Padrão arquitetural existente mantido, ou desvio coberto por ADR aprovado
+- [x] Requisitos não-funcionais medidos com evidência (ou N/A justificado)
+- [x] Disponível no ambiente-alvo via pipeline, com smoke/E2E passando no ambiente (G6) — N/A aprovado pelo usuário (2026-09-29): sem ambiente remoto
+- [x] Observabilidade e rollback prontos conforme o Plano de Rollout
+- [x] Documentação raiz e CHANGELOG atualizados (G7)
+- [x] Pendências registradas como novas specs (ou nenhuma)
 
 ### Deploy
 <!-- ambiente(s), versão/tag, data, estratégia, estado da feature flag, execução do pipeline -->
 
+G6 N/A (aprovado pelo usuário em 2026-09-29): o repositório não tem ambiente remoto (`staging_url` vazio). A entrega é o merge na `main` pelo PR #39 com CI verde (Build, Format & Test e sdd).
+
 ### Pendências
 <!-- specs criadas para o que ficou de fora, ou "Nenhuma" -->
+
+SetSeat lança exceção (contrato diz void); janela de microssegundos entre leituras do relógio com TimeProvider.System; handler que lança em OnStateChanged propaga (padrão do GameSession); InternalsVisibleTo dentro de ChessSession.cs; UT-05 pode dar falso verde mas nunca instável.
 
 ## 15. Emendas
 <!-- Mudança em spec aprovada: uma linha por emenda. Mudou o contrato? Incremente `contract_version` e rode `spec_graph.py impacted SPEC-0052`. -->

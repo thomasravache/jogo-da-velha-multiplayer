@@ -9,6 +9,9 @@ Cada entrada cita a spec de origem (`SPEC-NNNN`); gere-as com `spec_graph.py rep
 ## [Unreleased]
 
 ### Added
+- Peças SVG, tabuleiro interativo e seletor de promoção do xadrez (SPEC-0055)
+- Robô de xadrez com níveis Fácil e Médio (SPEC-0054)
+- Sessão de xadrez compartilhada: assentos, lances com relógio e resultado por regras e por tempo (SPEC-0052)
 - Relógio de xadrez com controles de tempo, incremento e queda de bandeira (SPEC-0051)
 - Regras de partida do xadrez: SAN, resultado por regras e histórico de lances (SPEC-0050)
 - Motor de regras do xadrez (módulo Chess) validado por perft (SPEC-0049)
