@@ -4,7 +4,7 @@ title: Lobby de xadrez
 tier: full
 type: feature
 user_facing: true
-status: approved
+status: in-progress
 created: 2026-09-29
 parent: SPEC-0046
 depends_on: [SPEC-0053, SPEC-0057]
@@ -176,10 +176,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | Gate | Status | Evidência | Data |
 |---|---|---|---|
 | G0 Spec | PASS | `spec_graph.py validate` limpo (0 erro, 0 aviso); checklist de julgamento do G0 feito pelo Architect | 2026-09-29 |
-| G1 Red | PENDING | | |
-| G2 Green | PENDING | | |
-| G3 Arquitetura | PENDING | | |
-| G4 Review | PENDING | | |
+| G1 Red | PASS | verify SPEC-0056: Red antes do Green (0ceb6fc), 11/11 testes do plano rastreados; 18 falharam pelo motivo certo | 2026-09-29 |
+| G2 Green | PASS | dotnet test 841 verdes (1 pulado: perft pesado); 25 testes do lobby/página em 5 execuções; format e tailwind --check limpos; verify PASS | 2026-09-29 |
+| G3 Arquitetura | N/A | fronteira de módulos coberta por ChessModuleBoundaryTests (SPEC-0049) | 2026-09-29 |
+| G4 Review | PASS | Review independente (subagente): PASS com 2 maiores (fila e sala não exclusivas; corrida entre pareamento e descarte) corrigidos com testes; menores tratados (captura de exceção no handler com log, estado do circuito por InvokeAsync, polling em vez de Task.Delay, dica de controle da sala). Dívidas: entrar na própria sala pareia consigo mesmo (igual ao Home), regiões vivas montadas condicionalmente, cor do anfitrião congelada ao criar a sala, revisão visual e Lighthouse no H2 | 2026-09-29 |
 | G5 Integração & CI | PENDING | | |
 | H2 Integração aprovada | PENDING | | |
 | G6 Deploy | PENDING | | |
