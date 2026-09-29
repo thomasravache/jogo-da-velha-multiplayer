@@ -5,19 +5,19 @@
 ## Saúde
 
 - Validação (G0): **0 erro(s), 0 aviso(s)**
-- Specs: approved 8, implemented 46
+- Specs: approved 7, in-progress 1, implemented 46
 - Impedimentos: **0 aberto(s)**, 0 resolvido(s)
 
 ## Plano de Execução
 
-**Em andamento:** —  
+**Em andamento:** SPEC-0061  
 **Paradas por impedimento:** —  
-**Próximo lote:** SPEC-0057, SPEC-0061
+**Próximo lote:** SPEC-0057
 
 | Onda | Spec | Título | Tier/Tam. | Status | Prontidão | Observação |
 |---|---|---|---|---|---|---|
+| 1 | SPEC-0061 | Ciclo de vida da sessão de xadrez: abandono, revanche e presença | full/M | in-progress | 🔄 em andamento |  |
 | 1 | SPEC-0057 | Arena de xadrez: relógios, lances e fim de partida | full/M | approved | ✅ pronta |  |
-| 1 | SPEC-0061 | Ciclo de vida da sessão de xadrez: abandono, revanche e presença | full/M | approved | ✅ pronta |  |
 | 2 | SPEC-0053 | Pareamento e persistência do xadrez | full/M | approved | ⛔ aguarda implementação de SPEC-0061 |  |
 | 3 | SPEC-0056 | Lobby de xadrez | full/M | approved | ⛔ aguarda implementação de SPEC-0053; aguarda implementação de SPEC-0057 |  |
 | 4 | SPEC-0058 | Treino solo de xadrez contra o robô | full/M | approved | ⛔ aguarda implementação de SPEC-0056; aguarda implementação de SPEC-0057 |  |
@@ -55,7 +55,7 @@ flowchart LR
     S0058["SPEC-0058<br/>Treino solo de xadrez contra o robô"]:::approved
     S0059["SPEC-0059<br/>Histórico e ranking do xadrez"]:::approved
     S0060["SPEC-0060<br/>Abandono, revanche e desconexão no xadr…"]:::approved
-    S0061["SPEC-0061<br/>Ciclo de vida da sessão de xadrez: aban…"]:::approved
+    S0061["SPEC-0061<br/>Ciclo de vida da sessão de xadrez: aban…"]:::inprogress
   end
   S0047 --> S0048
   S0058 --> S0048
@@ -149,7 +149,7 @@ flowchart LR
 | [SPEC-0058](SPEC-0058-treino-solo-de-xadrez-contra-o-robo.md) | Treino solo de xadrez contra o robô | full | feature | approved | 2026-09-29 | SPEC-0046 | SPEC-0054, SPEC-0056, SPEC-0057 | — |
 | [SPEC-0059](SPEC-0059-historico-e-ranking-do-xadrez.md) | Histórico e ranking do xadrez | full | feature | approved | 2026-09-29 | SPEC-0046 | SPEC-0048, SPEC-0053 | — |
 | [SPEC-0060](SPEC-0060-abandono-revanche-e-desconexao-no-xadrez.md) | Abandono, revanche e desconexão no xadrez | full | feature | approved | 2026-09-29 | SPEC-0046 | SPEC-0056, SPEC-0057, SPEC-0058, SPEC-0061 | — |
-| [SPEC-0061](SPEC-0061-ciclo-de-vida-da-sessao-de-xadrez-abandono-revanche-e-presen.md) | Ciclo de vida da sessão de xadrez: abandono, revanche e presença | full | feature | approved | 2026-09-29 | SPEC-0046 | SPEC-0052 | — |
+| [SPEC-0061](SPEC-0061-ciclo-de-vida-da-sessao-de-xadrez-abandono-revanche-e-presen.md) | Ciclo de vida da sessão de xadrez: abandono, revanche e presença | full | feature | in-progress | 2026-09-29 | SPEC-0046 | SPEC-0052 | — |
 
 ## ADRs
 
