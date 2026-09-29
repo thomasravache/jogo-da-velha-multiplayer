@@ -39,7 +39,10 @@ public class GameResultService(GameplayDbContext db, ILogger<GameResultService> 
         if (game.Winner == Player.None && !game.IsDraw) return false;
         if (!game.TryMarkResultRecorded())
         {
-            logger.LogDebug("Resultado da partida {GameId} já gravado; gravação ignorada.", game.Id);
+            if (logger.IsEnabled(LogLevel.Debug))
+            {
+                logger.LogDebug("Resultado da partida {GameId} já gravado; gravação ignorada.", game.Id);
+            }
             return false;
         }
 
