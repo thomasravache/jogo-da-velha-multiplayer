@@ -111,7 +111,10 @@ public class SeriesUiTests
 
         Assert.Equal("Melhor de 5 • Rodada 3 de 5", cut.Find("[data-series-header]").TextContent.Trim());
         Assert.Equal(6, cut.FindAll("[data-series-marker]").Count);
-        Assert.Empty(cut.FindAll("[data-series-notice]")); // rodada em andamento: sem aviso
+        Assert.Equal("", cut.Find("[data-series-notice]").TextContent.Trim()); // região sempre presente (leitores de tela), vazia em andamento
+        // Cabeçalho e aviso ficam no mesmo bloco posicionado do status, para não cair abaixo do tabuleiro no desktop.
+        Assert.Contains("lg:row-start-1", cut.Find("[data-series-header]").ParentElement!.GetAttribute("class"));
+        Assert.Same(cut.Find("[data-series-header]").ParentElement, cut.Find("[data-series-notice]").ParentElement);
 
         using var single = new GameSession(enableBackgroundTimer: false);
         var plain = ctx.Render<Scoreboard>(p => p.Add(s => s.Game, single).Add(s => s.MyPlayer, Player.X));
@@ -266,6 +269,28 @@ public class SeriesUiTests
             Assert.Equal(5, mm.GetMatchBestOf(matchId!.Value));
             home.WaitForAssertion(() => Assert.Equal(SeriesFormat.BestOf5, Assert.Single(games.Values).Format));
         }
+    }
+
+    [Fact(DisplayName = "SPEC-0044:IT-01b — Botão da arena vira 'Próxima rodada' e depois 'Nova série'")]
+    [Trait("Category", "SPEC-0044:IT-01")]
+    public async Task Home_ShouldRelabelRematchButtonBySeriesState()
+    {
+        await using var ctx = NewHomeContext(out _, out var games);
+        var home = ctx.Render<Home>();
+        TypeName(home);
+        ChooseBestOf5(home);
+        home.FindAll("button").First(b => !b.HasAttribute("role") && b.TextContent.Contains("Iniciar partida solo")).Click();
+        var game = Assert.Single(games.Values);
+
+        SeriesRulesTests.WinRound(game, Player.X);
+        home.WaitForAssertion(() => Assert.Contains("Próxima rodada", home.Markup), TimeSpan.FromSeconds(3));
+
+        home.FindAll("button").First(b => b.TextContent.Contains("Próxima rodada")).Click();
+        SeriesRulesTests.WinRound(game, Player.X);
+        game.Restart();
+        SeriesRulesTests.WinRound(game, Player.X);
+        Assert.True(game.IsSeriesOver);
+        home.WaitForAssertion(() => Assert.Contains("Nova série", home.Markup), TimeSpan.FromSeconds(3));
     }
 
     [Fact(DisplayName = "SPEC-0044:E2E-01 — Jornada da série: escolher Melhor de 5, iniciar solo, ver rodada 1 e jogar")]
