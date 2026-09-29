@@ -4,7 +4,7 @@ title: Série melhor de 5: interface no lobby e na arena
 tier: full
 type: feature
 user_facing: true
-status: approved
+status: in-progress
 created: 2026-09-29
 parent: SPEC-0035
 depends_on: [SPEC-0030, SPEC-0040]
@@ -167,10 +167,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | Gate | Status | Evidência | Data |
 |---|---|---|---|
 | G0 Spec | PASS | `spec_graph.py validate` das 18 specs: 0 erros, 0 avisos | 2026-09-29 |
-| G1 Red | PENDING | | |
-| G2 Green | PENDING | | |
-| G3 Arquitetura | PENDING | | |
-| G4 Review | PENDING | | |
+| G1 Red | PASS | verify SPEC-0044: Red antes do Green, testes do plano rastreados | 2026-09-29 |
+| G2 Green | PASS | dotnet test 289/289 local; format e tailwind --check limpos; verify PASS | 2026-09-29 |
+| G3 Arquitetura | N/A | sem suíte Category=Architecture | 2026-09-29 |
+| G4 Review | PASS | Review independente (subagente): FAIL condicional a M1 (cabeçalho/aviso caíam abaixo do tabuleiro no desktop) e M2 (região aria-live inserida já preenchida); ambos corrigidos com teste (bloco posicionado do status; região sempre presente). Menores aceitos: rótulo do radiogroup sem aria-labelledby, leitura dupla placar/marcadores; sem nova rodada de review. Layout desktop não conferido em navegador | 2026-09-29 |
 | G5 Integração & CI | PENDING | | |
 | H2 Integração aprovada | PENDING | | |
 | G6 Deploy | PENDING | | |

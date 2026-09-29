@@ -19,6 +19,8 @@
            PlayerNameChanged="v => PlayerName = v"
            SelectedDifficulty="@SelectedDifficulty"
            DifficultyChanged="d => SelectedDifficulty = d"
+           SelectedFormat="@SelectedFormat"
+           FormatChanged="f => SelectedFormat = f"
            InputRoomCode="@InputRoomCode"
            InputRoomCodeChanged="c => InputRoomCode = c"
            IsWaiting="@IsWaiting"
@@ -38,6 +40,6 @@ else
 
         <GameBoard Game="@game" MyPlayer="@MyPlayer" OnCellClick="MakeMove" />
 
-        <RematchBar Finished="@(game.Winner != Player.None || game.IsDraw)" OnRematch="RestartGame" />
+        <RematchBar Finished="@(game.Winner != Player.None || game.IsDraw)" Kind="@RematchKindFor(game)" OnRematch="RestartGame" />
     </div>
 }
