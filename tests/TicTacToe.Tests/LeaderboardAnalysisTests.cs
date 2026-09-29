@@ -77,6 +77,21 @@ public class LeaderboardAnalysisTests
         Assert.Equal("Caio", Assert.Single(ranked).DisplayName);
     }
 
+    [Fact(DisplayName = "SPEC-0039:UT-01 — Partida em que os dois lados são a mesma chave não conta para ninguém")]
+    [Trait("Category", "SPEC-0039:UT-01")]
+    public void Rank_ShouldIgnoreGamesWhereBothSidesAreTheSameKey()
+    {
+        var ranked = LeaderboardAnalysis.Rank(
+        [
+            Legacy("Thomas", "Thomas", null, 3),
+            G("Thomas", null, "Thomas", null, "X", 2),
+            G("Eu", Id(1), "Eu", Id(1), "X", 1),
+            G("Caio", Id(3), "Dora", Id(4), "X", 0),
+        ], null);
+
+        Assert.Equal("Caio", Assert.Single(ranked).DisplayName);
+    }
+
     [Fact(DisplayName = "SPEC-0039:UT-01 — Estatísticas: 5 V, 2 D, 1 E, aproveitamento 62,5% e sequência atual")]
     [Trait("Category", "SPEC-0039:UT-01")]
     public void Rank_ShouldComputeStats()
