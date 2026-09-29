@@ -186,4 +186,129 @@ public class ChessClockTests
         Assert.Equal(TimeSpan.Zero, clock.Remaining(PieceColor.White));
         Assert.Equal(black, clock.Remaining(PieceColor.Black));
     }
+
+    [Fact(DisplayName = "SPEC-0051:UT-02 — Press(Black) antes do início é ignorado")]
+    [Trait("Category", "SPEC-0051:UT-02")]
+    public void Press_BlackBeforeStart_IsIgnored()
+    {
+        var time = new ManualTime();
+        var clock = new ChessClock(TimeControl.Rapid, time);
+
+        clock.Press(PieceColor.Black);
+        time.Advance(10 * Second);
+
+        Assert.Null(clock.Running);
+        Assert.Equal(TimeControl.Rapid.Initial, clock.Remaining(PieceColor.Black));
+        Assert.Equal(TimeControl.Rapid.Initial, clock.Remaining(PieceColor.White));
+    }
+
+    [Fact(DisplayName = "SPEC-0051:UT-03 — Press de quem não corre é ignorado")]
+    [Trait("Category", "SPEC-0051:UT-03")]
+    public void Press_ByNonRunningColor_IsIgnored()
+    {
+        var time = new ManualTime();
+        var clock = new ChessClock(TimeControl.Rapid, time);
+        clock.Press(PieceColor.White);
+        time.Advance(10 * Second);
+
+        clock.Press(PieceColor.White);
+
+        Assert.Equal(PieceColor.Black, clock.Running);
+        Assert.Equal(TimeControl.Rapid.Initial + TimeControl.Rapid.Increment, clock.Remaining(PieceColor.White));
+        Assert.Equal(TimeControl.Rapid.Initial - (10 * Second), clock.Remaining(PieceColor.Black));
+    }
+
+    [Fact(DisplayName = "SPEC-0051:UT-05 — Stop antes do início impede o início")]
+    [Trait("Category", "SPEC-0051:UT-05")]
+    public void Stop_BeforeStart_PreventsStart()
+    {
+        var time = new ManualTime();
+        var clock = new ChessClock(TimeControl.Rapid, time);
+
+        clock.Stop();
+        clock.Press(PieceColor.White);
+        time.Advance(TimeSpan.FromMinutes(30));
+
+        Assert.Null(clock.Running);
+        Assert.Null(clock.Flagged);
+        Assert.Equal(TimeControl.Rapid.Initial, clock.Remaining(PieceColor.White));
+        Assert.Equal(TimeControl.Rapid.Initial, clock.Remaining(PieceColor.Black));
+    }
+
+    [Fact(DisplayName = "SPEC-0051:UT-05 — Stop após bandeira mantém a bandeira")]
+    [Trait("Category", "SPEC-0051:UT-05")]
+    public void Stop_AfterFlag_KeepsFlag()
+    {
+        var time = new ManualTime();
+        var clock = new ChessClock(TimeControl.Bullet, time);
+        clock.Press(PieceColor.White);
+        time.Advance(TimeSpan.FromMinutes(2));
+
+        clock.Stop();
+
+        Assert.Equal(PieceColor.Black, clock.Flagged);
+        Assert.Equal(TimeSpan.Zero, clock.Remaining(PieceColor.Black));
+        Assert.Null(clock.Running);
+    }
+
+    [Fact(DisplayName = "SPEC-0051:UT-04 — limite exato marca bandeira")]
+    [Trait("Category", "SPEC-0051:UT-04")]
+    public void Flag_ExactBoundary()
+    {
+        var time = new ManualTime();
+        var clock = new ChessClock(TimeControl.Blitz, time);
+        clock.Press(PieceColor.White);
+
+        time.Advance(TimeControl.Blitz.Initial - TimeSpan.FromMilliseconds(1));
+        Assert.Null(clock.Flagged);
+        Assert.Equal(TimeSpan.FromMilliseconds(1), clock.Remaining(PieceColor.Black));
+
+        time.Advance(TimeSpan.FromMilliseconds(1));
+        Assert.Equal(PieceColor.Black, clock.Flagged);
+    }
+
+    [Fact(DisplayName = "SPEC-0051:UT-04 — só Tick marca a bandeira")]
+    [Trait("Category", "SPEC-0051:UT-04")]
+    public void Flag_MarkedByTickAlone()
+    {
+        var time = new ManualTime();
+        var clock = new ChessClock(TimeControl.Bullet, time);
+        clock.Press(PieceColor.White);
+        time.Advance(TimeSpan.FromMinutes(3));
+
+        clock.Tick();
+
+        Assert.Equal(PieceColor.Black, clock.Flagged);
+        Assert.Null(clock.Running);
+    }
+
+    [Fact(DisplayName = "SPEC-0051:UT-06 — uso concorrente não lança nem gera tempo negativo")]
+    [Trait("Category", "SPEC-0051:UT-06")]
+    public async Task ConcurrentUse_IsSafe()
+    {
+        var clock = new ChessClock(TimeControl.Bullet, TimeProvider.System);
+        clock.Press(PieceColor.White);
+        var negative = 0;
+
+        var tasks = Enumerable.Range(0, 8).Select(n => Task.Run(() =>
+        {
+            for (var i = 0; i < 20000; i++)
+            {
+                var color = (i + n) % 2 == 0 ? PieceColor.White : PieceColor.Black;
+                clock.Press(color);
+                clock.Tick();
+                if (clock.Remaining(PieceColor.White) < TimeSpan.Zero || clock.Remaining(PieceColor.Black) < TimeSpan.Zero)
+                {
+                    Interlocked.Increment(ref negative);
+                }
+
+                _ = clock.Flagged;
+                _ = clock.Running;
+            }
+        })).ToArray();
+
+        await Task.WhenAll(tasks);
+
+        Assert.Equal(0, negative);
+    }
 }
