@@ -48,6 +48,18 @@
   --color-ink: #e2e0fc;
   --color-ink-muted: #e4bdbc;
 
+  /* tabuleiro de xadrez (SPEC-0055): casas escuras para o contorno das peças chegar a 3:1 */
+  --color-board-light: #2a3558;
+  --color-board-dark: #141b33;
+  --color-piece-white-outline: #00d2d3;
+  --color-piece-black-outline: #ff4757;
+  --color-piece-white-fill: #f4f6fa;
+  --color-piece-black-fill: #1b2030;
+  --color-square-selected: #f39c12;
+  --color-square-target: #10b981;
+  --color-square-last: #7c8cff;
+  --color-square-check: #ff6b81;
+
   /* tipografia */
   --font-display: "Outfit", ui-sans-serif, system-ui, sans-serif;
   --font-numeric: "Space Grotesk", ui-monospace, monospace;

@@ -1,4 +1,78 @@
+<div data-board class="mx-auto aspect-square w-full max-w-[var(--size-board-desktop)]">
+    <div role="grid" aria-label="Tabuleiro de xadrez" aria-disabled="@(Interactive ? null : "true")"
+         class="grid size-full grid-rows-8 overflow-hidden rounded-cell border border-stroke">
+        @for (var row = 0; row < 8; row++)
+        {
+            <div role="row" class="grid grid-cols-8">
+                @for (var col = 0; col < 8; col++)
+                {
+                    var square = SquareAt(row, col);
+                    var index = square.Index;
+                    var piece = Position.PieceAt(square);
+                    var marker = TargetKind(square);
+                    var isSelected = Selected == square;
+                    var isCheck = CheckSquare == square;
+                    var last = LastKind(square);
+                    <div role="gridcell" class="relative min-w-0">
+                        <button type="button" data-square="@square" tabindex="@(index == FocusIndex ? 0 : -1)"
+                                aria-label="@Label(square, piece, marker, isSelected, last, isCheck)"
+                                aria-pressed="@(isSelected ? "true" : "false")"
+                                aria-disabled="@(Interactive ? null : "true")"
+                                data-selected="@(isSelected ? "true" : null)"
+                                data-target="@marker"
+                                data-last="@last"
+                                data-check="@(isCheck ? "true" : null)"
+                                class="@SquareCss(square, isSelected, last, isCheck)"
+                                @ref="_buttons[index]"
+                                @onclick="() => HandleClickAsync(index)"
+                                @onkeydown="e => HandleKeyAsync(e, index)"
+                                @ondragover:preventDefault
+                                @ondrop:preventDefault
+                                @ondrop="() => HandleDropAsync(index)">
+                            @if (col == 0)
+                            {
+                                <span data-coord="rank" aria-hidden="true" class="pointer-events-none absolute left-0.5 top-0 text-[10px] font-semibold leading-tight text-ink-muted">@(square.Rank + 1)</span>
+                            }
+                            @if (row == 7)
+                            {
+                                <span data-coord="file" aria-hidden="true" class="pointer-events-none absolute bottom-0 right-0.5 text-[10px] font-semibold leading-tight text-ink-muted">@((char)('a' + square.File))</span>
+                            }
+                            @if (marker == "move")
+                            {
+                                <span data-marker="dot" aria-hidden="true" class="pointer-events-none absolute size-1/4 rounded-full bg-square-target"></span>
+                            }
+                            else if (marker == "capture")
+                            {
+                                <span data-marker="ring" aria-hidden="true" class="pointer-events-none absolute inset-1 rounded-full border-4 border-square-target"></span>
+                            }
+                            @if (isCheck)
+                            {
+                                <span data-marker="check" aria-hidden="true" class="pointer-events-none absolute right-1 top-0 text-xs font-black leading-tight text-square-check">+</span>
+                            }
+                            @if (piece is { } p)
+                            {
+                                <span data-drag="@(Interactive ? square.ToString() : null)" draggable="@(Interactive ? "true" : null)"
+                                      class="relative flex size-4/5 items-center justify-center"
+                                      @ondragstart="() => HandleDragStart(index)"
+                                      @ondragend="HandleDragEnd">
+                                    <ChessPiece Color="p.Color" Type="p.Type" class="pointer-events-none size-full" />
+                                </span>
+                            }
+                        </button>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
 @code {
+    private readonly ElementReference[] _buttons = new ElementReference[64];
+    private int? _focus;
+    private bool _focusPending;
+    private int? _keyActivated;
+    private int? _dragFrom;
+
     [Parameter] public Position Position { get; set; } = default!;
     [Parameter] public PieceColor Orientation { get; set; } = PieceColor.White;
     [Parameter] public Square? Selected { get; set; }
@@ -9,4 +83,149 @@
     [Parameter] public EventCallback<Square> OnSquareActivated { get; set; }
     [Parameter] public EventCallback<(Square From, Square To)> OnDragMove { get; set; }
     [Parameter] public EventCallback OnCancel { get; set; }
+
+    private bool WhiteBelow => Orientation == PieceColor.White;
+
+    // Casa de tabulação: a última focada; senão a selecionada; senão o canto inferior esquerdo.
+    private int FocusIndex => _focus ?? Selected?.Index ?? SquareAt(7, 0).Index;
+
+    private Square SquareAt(int row, int col) =>
+        WhiteBelow ? new Square((7 - row) * 8 + col) : new Square(row * 8 + (7 - col));
+
+    private (int Row, int Col) DisplayOf(int index) =>
+        WhiteBelow ? (7 - index / 8, index % 8) : (index / 8, 7 - index % 8);
+
+    private string? TargetKind(Square square)
+    {
+        if (!Destinations.Contains(square))
+        {
+            return null;
+        }
+
+        var isEnPassant = Selected is { } from
+            && Position.PieceAt(from) is { Type: PieceType.Pawn }
+            && Position.EnPassantTarget == square;
+        return Position.PieceAt(square) is not null || isEnPassant ? "capture" : "move";
+    }
+
+    private string? LastKind(Square square) =>
+        LastMove is not { } m ? null : m.From == square ? "from" : m.To == square ? "to" : null;
+
+    private static string Label(Square square, Piece? piece, string? target, bool selected, string? last, bool check)
+    {
+        var parts = new List<string>(5)
+        {
+            square.ToString(),
+            piece is { } p ? Lower(ChessPiece.Title(p.Color, p.Type)) : "vazia",
+        };
+        if (selected)
+        {
+            parts.Add("selecionada");
+        }
+
+        if (target is not null)
+        {
+            parts.Add(target == "capture" ? "captura possível" : "destino possível");
+        }
+
+        if (last is not null)
+        {
+            parts.Add("último lance");
+        }
+
+        if (check)
+        {
+            parts.Add("rei em xeque");
+        }
+
+        return string.Join(", ", parts);
+    }
+
+    private static string Lower(string text) => char.ToLowerInvariant(text[0]) + text[1..];
+
+    private string SquareCss(Square square, bool selected, string? last, bool check)
+    {
+        var light = (square.File + square.Rank) % 2 == 1;
+        var ring = check ? "inset-ring-4 inset-ring-square-check"
+            : selected ? "inset-ring-4 inset-ring-square-selected"
+            : last is not null ? "inset-ring-2 inset-ring-square-last"
+            : "";
+        return "absolute inset-0 flex items-center justify-center " + (light ? "bg-board-light " : "bg-board-dark ") + ring
+            + " focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-secondary"
+            + (Interactive ? " cursor-pointer" : "");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_focusPending && _focus is { } index)
+        {
+            _focusPending = false;
+            await _buttons[index].FocusAsync();
+        }
+    }
+
+    private async Task HandleClickAsync(int index)
+    {
+        if (!Interactive)
+        {
+            return;
+        }
+
+        // O navegador gera um clique após Enter/Espaço; a ativação já foi tratada no keydown.
+        if (_keyActivated == index)
+        {
+            _keyActivated = null;
+            return;
+        }
+
+        _focus = index;
+        await OnSquareActivated.InvokeAsync(new Square(index));
+    }
+
+    private async Task HandleKeyAsync(KeyboardEventArgs e, int index)
+    {
+        var (row, col) = DisplayOf(index);
+        switch (e.Key)
+        {
+            case "ArrowUp": MoveFocus(index, row - 1, col); break;
+            case "ArrowDown": MoveFocus(index, row + 1, col); break;
+            case "ArrowLeft": MoveFocus(index, row, col - 1); break;
+            case "ArrowRight": MoveFocus(index, row, col + 1); break;
+            case "Enter" or " " when Interactive && !e.Repeat:
+                _focus = index;
+                _keyActivated = index;
+                await OnSquareActivated.InvokeAsync(new Square(index));
+                break;
+            case "Escape" when Interactive:
+                await OnCancel.InvokeAsync();
+                break;
+        }
+    }
+
+    private void MoveFocus(int index, int row, int col)
+    {
+        var next = SquareAt(Math.Clamp(row, 0, 7), Math.Clamp(col, 0, 7)).Index;
+        _focus = next;
+        _focusPending = next != index;
+    }
+
+    private void HandleDragStart(int index)
+    {
+        if (Interactive)
+        {
+            _dragFrom = index;
+        }
+    }
+
+    private void HandleDragEnd() => _dragFrom = null;
+
+    private async Task HandleDropAsync(int index)
+    {
+        var from = _dragFrom;
+        _dragFrom = null;
+        if (Interactive && from is { } f && f != index)
+        {
+            await OnDragMove.InvokeAsync((new Square(f), new Square(index)));
+        }
+    }
 }

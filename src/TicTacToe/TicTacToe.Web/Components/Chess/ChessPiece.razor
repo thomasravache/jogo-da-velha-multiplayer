@@ -1,8 +1,75 @@
+<svg role="img" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" width="@Size" height="@Size" data-piece="@Code" @attributes="Attributes">
+    <title>@Title(Color, Type)</title>
+    <g class="@GroupClass" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+        @((MarkupString)Shapes[Type])
+        @if (Type == PieceType.Knight)
+        {
+            <circle cx="28" cy="24" r="1.5" class="@EyeClass" stroke="none" />
+        }
+    </g>
+</svg>
+
 @code {
+    private const string Base =
+        """<rect x="15" y="47" width="34" height="5" rx="2" /><rect x="12" y="53" width="40" height="5" rx="2" />""";
+
+    // Formas do conjunto em docs/design/stitch/chess/pecas.md (iguais para as duas cores).
+    private static readonly Dictionary<PieceType, string> Shapes = new()
+    {
+        [PieceType.King] =
+            """<path d="M32 9 v8 M28 13 h8" /><path d="M22 23 C22 17, 26 17, 32 17 C38 17, 42 17, 42 23 C42 29, 46 32, 47 43 C47 46, 17 46, 17 43 C18 32, 22 29, 22 23 Z" /><path d="M21 34 Q32 30 43 34" fill="none" stroke-width="1.8" />""" + Base,
+        [PieceType.Queen] =
+            """<circle cx="16" cy="19" r="2.2" /><circle cx="24" cy="15" r="2.2" /><circle cx="32" cy="13" r="2.2" /><circle cx="40" cy="15" r="2.2" /><circle cx="48" cy="19" r="2.2" /><path d="M16 22 L22 36 L28 20 L32 36 L36 20 L42 36 L48 22 C46 38, 44 42, 45 44 C45 46, 19 46, 19 44 C20 42, 18 38, 16 22 Z" />""" + Base,
+        [PieceType.Rook] =
+            """<path d="M18 16 h6 v5 h5 v-5 h6 v5 h5 v-5 h6 v9 h-28 Z" /><path d="M21 25 L23 44 C23 46, 41 46, 41 44 L43 25 Z" />""" + Base,
+        [PieceType.Bishop] =
+            """<circle cx="32" cy="13" r="2.5" /><path d="M32 17 C23 17, 21 27, 25 36 C27 41, 25 43, 23 45 C23 46, 41 46, 41 45 C39 43, 37 41, 39 36 C43 27, 41 17, 32 17 Z" /><path d="M28 24 L36 32" stroke-width="2" fill="none" />""" + Base,
+        [PieceType.Knight] =
+            """<path d="M22 17 L29 14 L33 19 C37 17, 43 21, 44 26 C45 32, 42 41, 43 45 C43 46, 21 46, 21 45 C21 43, 23 39, 21 34 C19 29, 16 28, 17 25 C18 22, 23 23, 27 22 L22 17 Z" />""" + Base,
+        [PieceType.Pawn] =
+            """<circle cx="32" cy="19" r="8" /><path d="M26 27 C24 35, 23 41, 23 45 C23 46, 41 46, 41 45 C41 41, 40 35, 38 27 Z" /><rect x="18" y="47" width="28" height="5" rx="2" /><rect x="14" y="53" width="36" height="5" rx="2" />""",
+    };
+
     [Parameter] public PieceColor Color { get; set; }
     [Parameter] public PieceType Type { get; set; }
     [Parameter] public int Size { get; set; } = 40;
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? Attributes { get; set; }
 
-    public static string Title(PieceColor color, PieceType type) => throw new NotImplementedException();
+    private string Code => (Color == PieceColor.White ? "w" : "b") + Type switch
+    {
+        PieceType.King => "K",
+        PieceType.Queen => "Q",
+        PieceType.Rook => "R",
+        PieceType.Bishop => "B",
+        PieceType.Knight => "N",
+        _ => "P",
+    };
+
+    private string GroupClass => Color == PieceColor.White
+        ? "stroke-piece-white-outline fill-piece-white-fill"
+        : "stroke-piece-black-outline fill-piece-black-fill";
+
+    private string EyeClass => Color == PieceColor.White ? "fill-piece-white-outline" : "fill-piece-black-outline";
+
+    public static string Title(PieceColor color, PieceType type)
+    {
+        var feminine = type is PieceType.Queen or PieceType.Rook;
+        var name = type switch
+        {
+            PieceType.King => "Rei",
+            PieceType.Queen => "Dama",
+            PieceType.Rook => "Torre",
+            PieceType.Bishop => "Bispo",
+            PieceType.Knight => "Cavalo",
+            _ => "Peão",
+        };
+        var adjective = (color, feminine) switch
+        {
+            (PieceColor.White, true) => "branca",
+            (PieceColor.White, false) => "branco",
+            (_, true) => "preta",
+            _ => "preto",
+        };
+        return $"{name} {adjective}";
+    }
 }
