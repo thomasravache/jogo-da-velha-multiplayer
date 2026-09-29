@@ -1,8 +1,13 @@
 @page "/history"
+@using System.Globalization
 @using TicTacToe.Modules.Gameplay
 @using TicTacToe.Web.Components.Ui
+@using TicTacToe.Web.Services.PlayerIdentity
 @rendermode InteractiveServer
+@implements IDisposable
 @inject GameResultService GameResultService
+@inject PlayerIdentityService Identity
+@inject ILogger<History> Logger
 
 <PageTitle>Histórico de Partidas · XO Arena</PageTitle>
 
@@ -12,19 +17,62 @@
         <PillButton Href="/" Icon="play">Novo duelo</PillButton>
     </PageHeader>
 
-    @if (_loading)
+    @if (_ready)
+    {
+        @if (_scope == HistoryScope.Mine && _summary is { Total: > 0 })
+        {
+            <section aria-label="Resumo do jogador" class="grid grid-cols-2 gap-3 lg:grid-cols-5">
+                <StatTile Key="total" Label="Partidas" Value="@_summary.Total.ToString(CultureInfo.InvariantCulture)"
+                          Hint="@($"{_summary.Wins} V · {_summary.Losses} D · {_summary.Draws} E")" />
+                <StatTile Key="taxa" Label="Taxa de vitória" Value="@Decimal(_summary.WinRatePercent, "%")" />
+                <StatTile Key="sequencia" Label="Sequência atual" Value="@_summary.CurrentWinStreak.ToString(CultureInfo.InvariantCulture)" Hint="vitórias seguidas" />
+                <StatTile Key="recorde" Label="Vitória mais rápida" Value="@HistoryAnalysis.FormatDuration(_summary.FastestWinSeconds)" />
+                <StatTile Key="lance" Label="Tempo por lance" Value="@(_summary.AverageSecondsPerMove is { } v ? Decimal(v, "s") : "—")" />
+            </section>
+        }
+
+        <NeonCard Class="flex flex-col gap-4 p-4">
+            <SegmentedControl TValue="HistoryScope" AriaLabel="Escopo" Items="ScopeItems" Value="_scope" ValueChanged="SetScope" />
+            <div class="overflow-x-auto">
+                <SegmentedControl TValue="HistoryFilter" AriaLabel="Filtrar por resultado" Items="FilterItems" Value="_filter" ValueChanged="SetFilter" />
+            </div>
+            <div class="flex flex-col gap-4 md:flex-row md:items-end">
+                <NeonInput Id="busca-adversario" Label="Buscar adversário" Placeholder="Nome do adversário" MaxLength="20"
+                           Value="@_opponentInput" ValueChanged="OnSearchInput" />
+                <SegmentedControl TValue="HistorySort" AriaLabel="Ordenar por" Items="SortItems" Value="_sort" ValueChanged="SetSort" />
+            </div>
+        </NeonCard>
+    }
+
+    @if (_error)
+    {
+        <NeonCard Class="flex flex-col items-center gap-4 p-8 text-center">
+            <Icon Name="warning" Size="24" />
+            <p role="alert" class="text-title-sm">Não foi possível carregar o histórico.</p>
+            <PillButton OnClick="Reload" Icon="refresh">Tentar novamente</PillButton>
+        </NeonCard>
+    }
+    else if (_result is null)
     {
         <NeonCard Class="flex items-center justify-center gap-3 p-8">
             <span class="size-6 animate-spin motion-reduce:animate-none rounded-full border-2 border-secondary border-t-transparent" aria-hidden="true"></span>
             <p role="status" class="text-body-lg text-ink-muted">Carregando…</p>
         </NeonCard>
     }
-    else if (_results.Count == 0)
+    else if (_result.Items.Count == 0 && _result.Counts.All == 0 && _opponent is null)
     {
         <NeonCard Class="flex flex-col items-center gap-4 p-8 text-center">
             <Icon Name="trophy" Size="24" />
-            <p class="text-title-sm">Nenhuma partida registrada ainda.</p>
+            <p class="text-title-sm">@(_scope == HistoryScope.Mine ? "Você ainda não jogou nenhuma partida." : "Nenhuma partida registrada ainda.")</p>
             <PillButton Href="/" Icon="play">Jogar agora</PillButton>
+        </NeonCard>
+    }
+    else if (_result.Items.Count == 0)
+    {
+        <NeonCard Class="flex flex-col items-center gap-4 p-8 text-center">
+            <Icon Name="history" Size="24" />
+            <p class="text-title-sm">Nenhuma partida com estes filtros.</p>
+            <PillButton Variant="PillVariant.Outline" OnClick="ClearFilters">Limpar filtros</PillButton>
         </NeonCard>
     }
     else
@@ -35,26 +83,40 @@
                     <tr class="border-b border-stroke font-numeric text-label-badge uppercase text-ink-muted">
                         <th scope="col" class="px-5 py-3">Resultado</th>
                         <th scope="col" class="px-5 py-3">Duelo (✕ vs ◯)</th>
+                        <th scope="col" class="px-5 py-3">Motivo</th>
+                        <th scope="col" class="px-5 py-3">Duração</th>
                         <th scope="col" class="px-5 py-3">Data e hora</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var r in _results)
+                    @foreach (var r in _result.Items)
                     {
-                        var xWins = r.WinnerName is not null && r.WinnerName == r.PlayerXName && r.PlayerXName != r.PlayerOName;
-                        var oWins = r.WinnerName is not null && r.WinnerName == r.PlayerOName && r.PlayerXName != r.PlayerOName;
-                        <tr class="block border-b border-stroke px-5 py-4 last:border-b-0 md:table-row md:px-0 md:py-0">
-                            <td class="block md:table-cell md:px-5 md:py-4">
-                                @if (r.WinnerName is not null)
-                                {
-                                    <StatusChip Tone="ChipTone.Gold">Vitória de @r.WinnerName</StatusChip>
-                                }
-                                else
-                                {
-                                    <StatusChip Tone="ChipTone.Neutral">Deu velha</StatusChip>
-                                }
+                        var xWins = r.WinnerSide == "X";
+                        var oWins = r.WinnerSide == "O";
+                        <tr class="block border-b border-stroke px-5 py-4 last:border-b-0 md:table-row md:px-0 md:py-0" data-outcome="@OutcomeName(r.Outcome)">
+                            <td data-cell="resultado" class="block md:table-cell md:px-5 md:py-4">
+                                <span class="flex flex-wrap items-center gap-2">
+                                    @if (r.Outcome is { } outcome)
+                                    {
+                                        <StatusChip Tone="@(outcome == HistoryOutcome.Win ? ChipTone.Gold : outcome == HistoryOutcome.Loss ? ChipTone.Danger : ChipTone.Neutral)">
+                                            @(outcome == HistoryOutcome.Win ? "Vitória" : outcome == HistoryOutcome.Loss ? "Derrota" : "Deu velha")
+                                        </StatusChip>
+                                    }
+                                    else if (r.WinnerName is not null)
+                                    {
+                                        <StatusChip Tone="ChipTone.Gold">Vitória de @r.WinnerName</StatusChip>
+                                    }
+                                    else
+                                    {
+                                        <StatusChip Tone="ChipTone.Neutral">Deu velha</StatusChip>
+                                    }
+                                    @if (r.WalkOver)
+                                    {
+                                        <StatusChip Tone="ChipTone.Warning">W.O.</StatusChip>
+                                    }
+                                </span>
                             </td>
-                            <td class="block py-2 md:table-cell md:px-5 md:py-4">
+                            <td data-cell="duelo" class="block py-2 md:table-cell md:px-5 md:py-4">
                                 <span class="flex flex-wrap items-center gap-2 text-body-lg">
                                     <span class="min-w-0 break-words text-primary" data-winner="@(xWins ? "true" : null)">
                                         ✕ @r.PlayerXName@if (xWins) {<Icon Name="trophy" Size="16" Label="Vencedor" />}
@@ -65,30 +127,183 @@
                                     </span>
                                 </span>
                             </td>
-                            <td class="block font-numeric text-label-numeric text-ink-muted md:table-cell md:px-5 md:py-4">
-                                @HistoryDateFormatter.Format(r.PlayedAt, _now)
+                            <td data-cell="motivo" class="block text-label-numeric text-ink-muted md:table-cell md:px-5 md:py-4">@r.Reason</td>
+                            <td data-cell="duracao" class="block font-numeric text-label-numeric text-ink-muted md:table-cell md:px-5 md:py-4">@HistoryAnalysis.FormatDuration(r.DurationSeconds)</td>
+                            <td data-cell="data" class="block font-numeric text-label-numeric text-ink-muted md:table-cell md:px-5 md:py-4">
+                                @HistoryDateFormatter.Format(r.PlayedAtUtc, _now)
                             </td>
                         </tr>
                     }
                 </tbody>
             </table>
         </NeonCard>
+
+        <Pager Page="_result.Page" PageCount="_result.PageCount" PageChanged="SetPage" />
     }
 </div>
 
 @code {
-    private List<MatchResult> _results = [];
-    private bool _loading = true;
+    private const int DebounceMs = 250;
+
+    private static readonly IReadOnlyList<(HistoryScope Value, string Label)> ScopeItems =
+        [(HistoryScope.Mine, "Minhas"), (HistoryScope.All, "Todos")];
+
+    private static readonly IReadOnlyList<(HistorySort Value, string Label)> SortItems =
+        [(HistorySort.Recent, "Mais recentes"), (HistorySort.ShortestDuration, "Mais rápidas"), (HistorySort.Result, "Resultado")];
+
+    private PlayerProfile? _profile;
+    private PlayerSummary? _summary;
+    private HistoryPage? _result;
+    private HistoryScope _scope = HistoryScope.Mine;
+    private HistoryFilter _filter = HistoryFilter.All;
+    private HistorySort _sort = HistorySort.Recent;
+    private string _opponentInput = "";
+    private string? _opponent;
+    private int _page = 1;
+    private int _sequence;
+    private bool _ready;
+    private bool _error;
     private DateTime _now = DateTime.Now;
+    private CancellationTokenSource? _debounce;
 
-    private string? SubtitleText => _loading || _results.Count == 0
+    private string? SubtitleText => _result is null || _result.Counts.All == 0
         ? null
-        : _results.Count == 1 ? "Última partida" : $"Últimas {_results.Count} partidas";
+        : _result.Counts.All == 1 ? "1 partida" : $"{_result.Counts.All} partidas";
 
-    protected override async Task OnInitializedAsync()
+    private IReadOnlyList<(HistoryFilter Value, string Label)> FilterItems
     {
-        _results = await GameResultService.GetRecentAsync(10);
-        _now = DateTime.Now;
-        _loading = false;
+        get
+        {
+            var c = _result?.Counts;
+            string L(string name, int? n) => n is null ? name : $"{name} ({n})";
+            var items = new List<(HistoryFilter, string)> { (HistoryFilter.All, L("Todas", c?.All)) };
+            if (_scope == HistoryScope.Mine)
+            {
+                items.Add((HistoryFilter.Wins, L("Vitórias", c?.Wins)));
+                items.Add((HistoryFilter.Losses, L("Derrotas", c?.Losses)));
+            }
+
+            items.Add((HistoryFilter.Draws, L("Empates", c?.Draws)));
+            items.Add((HistoryFilter.WalkOvers, L("W.O.", c?.WalkOvers)));
+            return items;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        _profile = await Identity.LoadAsync();
+        try
+        {
+            _summary = await GameResultService.GetPlayerSummaryAsync(_profile.PlayerId);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Falha ao calcular o resumo do histórico.");
+        }
+
+        _ready = true;
+        StateHasChanged();
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        var sequence = ++_sequence;
+        try
+        {
+            var query = new HistoryQuery(_scope == HistoryScope.Mine ? _profile?.PlayerId : null, _scope, _filter, _opponent, _sort, _page);
+            var page = await GameResultService.GetHistoryAsync(query);
+            if (sequence != _sequence) return; // uma consulta mais nova já foi disparada
+
+            _result = page;
+            _page = page.Page;
+            _error = false;
+            _now = DateTime.Now;
+        }
+        catch (Exception ex)
+        {
+            if (sequence != _sequence) return;
+            Logger.LogError(ex, "Falha ao consultar o histórico.");
+            _error = true;
+        }
+
+        StateHasChanged();
+    }
+
+    private Task Reload() => LoadAsync();
+
+    private Task SetScope(HistoryScope scope)
+    {
+        _scope = scope;
+        if (scope == HistoryScope.All && _filter is HistoryFilter.Wins or HistoryFilter.Losses)
+        {
+            _filter = HistoryFilter.All;
+        }
+
+        _page = 1;
+        return LoadAsync();
+    }
+
+    private Task SetFilter(HistoryFilter filter)
+    {
+        _filter = filter;
+        _page = 1;
+        return LoadAsync();
+    }
+
+    private Task SetSort(HistorySort sort)
+    {
+        _sort = sort;
+        _page = 1;
+        return LoadAsync();
+    }
+
+    private Task SetPage(int page)
+    {
+        _page = page;
+        return LoadAsync();
+    }
+
+    private Task ClearFilters()
+    {
+        _debounce?.Cancel();
+        _filter = HistoryFilter.All;
+        _opponentInput = "";
+        _opponent = null;
+        _page = 1;
+        return LoadAsync();
+    }
+
+    private async Task OnSearchInput(string value)
+    {
+        _opponentInput = value;
+        _debounce?.Cancel();
+        _debounce?.Dispose();
+        var cts = _debounce = new CancellationTokenSource();
+        try
+        {
+            await Task.Delay(DebounceMs, cts.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+
+        _opponent = string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+        _page = 1;
+        await LoadAsync();
+    }
+
+    private static string? OutcomeName(HistoryOutcome? outcome) => outcome?.ToString().ToLowerInvariant();
+
+    private static string Decimal(double value, string suffix) =>
+        value.ToString("0.0", CultureInfo.InvariantCulture).Replace('.', ',') + suffix;
+
+    public void Dispose()
+    {
+        _debounce?.Cancel();
+        _debounce?.Dispose();
     }
 }

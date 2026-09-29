@@ -1,5 +1,22 @@
+@if (PageCount > 1)
+{
+    <nav aria-label="Paginação" class="flex items-center justify-between gap-3">
+        <button type="button" data-action="prev" disabled="@(Page <= 1)" @onclick="() => GoTo(Page - 1)"
+                class="@ButtonCss">Anterior</button>
+        <span aria-live="polite" class="font-numeric text-label-numeric text-ink-muted">Página @Page de @PageCount</span>
+        <button type="button" data-action="next" disabled="@(Page >= PageCount)" @onclick="() => GoTo(Page + 1)"
+                class="@ButtonCss">Próxima</button>
+    </nav>
+}
+
 @code {
     [Parameter] public int Page { get; set; } = 1;
     [Parameter] public int PageCount { get; set; } = 1;
     [Parameter] public EventCallback<int> PageChanged { get; set; }
+
+    private const string ButtonCss =
+        "min-h-11 rounded-pill border border-stroke bg-surface-high/60 px-5 font-numeric text-label-numeric uppercase text-ink transition " +
+        "hover:border-stroke-active focus-visible:outline-2 focus-visible:outline-secondary disabled:cursor-not-allowed disabled:opacity-40";
+
+    private Task GoTo(int page) => PageChanged.InvokeAsync(Math.Clamp(page, 1, PageCount));
 }
