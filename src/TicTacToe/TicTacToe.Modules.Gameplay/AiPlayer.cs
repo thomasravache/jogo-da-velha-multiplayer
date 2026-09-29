@@ -27,7 +27,8 @@ public static class AiPlayer
         _ => "Robô Minimax 🤖"
     };
 
-    public static bool IsBotName(string? name) => throw new NotImplementedException();
+    public static bool IsBotName(string? name) =>
+        name is not null && (name == GetBotName(AiDifficulty.Easy) || name == GetBotName(AiDifficulty.Hard) || name == GetBotName((AiDifficulty)(-1)));
 
     public static int GetBestMove(GameSession game, Player aiPlayer, AiDifficulty difficulty)
     {
