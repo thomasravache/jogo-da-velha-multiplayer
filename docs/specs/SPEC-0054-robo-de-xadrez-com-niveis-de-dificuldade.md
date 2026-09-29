@@ -30,7 +30,7 @@ Cria o **robô de xadrez**: abstração `IChessBot`, avaliação de posição (m
 - `IChessBot` (`Name`, `ChooseMoveAsync(position, ct)`), `ChessBotLevel { Easy, Medium }` e `ChessBots.Create(level, seed)`.
 - `ChessEvaluation.Evaluate`: material, tabelas de casas por peça e pontuação de mate, do ponto de vista de quem joga.
 - Nível **Fácil**: profundidade 1 com ruído (parte dos lances é escolhida ao acaso entre os legais, semente controlável).
-- Nível **Médio**: negamax com poda alfa-beta, profundidade 3, ordenação de lances (capturas primeiro) e limite de nós; desempate por semente.
+- Nível **Médio**: negamax com poda alfa-beta, profundidade 3, ordenação de lances (capturas primeiro) e teto de nós configurável (`maxNodes`, padrão 200 mil); desempate por semente.
 - Cancelamento respeitado; sempre devolve um lance legal quando existir algum.
 
 **Não-objetivos (fora do escopo):**
@@ -75,7 +75,7 @@ interface IChessBot
   Task<Move?> ChooseMoveAsync(Position position, CancellationToken ct)      // nulo só se não houver lance legal
 
 static class ChessBots
-  static IChessBot Create(ChessBotLevel level, int? seed = null)            // mesma semente + mesma posição → mesmo lance
+  static IChessBot Create(ChessBotLevel level, int? seed = null, int? maxNodes = null)   // mesma semente + mesma posição → mesmo lance; maxNodes só limita o nível Médio
   static string NameOf(ChessBotLevel level)
 
 static class ChessEvaluation
@@ -109,10 +109,10 @@ N/A — código novo.
 - **UT-02** — Dado muitas posições geradas jogando robôs, então todo lance devolvido pertence a `LegalMoves`, e só há retorno nulo em posição sem lances.
 - **UT-03** — Dado mate em 1, dama adversária desprotegida e uma dama própria ameaçada, então o robô Médio dá o mate, captura a dama e evita perder a dama.
 - **UT-04** — Dado a mesma semente e a mesma posição, então o lance é o mesmo; o Fácil com sementes diferentes produz pelo menos dois lances distintos em uma posição de abertura.
-- **UT-05** — Dado cancelamento no meio da busca do Médio e um teto de nós, então devolve um lance legal em menos de 100 ms após o cancelamento e nunca ultrapassa o teto.
+- **UT-05** — Dado cancelamento no meio da busca do Médio e um `maxNodes` pequeno (por exemplo 500) em posição complexa, então devolve um lance legal em menos de 100 ms após o cancelamento e a busca nunca avalia mais nós que o teto (contador exposto para teste).
 
 ### 7.3 Testes de Integração
-- **IT-01** — Dado 10 partidas Médio × Fácil (cores alternadas, sementes fixas, limite de 120 meios-lances) e 10 partidas Fácil × aleatório, então o Médio vence o Fácil em pelo menos 7 e o Fácil vence o aleatório em pelo menos 6 (o resto empata ou perde; limite de tempo do teste registrado).
+- **IT-01** — Dado 6 partidas Médio × Fácil (cores alternadas, sementes fixas) e 6 partidas Fácil × aleatório, cada uma limitada a 160 meios-lances com adjudicação por material no teto (quem tem mais material vence; igual empata), então o Médio vence o Fácil em pelo menos 5 e o Fácil vence o aleatório em pelo menos 4 (limiares calibrados pelo implementador; tempo total do teste registrado e abaixo de 60 s no CI).
 - **IT-02** — Dado uma posição de meio de jogo, então o Médio responde em menos de 2 s no CI.
 
 ### 7.4 Testes de Contrato

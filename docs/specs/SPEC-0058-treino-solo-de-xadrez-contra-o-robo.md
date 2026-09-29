@@ -10,7 +10,7 @@ parent: SPEC-0046
 depends_on: [SPEC-0054, SPEC-0056, SPEC-0057]
 consumes_contract: []
 contract_version: 1
-touches: [src/TicTacToe/TicTacToe.Modules.Chess/Bots/ChessBotTurnRunner.cs, src/TicTacToe/TicTacToe.Web/Components/Chess/ChessLobby.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/ChessHome.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/ChessHome.razor.cs, tests/TicTacToe.Tests/ChessBotTurnRunnerTests.cs, tests/TicTacToe.Tests/ChessSoloTests.cs]
+touches: [src/TicTacToe/TicTacToe.Modules.Chess/Bots/ChessBotTurnRunner.cs, src/TicTacToe/TicTacToe.Web/Components/Chess/ChessLobby.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/ChessHome.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/ChessHome.razor.cs, src/TicTacToe/TicTacToe.Web/wwwroot/css/cyber-arena.css, tests/TicTacToe.Tests/ChessBotTurnRunnerTests.cs, tests/TicTacToe.Tests/ChessSoloTests.cs]
 adrs: [ADR-0008, ADR-0011]
 external: []
 size: M
@@ -68,8 +68,8 @@ Adiciona o **treino solo de xadrez contra o robô**: cartão "Duelo contra IA" n
 
 ```text
 ChessBotTurnRunner(TimeProvider time)
-  Task RunAsync(ChessSession session, PieceColor botColor, IChessBot bot, TimeSpan delay, CancellationToken ct)
-    // aguarda o atraso; se ainda for a vez do robô e a partida estiver em andamento, escolhe o lance e chama session.TryMove
+  Task RunAsync(ChessSession session, int botSeat, IChessBot bot, TimeSpan delay, CancellationToken ct)
+    // aguarda o atraso; a cor do robô é session.ColorOf(botSeat) lida NO MOMENTO da jogada (muda na revanche); se for a vez dele e a partida estiver em andamento, escolhe o lance sobre Snapshot().Position e chama session.TryMove
 
 ChessLobby (acréscimos)   [Parameter] ChessBotLevel SelectedLevel · EventCallback<ChessBotLevel> LevelChanged · EventCallback OnPlaySolo
   radiogrupo "Dificuldade do robô": Fácil 🟢 / Médio 🟡 com a descrição do nível; botão "Iniciar partida solo" (desabilitado sem apelido)
@@ -100,7 +100,7 @@ ChessHome (solo): Mode = Solo; humano com a cor escolhida (Aleatória sorteia); 
 N/A — funcionalidade nova; o solo do jogo da velha não muda.
 
 ### 7.2 Testes Unitários
-- **UT-01** — Dado `ChessBotTurnRunner` com `ManualTime`, quando é a vez do robô, então joga só depois do atraso; se a vez mudar, a partida acabar ou o token for cancelado antes, não joga.
+- **UT-01** — Dado `ChessBotTurnRunner` com `ManualTime`, quando é a vez do robô, então joga só depois do atraso; se a vez mudar, a partida acabar, as cores dos assentos trocarem (revanche) ou o token for cancelado antes, não joga fora de hora.
 - **UT-02** — Dado `ChessLobby` com nível Fácil e Médio, então o radiogrupo "Dificuldade do robô" marca o atual, mostra a descrição e `OnPlaySolo` fica desabilitado sem apelido.
 - **UT-03** — Dado iniciar solo com brancas e com pretas, então a sessão é `Solo`, o robô ocupa o outro lado sem `PlayerId`, e quando o robô joga de brancas ele faz o primeiro lance.
 - **UT-04** — Dado o humano jogar `e2→e4`, então após o atraso o robô responde com um lance legal e a região viva mostra "Vez de Robô…" enquanto espera.
@@ -108,17 +108,18 @@ N/A — funcionalidade nova; o solo do jogo da velha não muda.
 - **UT-06** — Dado "Abandonar" em partida solo em andamento, então o jogador volta ao lobby e nada é gravado.
 
 ### 7.3 Testes de Integração
-- **IT-01** — Dado uma partida solo levada ao fim (mate ou tempo), então uma linha é gravada com `Mode=Solo`, `GameType=Chess`, aparece no histórico do xadrez e não conta no ranking.
+- **IT-01** — Dado uma partida solo levada ao fim (mate ou tempo), então uma linha é gravada com `Mode=Solo`, `GameType=Chess`, aparece em `GetHistoryAsync(Game=Chess)` do jogador e não entra em `GetLeaderboardPageAsync(Game=Chess)`.
 - **IT-02** — Dado sair da `ChessHome` durante o atraso do robô, então nenhum lance é feito depois e não há exceção.
 
 ### 7.4 Testes de Contrato
 N/A — sem contrato entre specs (o contrato desta spec é consumido pelas filhas seguintes por depends_on).
 
 ### 7.5 Testes E2E
-- **E2E-01** — Jornada (bUnit): no lobby escolher Médio e Brancas, iniciar o solo, jogar três lances contra o robô, abandonar e voltar ao lobby sem resultado gravado; depois jogar outra até o fim e ver a partida no histórico.
+- **E2E-01** — Jornada (bUnit): no lobby escolher Médio e Brancas, iniciar o solo, jogar três lances contra o robô, abandonar e voltar ao lobby sem resultado gravado; depois jogar outra até o fim e conferir, por `GameResultService.GetHistoryAsync(Game=Chess)`, a partida solo gravada (a tela de histórico do xadrez chega na SPEC-0059).
 
 ### 7.6 Outros
 - Revisão visual (H2): cartão de solo nas duas larguras, mesmo padrão do lobby do jogo da velha.
+- `tools/tailwind/build.sh` executado e `--check` sem diferença.
 - Lighthouse Acessibilidade ≥ 90 em `/xadrez`.
 
 **Dublês e dados de teste:** `ManualTime`, `IChessBot` de teste que devolve lances conhecidos, EF InMemory.

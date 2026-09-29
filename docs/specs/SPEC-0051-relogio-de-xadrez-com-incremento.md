@@ -74,14 +74,14 @@ record TimeControl(string Id, string Name, TimeSpan Initial, TimeSpan Increment)
   static TimeControl? FromId(string id)
 
 sealed class ChessClock(TimeControl control, TimeProvider time)
-  void Start(PieceColor first)              // o relógio de `first` começa a correr
-  void Press(PieceColor mover)              // `mover` terminou o lance: para o dele, soma o incremento (se não caiu), inicia o do outro
+  // o relógio começa parado: antes do primeiro lance das brancas nenhum tempo corre
+  void Press(PieceColor mover)              // `mover` terminou o lance: para o dele (se corria), soma o incremento (se não caiu), inicia o do outro; o primeiro Press (brancas) apenas inicia o relógio das pretas
   void Stop()                               // partida encerrada: congela
   TimeSpan Remaining(PieceColor color)      // inclui o tempo correndo agora
   PieceColor? Running { get; }
   PieceColor? Flagged { get; }              // quem estourou o tempo (nunca volta)
   void Tick()                               // reavalia a bandeira com o relógio atual
-Regras: Remaining nunca é negativo; ao chegar a zero de quem corre → Flagged = essa cor e o relógio para; Press de quem já caiu é ignorado.
+Regras: nenhum tempo é descontado antes do primeiro lance das brancas (o primeiro lance é "de graça"; abortar partida parada fica para spec futura); Remaining nunca é negativo; ao chegar a zero de quem corre → Flagged = essa cor e o relógio para; Press de quem já caiu é ignorado.
 ```
 
 **Arquivos/módulos afetados:** ver `touches` no frontmatter. N/A
@@ -90,7 +90,7 @@ Regras: Remaining nunca é negativo; ao chegar a zero de quem corre → Flagged 
 | Cenário | Condição / Entrada | Resultado esperado | Testes |
 |---|---|---|---|
 | Controles padrão | Bullet, Blitz, Rápida e id desconhecido | Tempos e incrementos do contrato; `FromId` nulo para desconhecido | UT-01 |
-| Contagem | Início e passagem de tempo | Só corre o relógio de quem joga | UT-02 |
+| Contagem | Antes e depois do primeiro lance | Nada corre antes; depois só corre o relógio de quem joga | UT-02 |
 | Incremento | Lance no controle 10+5 | Tempo do jogador soma 5 s ao fim do lance | UT-03 |
 | Bandeira | Tempo esgotado antes do lance | `Flagged` na cor certa, relógio parado, sem incremento | UT-04 |
 | Parar | `Stop` e `Press` depois | Congelado; `Press` ignorado | UT-05 |
@@ -104,9 +104,9 @@ N/A — código novo.
 
 ### 7.2 Testes Unitários
 - **UT-01** — Dado `TimeControl.All` e `FromId`, então há três controles com os tempos do contrato e `FromId("x")` retorna nulo.
-- **UT-02** — Dado `Start(White)` e o tempo avançando 30 s, então `Remaining(White)` diminui 30 s e `Remaining(Black)` não muda.
-- **UT-03** — Dado o controle 10+5, quando brancas jogam após 20 s, então `Remaining(White)` = 10 min − 20 s + 5 s e o relógio das pretas passa a correr.
-- **UT-04** — Dado 1 minuto sem lance de quem joga, então `Flagged` é essa cor, `Remaining` é zero, o relógio para e um `Press` posterior não adiciona incremento.
+- **UT-02** — Dado um relógio novo e 30 s passando, então os dois tempos seguem inteiros e `Running` é nulo; após `Press(White)` (primeiro lance) e mais 30 s, `Remaining(Black)` diminui 30 s e `Remaining(White)` não muda.
+- **UT-03** — Dado o controle 10+5, o primeiro lance das brancas e, depois de 20 s, o das pretas, então `Remaining(Black)` = 10 min − 20 s + 5 s e o relógio das brancas passa a correr; o primeiro lance das brancas soma incremento também.
+- **UT-04** — Dado um relógio em andamento e 1 minuto sem lance de quem joga, então `Flagged` é essa cor, `Remaining` é zero, o relógio para e um `Press` posterior não adiciona incremento.
 - **UT-05** — Dado `Stop`, então o tempo não corre mais e `Press` é ignorado.
 - **UT-06** — Dado consultas repetidas de `Remaining`, `Flagged` e `Tick` sem avanço do relógio, então os valores não mudam.
 

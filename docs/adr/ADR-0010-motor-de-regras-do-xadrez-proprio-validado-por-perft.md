@@ -27,10 +27,10 @@ O xadrez precisa de um motor de regras: geração de lances legais (xeque, roque
 ## Opções Consideradas
 - **A. Motor próprio no módulo `TicTacToe.Modules.Chess`**, representação simples (tabuleiro 0x88 ou array de 64 casas), validado por perft contra contagens publicadas.
 - **B. `ChessRealms.Engine`** (NuGet, MIT, .NET 10): bitboards, lances legais, FEN, xeque-mate, afogamento e empates básicos.
-- **C. `Rudzoft.ChessLib`** (NuGet): geração completa de lances, Chess960, perft.
+- **C. `Rudzoft.ChessLib`** (NuGet): geração completa de lances, Chess960 e perft segundo a descrição do pacote e do repositório.
 
 ## Resultado da Decisão
-**Opção escolhida:** **A**, porque nenhuma biblioteca atende aos direcionadores hoje: a opção B foi publicada em 2026-09-24 (versão 1.0.0, 42 downloads), não tem SAN, Chess960 nem relógio, e não tem histórico de manutenção; a opção C parou na versão 0.0.3 de 2022, para .NET 6. As regras do xadrez são estáveis e bem documentadas, o volume de código é pequeno (algumas centenas de linhas) e o perft dá uma prova objetiva de correção. O motor próprio também mantém o domínio sob o padrão do projeto (sem dependência externa, testável com xUnit).
+**Opção escolhida:** **A**, porque nenhuma biblioteca atende aos direcionadores hoje: a opção B foi publicada em 2026-09-24 (versão 1.0.0, 42 downloads) e, segundo o README e o NuGet, não traz SAN, Chess960 nem relógio, além de não ter histórico de manutenção; a opção C tem como última versão publicada no NuGet a 0.0.3 de 2022-10-15, para .NET 6 (a atividade recente do repositório não foi avaliada). As regras do xadrez são estáveis e bem documentadas, o volume de código é pequeno (estimativa do Architect: algumas centenas de linhas) e o perft dá uma prova objetiva de correção. O motor próprio também mantém o domínio sob o padrão do projeto (sem dependência externa, testável com xUnit).
 
 ### Consequências
 - **Boa**, porque não há dependência externa nova, licença ou abandono a gerenciar, e o modelo (histórico, SAN, repetição) é desenhado para as telas.
@@ -44,9 +44,9 @@ O xadrez precisa de um motor de regras: geração de lances legais (xeque, roque
 ## Prós e Contras das Opções
 | Critério | A. Motor próprio | B. ChessRealms.Engine | C. Rudzoft.ChessLib |
 |---|---|---|---|
-| Maturidade e manutenção | Sob controle do projeto | Muito nova (1.0.0 em 2026-09), 2 estrelas | Abandonada desde 2022 (0.0.3) |
+| Maturidade e manutenção | Sob controle do projeto | Muito nova (1.0.0 em 2026-09-24, 42 downloads) | Última versão no NuGet em 2022 (0.0.3); repositório não avaliado |
 | Suporte a .NET 10 | Nativo | Sim | Compatível por cálculo; alvo net6 |
-| SAN, histórico, relógio | Desenhados para o projeto | Não tem SAN nem relógio | Não tem SAN |
+| SAN, histórico, relógio | Desenhados para o projeto | Sem SAN nem relógio (README) | Não avaliado; o pacote descreve só dados e geração de lances |
 | Chess960 | Extensível por desenho | Não | Sim |
 | Prova de correção | Perft do próprio projeto | Dependeria de confiar na biblioteca | Perft próprio da biblioteca |
 | Custo inicial | Maior | Menor | Menor |
@@ -54,5 +54,5 @@ O xadrez precisa de um motor de regras: geração de lances legais (xeque, roque
 ## Mais Informações
 - Rudzoft.ChessLib 0.0.3, publicada em 2022-10-15, alvo .NET 6, sem avaliação nem busca — https://www.nuget.org/packages/Rudzoft.ChessLib — verificado em 2026-09-29.
 - ChessRealms.Engine 1.0.0, MIT, .NET 10, 42 downloads, sem SAN, UCI, Chess960 nem relógios — https://www.nuget.org/packages/ChessRealms.Engine e https://github.com/ChessRealms/Engine — verificado em 2026-09-29.
-- Referência de perft: https://www.chessprogramming.org/Perft_Results (as contagens são conferidas pelo implementador na fonte; **não verificado** neste planejamento além de conhecimento prévio).
+- Referência de perft: https://www.chessprogramming.org/Perft_Results. As contagens usadas nas specs (posição inicial, Kiwipete e posições 3 a 6) foram conferidas por revisão independente contra conhecimento prévio; o implementador as reconfere na fonte ao escrever os testes.
 - Specs: SPEC-0049 (motor), SPEC-0050 (regras de partida).

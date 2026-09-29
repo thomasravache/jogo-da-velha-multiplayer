@@ -27,7 +27,7 @@ O usuário quer jogar xadrez contra um robô, com níveis de dificuldade. O jogo
 ## Opções Consideradas
 - **A. Motor próprio** (negamax com poda alfa-beta, aprofundamento por profundidade máxima, avaliação por material e tabelas de posição), atrás de uma abstração `IChessBot`, com nível = profundidade + ruído controlado.
 - **B. Stockfish via UCI** (processo filho; nível por `Skill Level` ou `UCI_LimitStrength`/`UCI_Elo`), atrás da mesma abstração.
-- **C. Wrapper NuGet de UCI** (`Stockfish.NET`, MIT, última atualização em 2020, ou `pax.uciChessEngine`) sobre um binário do Stockfish.
+- **C. Wrapper NuGet de UCI** (`Stockfish.NET`, MIT, última atualização em 2020, ou `pax.uciChessEngine`, https://www.nuget.org/packages/pax.uciChessEngine) sobre um binário do Stockfish.
 
 ## Resultado da Decisão
 **Opção escolhida:** **A** para a primeira entrega, sempre atrás de `IChessBot`. Motivos: força suficiente para treino (fácil e médio), zero processo externo, zero problema de licença, testes determinísticos com semente fixa, e o mesmo padrão do `AiPlayer` já existente. A abstração `IChessBot` deixa o Stockfish (opção B) como implementação futura, em uma spec e ADR próprias, se o produto pedir um nível "difícil" de força real.
@@ -35,7 +35,7 @@ O usuário quer jogar xadrez contra um robô, com níveis de dificuldade. O jogo
 ### Consequências
 - **Boa**, porque o robô roda em processo, sem binário nativo, e os testes independem de relógio e de I/O.
 - **Boa**, porque o custo de trocar ou acrescentar o Stockfish depois é baixo (nova implementação de `IChessBot`).
-- **Ruim**, porque a força máxima do motor próprio é limitada (estimativa de alguns níveis de jogador de clube, não de mestre); não há nível "impossível" como no jogo da velha.
+- **Ruim**, porque a força máxima do motor próprio é limitada (a força real é desconhecida e será medida por partidas do robô contra ele mesmo e contra um jogador aleatório; não há meta de nível de mestre); não há nível "impossível" como no jogo da velha.
 - **Ruim**, porque a força relativa dos níveis precisa ser medida em partidas do robô contra ele mesmo e contra um jogador aleatório, dentro dos testes da spec.
 
 ### Confirmação (G3)

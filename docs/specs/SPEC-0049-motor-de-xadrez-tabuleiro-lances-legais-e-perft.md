@@ -60,7 +60,7 @@ Cria o módulo `TicTacToe.Modules.Chess` com o **motor de regras**: tabuleiro, c
 **ADRs:** ADR-0010
 
 ## 5. Requisitos Não-Funcionais
-- **Desempenho e escala:** Perft da posição inicial até a profundidade 4 em poucos segundos e até a 5 em menos de 30 s no CI; `LegalMoves` de uma posição típica em microssegundos a poucos milissegundos.
+- **Desempenho e escala:** O perft de profundidade padrão do CI (~350 mil nós no total) roda em poucos segundos; o perft pesado é `Category=Slow`; `LegalMoves` de uma posição típica em microssegundos a poucos milissegundos.
 - **Segurança:** FEN é entrada não confiável (virá de testes, nunca do usuário nesta spec): `FromFen` valida campos e devolve erro sem exceção inesperada.
 - **Privacidade e dados pessoais:** N/A — sem dados pessoais.
 - **Disponibilidade e resiliência:** Funções puras e imutáveis, sem estado global; seguras para uso concorrente.
@@ -84,6 +84,7 @@ readonly record struct Square(int Index)                 // 0..63, a1 = 0, b1 = 
   override string ToString()                             // "e4"
 
 readonly record struct Move(Square From, Square To, PieceType? Promotion = null)
+  // roque = o REI anda duas casas (e1→g1, e1→c1, e8→g8, e8→c8); a torre é movida por Apply. En passant = peão para a casa de passagem.
 
 sealed class Position
   static Position Start { get; }                          // posição inicial padrão
@@ -118,8 +119,8 @@ static class Perft
 | Xeque e cravadas | Rei em xeque simples e duplo; peça cravada | Só lances que resolvem o xeque; cravada só anda na linha | UT-07 |
 | Aplicar lance | Lances comuns, roque, en passant, promoção, ilegal | Estado atualizado (lado, roque, en passant, relógios); ilegal lança erro | UT-08 |
 | Xeque | Posições com e sem xeque | IsInCheck correto para cada cor | UT-09 |
-| Correção global | Perft das posições de referência | Contagens iguais às publicadas | IT-01 |
-| Fronteira do módulo | Referências do projeto Chess | Sem Gameplay, Matchmaking nem Web | IT-02 |
+| Correção global | Perft das posições de referência | Contagens iguais às publicadas (CI: profundidade padrão; local: `IT-01b`) | IT-01, IT-01b |
+| Fronteira do módulo | Referências dos projetos Chess, Gameplay e Matchmaking | Chess sem Gameplay, Matchmaking nem Web; os outros sem Chess | IT-02 |
 
 ## 7. Artefato B — Plano de Testes (TDD)
 
@@ -128,9 +129,9 @@ N/A — módulo novo, sem comportamento existente a preservar.
 
 ### 7.2 Testes Unitários
 - **UT-01** — Dado textos "a1", "e4", "h8" e inválidos ("i9", "", "e", "e44"), então `Parse`/`ToString` são inversos e os inválidos falham em `TryParse`.
-- **UT-02** — Dado a posição inicial, uma posição com en passant, uma sem direitos de roque e FENs inválidos (campos faltando, rei ausente, fileira com soma ≠ 8), então `FromFen`/`ToFen` fazem a ida e volta e os inválidos são rejeitados sem exceção inesperada.
+- **UT-02** — Dado a posição inicial, uma posição com en passant, uma sem direitos de roque e FENs inválidos (campos faltando, rei ausente ou duplicado, peão na 1ª ou 8ª fileira, fileira com soma ≠ 8, rei do lado que não joga em xeque), então `FromFen`/`ToFen` fazem a ida e volta e os inválidos são rejeitados sem exceção inesperada.
 - **UT-03** — Dado posições mínimas de cada peça (livre, bloqueada por aliada, com capturas), então `LegalMoves` devolve exatamente os lances esperados.
-- **UT-04** — Dado posições de roque (livre, caminho ocupado, casa de passagem atacada, rei em xeque, direito perdido, torre capturada), então o roque só é gerado quando permitido, nos dois lados e nas duas cores.
+- **UT-04** — Dado posições de roque (livre, caminho ocupado, casa de passagem atacada, rei em xeque, direito perdido, torre capturada), então o roque só é gerado quando permitido, nos dois lados e nas duas cores, com o lance codificado como o rei andando duas casas (`LegalMoves` contém `e1→g1`) e `Apply` movendo a torre.
 - **UT-05** — Dado en passant disponível e o caso em que a captura exporia o rei na mesma fileira, então o lance é gerado apenas no primeiro caso.
 - **UT-06** — Dado um peão na sétima fileira (sem e com captura), então há um lance por peça de promoção (dama, torre, bispo, cavalo) para cada destino.
 - **UT-07** — Dado rei em xeque simples, xeque duplo e uma peça cravada, então só saem lances que resolvem o xeque (no duplo, só o rei anda) e a peça cravada só se move ao longo da linha da cravada.
@@ -138,8 +139,9 @@ N/A — módulo novo, sem comportamento existente a preservar.
 - **UT-09** — Dado posições com e sem xeque por cada tipo de peça, então `IsInCheck` responde certo para brancas e pretas.
 
 ### 7.3 Testes de Integração
-- **IT-01** — Dado as posições de referência (inicial, Kiwipete, posições 3, 4 e 5 da página de resultados de perft da chessprogramming wiki), quando `Perft.Count` roda até a profundidade 4 (posição inicial também na 5), então as contagens são as publicadas (inicial: 20, 400, 8.902, 197.281, 4.865.609; Kiwipete: 48, 2.039, 97.862, 4.085.603).
-- **IT-02** — Dado o arquivo `TicTacToe.Modules.Chess.csproj`, então não há `ProjectReference` a Gameplay, Matchmaking nem Web (`Category=Architecture`).
+- **IT-01** — Dado as posições de referência da página de resultados de perft da chessprogramming wiki, quando `Perft.Count` roda na profundidade padrão de CI (inicial até 4; Kiwipete e posições 3 a 6 até 3), então as contagens são as publicadas: inicial `rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1` = 20, 400, 8.902, 197.281; Kiwipete `r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1` = 48, 2.039, 97.862; posição 3 `8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1` = 14, 191, 2.812; posição 4 `r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1` = 6, 264, 9.467; posição 5 `rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8` = 44, 1.486, 62.379; posição 6 `r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10` = 46, 2.079, 89.890.
+- **IT-01b** — Dado as mesmas posições (`Category=Slow`, fora do CI padrão; executado localmente pelo implementador, com evidência no PR), quando `Perft.Count` roda nas profundidades maiores, então as contagens publicadas se confirmam: inicial na 5 = 4.865.609; Kiwipete na 4 = 4.085.603; posição 3 na 4 = 43.238 e na 5 = 674.624; posição 4 na 4 = 422.333; posição 5 na 4 = 2.103.487; posição 6 na 4 = 3.894.594.
+- **IT-02** — Dado os `.csproj` de Chess, Gameplay e Matchmaking, então Chess não referencia Gameplay, Matchmaking nem Web, e Gameplay e Matchmaking não referenciam Chess (`Category=Architecture`).
 
 ### 7.4 Testes de Contrato
 N/A — sem contrato entre specs (o contrato desta spec é consumido pelas filhas seguintes por depends_on).
@@ -148,8 +150,8 @@ N/A — sem contrato entre specs (o contrato desta spec é consumido pelas filha
 N/A — `user_facing: false`.
 
 ### 7.6 Outros
-- Perft da posição inicial na profundidade 5 em menos de 30 s no CI (medido no teste `IT-01`).
-- Conferência das contagens de referência na fonte pública pelo implementador (o plano não as reproduz além do início).
+- O tempo total dos testes novos desta spec no CI (IT-01 de profundidade padrão) fica abaixo de 20 s; o perft pesado é `IT-01b` (`Category=Slow`) e roda localmente.
+- Confirmar as contagens contra a fonte pública (https://www.chessprogramming.org/Perft_Results) ao escrever os testes.
 
 **Dublês e dados de teste:** Posições em FEN escritas nos testes (sem mocks).
 

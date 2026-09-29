@@ -7,10 +7,10 @@ user_facing: true
 status: proposed
 created: 2026-09-29
 parent: SPEC-0046
-depends_on: [SPEC-0056, SPEC-0057]
+depends_on: [SPEC-0056, SPEC-0057, SPEC-0058, SPEC-0061]
 consumes_contract: []
 contract_version: 1
-touches: [src/TicTacToe/TicTacToe.Web/Components/Chess/ChessArena.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/ChessHome.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/ChessHome.razor.cs, src/TicTacToe/TicTacToe.Web/Services/Presence/**, tests/TicTacToe.Tests/ChessLeaveAndRematchTests.cs, tests/TicTacToe.Tests/ChessDisconnectTests.cs]
+touches: [src/TicTacToe/TicTacToe.Web/Components/Chess/ChessArena.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/ChessHome.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/ChessHome.razor.cs, src/TicTacToe/TicTacToe.Web/Services/Presence/**, src/TicTacToe/TicTacToe.Web/wwwroot/css/cyber-arena.css, tests/TicTacToe.Tests/ChessLeaveAndRematchTests.cs, tests/TicTacToe.Tests/ChessDisconnectTests.cs]
 adrs: [ADR-0008]
 external: []
 size: M
@@ -37,7 +37,7 @@ Liga à arena de xadrez os fluxos de **abandonar** (com confirmação), **voltar
 - Mudança no comportamento do jogo da velha (só a generalização do contexto de presença, mantendo a API atual).
 
 ## 3. Dependências
-- **Implementações necessárias:** SPEC-0056 (`ChessHome`) e SPEC-0057 (`ChessArena`).
+- **Implementações necessárias:** SPEC-0056 (`ChessHome`), SPEC-0057 (`ChessArena`), SPEC-0058 (mesmo arquivo `ChessHome`; o robô muda de lado na revanche) e SPEC-0061 (comandos de abandono, revanche e presença no domínio).
 - **Contratos consumidos:** N/A
 - **Pré-requisitos externos:** N/A
 
@@ -69,6 +69,7 @@ Liga à arena de xadrez os fluxos de **abandonar** (com confirmação), **voltar
 ChessArena (acréscimos)   <ArenaActions InProgress OnLeave/> enquanto a partida corre; <RematchBar Finished Kind="Rematch" Consent="true" State RequestedByMe RequesterName OpponentLeft
                             OnRequest OnAccept OnDecline OnBackToLobby/> ao fim (em solo Consent=false e revanche imediata)
   mapeamento ChessRematchState → RematchState do componente: None, Requested, Declined, Expired
+  depois de uma revanche as cores trocam: MyColor = Session.ColorOf(MySeat) é relida a cada estado, o tabuleiro vira, e Leave/SetConnection/Request/Accept usam SEMPRE a cor corrente do assento
   avisos (região aria-live): "Oponente abandonou. Vitória por W.O." · "Você abandonou a partida" · "Oponente desconectou. Vitória por W.O." · "Você foi desconectado. Derrota por W.O."
   região do aviso de queda: "Oponente desconectado. Aguardando reconexão…" (estática); contagem "{n}s" em elemento à parte com aria-hidden
 
@@ -109,7 +110,7 @@ N/A — funcionalidade nova no xadrez; jogo da velha coberto pelas suas specs.
 
 ### 7.3 Testes de Integração
 - **IT-01** — Dado dois `ChessHome` na mesma partida, quando um abandona, então volta ao lobby, o outro vê "Oponente abandonou. Vitória por W.O." e uma única linha `Abandon` é gravada com o vencedor certo.
-- **IT-02** — Dado dois `ChessHome` na mesma partida encerrada, quando um pede revanche, o outro recusa e depois pede, e o primeiro aceita, então os estados aparecem nas duas telas e a nova partida começa com as cores trocadas.
+- **IT-02** — Dado dois `ChessHome` na mesma partida encerrada, quando um pede revanche, o outro recusa e depois pede, e o primeiro aceita, então os estados aparecem nas duas telas e a nova partida começa com as cores trocadas e **o tabuleiro de cada tela vira** para a nova cor; um abandono logo depois é atribuído ao jogador certo.
 - **IT-03** — Dado dois `ChessHome` na mesma partida, quando um circuito "cai" e o relógio avança 15 s, então o outro vê o aviso e depois a vitória por W.O. com uma única linha `Disconnect`; se volta em 5 s, o aviso some e a partida continua.
 
 ### 7.4 Testes de Contrato
@@ -121,6 +122,7 @@ N/A — sem contrato entre specs (o contrato desta spec é consumido pelas filha
 ### 7.6 Outros
 - Verificação manual em navegador real (fechar a aba e recarregar durante a partida; W.O. em ~15 s), registrada no PR quando houver ambiente.
 - Revisão visual (H2): estados da barra e avisos em 390px e 1280px.
+- `tools/tailwind/build.sh` executado e `--check` sem diferença.
 
 **Dublês e dados de teste:** `ManualTime`, dois `ChessHome` no mesmo contêiner, EF InMemory, `TimeProvider` registrado no DI dos testes.
 

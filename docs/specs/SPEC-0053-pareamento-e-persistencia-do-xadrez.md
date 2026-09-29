@@ -7,10 +7,10 @@ user_facing: false
 status: proposed
 created: 2026-09-29
 parent: SPEC-0046
-depends_on: [SPEC-0047, SPEC-0052]
+depends_on: [SPEC-0047, SPEC-0052, SPEC-0055, SPEC-0061]
 consumes_contract: []
 contract_version: 1
-touches: [src/TicTacToe/TicTacToe.Modules.Gameplay/MatchResult.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/GameResultService.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/GameplayDbContext.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/Migrations/**, src/TicTacToe/TicTacToe.Modules.Matchmaking/MatchmakingService.cs, src/TicTacToe/TicTacToe.Modules.Chess/Session/ColorAssignment.cs, src/TicTacToe/TicTacToe.Web/TicTacToe.Web.csproj, src/TicTacToe/TicTacToe.Web/Program.cs, src/TicTacToe/TicTacToe.Web/Services/Chess/**, tests/TicTacToe.Tests/ChessMatchmakingTests.cs, tests/TicTacToe.Tests/ChessPersistenceTests.cs, tests/TicTacToe.Tests/ChessResultRecorderTests.cs]
+touches: [src/TicTacToe/TicTacToe.Modules.Gameplay/MatchResult.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/GameResultService.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/GameplayDbContext.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/Migrations/**, src/TicTacToe/TicTacToe.Modules.Matchmaking/MatchmakingService.cs, src/TicTacToe/TicTacToe.Modules.Chess/Session/ColorAssignment.cs, src/TicTacToe/TicTacToe.Web/Program.cs, src/TicTacToe/TicTacToe.Web/Services/Chess/**, tests/TicTacToe.Tests/ChessMatchmakingTests.cs, tests/TicTacToe.Tests/ChessPersistenceTests.cs, tests/TicTacToe.Tests/ChessResultRecorderTests.cs, tests/TicTacToe.Tests/ChessMatchRegistryTests.cs]
 adrs: [ADR-0012]
 external: []
 size: M
@@ -28,11 +28,12 @@ Liga a sessão de xadrez ao resto do app: **pareamento** por controle de tempo c
 
 **Objetivos (dentro do escopo):**
 - Chave de fila do xadrez `xadrez:{idDoControle}` (por exemplo `xadrez:blitz5+0`), usando o `queueKey` da SPEC-0047; sala privada herda o controle de quem cria.
-- Preferência de cor (`Brancas`, `Pretas`, `Aleatória`) guardada no pareamento; `ColorAssignment.Assign(prefA, prefB, random)` no módulo Chess: preferências compatíveis são respeitadas, iguais ou ambas aleatórias sorteiam.
-- `MatchResult` ganha `TimeControl`, `MovesSan`, `FinalFen` (anuláveis) e `EndReason` ganha os motivos de xadrez; migration aditiva `AddChessInfo`.
+- Preferência de cor (`Brancas`, `Pretas`, `Aleatória`) guardada no pareamento **antes** de entrar na fila ou na sala (o evento de pareamento dispara dentro de `JoinQueue`/`JoinPrivateRoom`); `ColorAssignment.AssignFirst` no módulo Chess: preferências compatíveis são respeitadas, iguais ou ambas aleatórias sorteiam. A preferência **não** influencia o pareamento (quem escolheu a mesma cor pode se parear e o sorteio decide).
+- `MatchResult` ganha `TimeControl`, `MovesSan` (texto sem limite, `nvarchar(max)`), `FinalFen` (anuláveis) e `EndReason` ganha os motivos de xadrez; migration aditiva `AddChessInfo`.
 - `GameResultService.SaveChessAsync(ChessMatchRecord)` e o `ChessResultRecorder` na Web (mapeia `ChessSession` → registro, uma gravação por partida via `TryMarkResultRecorded`).
 - Brancas gravadas como lado X e pretas como O (`WinnerSide`), `GameType = Chess`.
-- Registro no DI: `ConcurrentDictionary<Guid, ChessSession>` singleton e `ChessResultRecorder` scoped; a Web passa a referenciar o módulo Chess.
+- `ChessMatchRegistry` (Web, singleton): cria a sessão da partida **uma única vez** por `matchId` (sorteio de cores dentro do `GetOrAdd`), guarda a associação `connectionId → assento` e permite descobrir o assento e a cor corrente de cada conexão; remove a sessão.
+- Registro no DI: `ChessMatchRegistry` singleton e `ChessResultRecorder` scoped (a referência do módulo Chess ao projeto Web vem da SPEC-0055).
 
 **Não-objetivos (fora do escopo):**
 - Interface do lobby e da arena (SPEC-0056, 0057).
@@ -40,7 +41,7 @@ Liga a sessão de xadrez ao resto do app: **pareamento** por controle de tempo c
 - Motivo de abandono ou W.O. diferente dos existentes; ELO.
 
 ## 3. Dependências
-- **Implementações necessárias:** SPEC-0047 (`GameType`, `queueKey`) e SPEC-0052 (`ChessSession`).
+- **Implementações necessárias:** SPEC-0047 (`GameType`, `queueKey`, `LeaveQueue`), SPEC-0052 e SPEC-0061 (`ChessSession` completa, com os motivos de abandono e desconexão) e SPEC-0055 (que já adiciona a referência do módulo Chess ao projeto Web).
 - **Contratos consumidos:** N/A
 - **Pré-requisitos externos:** N/A
 
@@ -58,7 +59,7 @@ Liga a sessão de xadrez ao resto do app: **pareamento** por controle de tempo c
 **ADRs:** ADR-0012
 
 ## 5. Requisitos Não-Funcionais
-- **Desempenho e escala:** Gravação de uma linha por partida; colunas de texto curtas (`MovesSan` até 4000 caracteres, `FinalFen` até 100).
+- **Desempenho e escala:** Gravação de uma linha por partida; `MovesSan` cresce com a partida (sem limite), `FinalFen` até 100 caracteres.
 - **Segurança:** O resultado é montado no servidor a partir da sessão; nenhum dado do cliente vira coluna sem validação; consulta parametrizada.
 - **Privacidade e dados pessoais:** Mesmos nomes já exibidos hoje e `PlayerId` pseudônimo (ADR-0009); lances não identificam pessoas além da partida.
 - **Disponibilidade e resiliência:** Falha de gravação é registrada em log e não interrompe a partida (como no jogo da velha); gravação única mesmo com dois circuitos observando.
@@ -79,13 +80,18 @@ MatchmakingService (uso pelo xadrez; API da SPEC-0047)
   JoinQueue(..., queueKey: "xadrez:blitz5+0")      CreatePrivateRoom(..., queueKey: ...)
   void SetMatchPreference(string connectionId, string preference)   string? GetPreference(string connectionId)   // texto opaco
 
-MatchResult   string? TimeControl  (nvarchar(16))   string? MovesSan (nvarchar(4000))   string? FinalFen (nvarchar(100))
+MatchResult   string? TimeControl  (nvarchar(16))   string? MovesSan (nvarchar(max))   string? FinalFen (nvarchar(100))
+              MoveCount (já existente) guarda os MEIOS-LANCES; as telas mostram lances completos (⌈meios/2⌉)
 EndReason     acrescenta Checkmate, Stalemate, Insufficient, FiftyMoves, Repetition            // <= 16 caracteres; armazenado como texto
 Migration AddChessInfo: só AddColumn anulável (3 colunas). Sem DropColumn, AlterColumn nem DropTable.
 
-record ChessMatchRecord(string WhiteName, string BlackName, Guid? WhiteId, Guid? BlackId, string? WinnerSide /*"X"=brancas|"O"=pretas|null*/,
+record ChessMatchRecord(string WhiteName, string BlackName, Guid? WhiteId, Guid? BlackId, string? WinnerSide /*"X"=brancas|"O"=pretas|null; WinnerName sai do lado*/,
                         EndReason Reason, int MoveCount, int DurationSeconds, string TimeControl, string MovesSan, string FinalFen, GameMode Mode)
 GameResultService.SaveChessAsync(ChessMatchRecord)     // grava GameType=Chess; falha → log, sem exceção
+Web.ChessMatchRegistry (singleton)
+  ChessMatch GetOrCreate(Guid matchId, Func<ChessMatch> factory)   // ChessMatch = Session + Seats(connectionId → assento 0|1); o factory roda uma vez (sorteio único de cores)
+  bool TryGet(Guid matchId, out ChessMatch match)   int? SeatOf(Guid matchId, string connectionId)   bool Remove(Guid matchId)
+  MyColor de qualquer circuito = session.ColorOf(SeatOf(matchId, connectionId)), relido a cada estado (as cores trocam na revanche)
 Web.ChessResultRecorder.SaveOnceAsync(ChessSession)    // TryMarkResultRecorded + mapeamento + SaveChessAsync; devolve verdadeiro se gravou
 Mapeamento de motivos: Checkmate→Checkmate, Stalemate→Stalemate, InsufficientMaterial→Insufficient, FiftyMoveRule→FiftyMoves,
    ThreefoldRepetition→Repetition, Timeout→Timeout, Resignation e Abandon→Abandon, Disconnect→Disconnect
@@ -99,11 +105,13 @@ Mapeamento de motivos: Checkmate→Checkmate, Stalemate→Stalemate, Insufficien
 | Pareamento por controle | Jogadores com `xadrez:blitz5+0` e `xadrez:bullet1+0` | Só se pareiam controles iguais; sala privada herda | UT-01 |
 | Cores | Combinações de preferências | Regras do contrato; sorteio só nos empates de preferência | UT-02 |
 | Preferência no matchmaking | Guardar e ler texto opaco por conexão | Devolvido ao montar a partida; ausente → nulo | UT-03 |
+| Cor única entre circuitos | Dois circuitos criam a mesma partida com sorteio que devolveria valores diferentes | A sessão nasce uma vez; as duas conexões leem cores opostas | UT-05 |
 | Mapeamento de motivos | Todos os motivos de `ChessEndReason` | Motivo de gravação conforme o contrato | UT-04 |
 | Gravação de partida | Partida de xadrez encerrada | Uma linha com jogo, cores, controle, lances, FEN, motivo, duração | IT-01 |
 | Empate e W.O. | Empate por afogamento, vitória por tempo, abandono, desconexão | `WinnerSide` e motivo corretos | IT-01 |
 | Migration aditiva | Migration AddChessInfo | Só AddColumn anulável; linhas antigas legíveis | IT-02 |
-| Gravação única | Dois circuitos chamam o recorder | Uma linha; falha de banco não lança | IT-03 |
+| Gravação única | Dois circuitos chamam o recorder; falha simulada | Uma linha; falha não lança | IT-03 |
+| Partida longa | 300 meios-lances | Lances gravados por inteiro | IT-04 |
 | Isolamento | Jogo da velha após as mudanças | Fila, gravação e leituras do jogo da velha inalteradas | CH-01 |
 
 ## 7. Artefato B — Plano de Testes (TDD)
@@ -116,11 +124,13 @@ Mapeamento de motivos: Checkmate→Checkmate, Stalemate→Stalemate, Insufficien
 - **UT-02** — Dado `ColorAssignment.AssignFirst` para todas as 9 combinações de preferência e um `coinFlip` controlado, então as regras do contrato valem e o sorteio só é consultado nos empates de preferência.
 - **UT-03** — Dado `SetMatchPreference`/`GetPreference`, então o texto é devolvido por conexão e ausente devolve nulo.
 - **UT-04** — Dado cada `ChessEndReason`, então o `EndReason` gravado segue o mapeamento do contrato e todo valor novo tem no máximo 16 caracteres.
+- **UT-05** — Dado `ChessMatchRegistry.GetOrCreate` chamado por dois circuitos em paralelo com um `coinFlip` que devolve valores diferentes a cada chamada, então o factory roda uma só vez, as duas conexões recebem assentos e cores opostas e `SeatOf`/`ColorOf` devolvem sempre o mesmo par; após a revanche a cor de cada assento troca.
 
 ### 7.3 Testes de Integração
 - **IT-01** — Dado `GameplayDbContext` InMemory, quando `ChessResultRecorder` grava uma vitória por mate, um empate por afogamento, uma vitória por tempo, um abandono e uma desconexão, então cada linha tem `GameType=Chess`, `TimeControl`, `MovesSan`, `FinalFen`, brancas como X e pretas como O, `WinnerSide`, motivo e duração corretos.
 - **IT-02** — Dada a migration `AddChessInfo`, então `Up` só tem `AddColumn` anulável (3 colunas) e linhas antigas continuam legíveis por `GetRecentAsync` e `GetLeaderboardAsync`.
-- **IT-03** — Dado dois chamadores concorrentes de `SaveOnceAsync` para a mesma partida e um banco que falha, então há uma única linha quando funciona e nenhuma exceção quando falha.
+- **IT-03** — Dado dois chamadores concorrentes de `SaveOnceAsync` para a mesma partida, então há uma única linha; e dado um `GameResultService` de teste cujo `SaveChessAsync` lança (subclasse que sobrescreve o método), então o recorder registra o erro em log e não propaga exceção.
+- **IT-04** — Dado uma partida de 300 meios-lances, então `MovesSan` é gravado inteiro (sem truncamento) e `MoveCount` = 300.
 
 ### 7.4 Testes de Contrato
 N/A — sem contrato entre specs (o contrato desta spec é consumido pelas filhas seguintes por depends_on).

@@ -29,7 +29,7 @@ O app guarda todas as partidas em `MatchResult` e assume um único jogo: histór
 - **C. Esquema genérico (JSON por partida)** com `GameType` e um documento de detalhes.
 
 ## Resultado da Decisão
-**Opção escolhida:** **A**, porque é a menor mudança que atende aos direcionadores: uma coluna com valor padrão (aditiva, sem reescrever dados), consultas existentes ganham um parâmetro opcional de jogo (padrão jogo da velha, comportamento atual preservado), e o histórico e o ranking continuam sendo o mesmo código. A fila do matchmaking passa a aceitar uma chave textual (`"velha:1"`, `"xadrez:blitz5+0:aleatoria"`), mantendo o módulo sem conhecer tipos de jogo.
+**Opção escolhida:** **A**, porque é a menor mudança que atende aos direcionadores: uma coluna com valor padrão (aditiva, sem reescrever dados), consultas existentes ganham um parâmetro opcional de jogo (padrão jogo da velha, comportamento atual preservado), e o histórico e o ranking continuam sendo o mesmo código. A fila do matchmaking passa a aceitar uma chave textual (`"velha:1"`, `"xadrez:blitz5+0"`; a preferência de cor do xadrez é metadado separado, não faz parte da chave), mantendo o módulo sem conhecer tipos de jogo.
 
 ### Consequências
 - **Boa**, porque partidas antigas viram jogo da velha sem migração de dados e o jogo da velha não muda de comportamento.

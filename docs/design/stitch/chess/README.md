@@ -18,5 +18,5 @@ Rating/ELO e "+N pontos de rating"; "Ranked Arena", temporadas e títulos ("Gran
 
 ## Defeitos do mock que as specs corrigem
 - Peças pretas quase invisíveis sobre casas escuras: a SPEC-0055 exige contraste mínimo verificado por teste.
-- Tabuleiro mobile incompleto (só a primeira fileira): a arena mobile é definida pela spec (SPEC-0056), não pela imagem.
+- Tabuleiro mobile incompleto (só a primeira fileira): a arena mobile é definida pela spec (SPEC-0057), não pela imagem.
 - Fonte com serifa nos títulos das telas novas: mantém-se Outfit/Space Grotesk do design system (ADR-0008).

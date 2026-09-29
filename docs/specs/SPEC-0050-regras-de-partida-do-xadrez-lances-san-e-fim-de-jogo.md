@@ -37,7 +37,7 @@ Modela a **partida de xadrez** sobre o motor: aplicar lances jogados por casas, 
 **Não-objetivos (fora do escopo):**
 - Relógio, sessão, comandos de jogador e presença (SPEC-0051, SPEC-0052).
 - Proposta e aceite de empate (decisão do produto: fora do escopo).
-- Leitura de SAN/PGN de entrada; nome de abertura; avaliação de material como "vantagem".
+- Leitura de SAN/PGN como recurso do produto (os testes usam um auxiliar próprio); nome de abertura; avaliação de material como "vantagem".
 
 ## 3. Dependências
 - **Implementações necessárias:** SPEC-0049 — motor com `Position`, lances legais e `Apply`.
@@ -86,6 +86,7 @@ sealed class ChessGame
   bool NeedsPromotion(Square from, Square to)
   bool TryPlay(Square from, Square to, PieceType? promotion, out ChessMove? played)   // falso: ilegal, fim, promoção ausente/ inválida
   IReadOnlyList<PieceType> CapturedBy(PieceColor color)
+  bool HasMatingMaterial(PieceColor color)                    // falso para K, K+B, K+N (usado pela sessão na vitória por tempo)
   string MovesSan { get; }                                    // "e4 e5 Nf3 ..." (sem números)
   void End(ChessResult result)                                // fim externo (tempo, abandono, desconexão): só se em andamento
 
@@ -124,15 +125,15 @@ N/A — código novo sobre o motor da SPEC-0049.
 - **UT-02** — Dado lances de peça, captura de peão (`exd5`), roque curto e longo, promoção com captura (`exf8=Q+`), xeque e mate, então o SAN gerado segue o contrato.
 - **UT-03** — Dado dois cavalos, duas torres e duas damas que alcançam o mesmo destino, então o SAN desambigua por coluna, depois por fileira, depois pela casa completa.
 - **UT-04** — Dado o mate do pastor, o mate do louco e uma posição de afogamento, então o resultado é vitória de quem deu o mate ou empate, com `Checkmate`/`Stalemate`.
-- **UT-05** — Dado K×K, K+B×K, K+N×K e bispos de cor de casa igual, então o empate por `InsufficientMaterial` é automático; K+N×K+N e bispos de cores diferentes seguem em jogo.
-- **UT-06** — Dado uma posição com relógio de meio-lance 99, quando sai um lance neutro, então há empate por `FiftyMoveRule`; captura ou lance de peão zera o relógio.
-- **UT-07** — Dado a sequência Cf3 Cf6 Cg1 Cg8 repetida, então a terceira ocorrência da posição inicial encerra em `ThreefoldRepetition`, e a mesma disposição com direitos de roque ou en passant diferentes não conta como repetição.
+- **UT-05** — Dado K×K, K+B×K, K+N×K e bispos de cor de casa igual, então o empate por `InsufficientMaterial` é automático; K+N×K+N, K+N+N×K, K+P×K e bispos de cores diferentes seguem em jogo; `HasMatingMaterial(color)` é falso só para K, K+B e K+N.
+- **UT-06** — Dado uma posição com relógio de meio-lance 99, quando sai um lance neutro, então há empate por `FiftyMoveRule`; captura ou lance de peão zera o relógio; e se o lance que chega a 100 for xeque-mate, o mate prevalece sobre o empate.
+- **UT-07** — Dado a sequência Cf3 Cf6 Cg1 Cg8 repetida, então a terceira ocorrência da posição inicial encerra em `ThreefoldRepetition`; a mesma disposição com direitos de roque diferentes não conta como repetição; e o alvo de en passant só entra na chave da posição quando existe captura en passant legal (um avanço duplo sem peão adversário ao lado não quebra a repetição).
 - **UT-08** — Dado uma sequência com capturas comuns e en passant, então `CapturedBy(White)` e `CapturedBy(Black)` listam as peças certas.
 - **UT-09** — Dado `End` com resultado durante o jogo e depois do fim, então só o primeiro encerra; `TryPlay` depois do fim retorna falso.
 
 ### 7.3 Testes de Integração
-- **IT-01** — Dado partidas conhecidas em SAN (a "Ópera" de Morphy termina em mate; uma partida com roque, en passant e promoção; uma empatada por afogamento), quando reexecutadas lance a lance, então o resultado e o `MovesSan` são os esperados.
-- **IT-02** — Dado o `MovesSan` de uma partida, quando reexecutado a partir da posição inicial, então a posição final (FEN) coincide com a original (base para a persistência da SPEC-0053).
+- **IT-01** — Dado partidas conhecidas em SAN (a "Ópera" de Morphy — desambiguação `Nbd7`, roque longo e mate `Rd8#`; uma partida com roque, en passant e promoção; uma empatada por afogamento), quando reexecutadas com um auxiliar **de teste** que acha o lance legal cujo SAN gerado é igual ao texto, então o resultado e o `MovesSan` são os esperados (a desambiguação só considera lances legais: peça cravada não conta).
+- **IT-02** — Dado o `MovesSan` de uma partida, quando reexecutado pelo mesmo auxiliar de teste a partir da posição inicial, então a posição final (FEN) coincide com a original (prova só a ida e volta; a correção do SAN é da IT-01; base para a persistência da SPEC-0053).
 
 ### 7.4 Testes de Contrato
 N/A — sem contrato entre specs (o contrato desta spec é consumido pelas filhas seguintes por depends_on).

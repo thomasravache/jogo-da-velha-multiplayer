@@ -10,7 +10,7 @@ parent: SPEC-0046
 depends_on: []
 consumes_contract: []
 contract_version: 1
-touches: [src/TicTacToe/TicTacToe.Modules.Gameplay/MatchResult.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/GameResultService.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/HistoryModels.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/LeaderboardModels.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/GameplayDbContext.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/Migrations/**, src/TicTacToe/TicTacToe.Modules.Matchmaking/MatchmakingService.cs, tests/TicTacToe.Tests/MultiGamePersistenceTests.cs, tests/TicTacToe.Tests/MultiGameMatchmakingTests.cs]
+touches: [src/TicTacToe/TicTacToe.Modules.Gameplay/MatchResult.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/GameResultService.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/HistoryModels.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/LeaderboardModels.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/GameplayDbContext.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/Migrations/**, src/TicTacToe/TicTacToe.Modules.Matchmaking/MatchmakingService.cs, tests/TicTacToe.Tests/MultiGamePersistenceTests.cs, tests/TicTacToe.Tests/MultiGameMatchmakingTests.cs, tests/TicTacToe.Tests/HistoryAdvancedUiTests.cs]
 adrs: [ADR-0012]
 external: []
 size: M
@@ -31,6 +31,8 @@ Generaliza o modelo de partidas para mais de um jogo: `MatchResult` ganha `GameT
 - `HistoryQuery`, `LeaderboardQuery` e `GetPlayerSummaryAsync` ganham o parâmetro opcional de jogo (padrão jogo da velha); `GetRecentAsync` e `GetLeaderboardAsync` passam a considerar só o jogo da velha.
 - `SaveResultAsync` grava `GameType.TicTacToe` explicitamente.
 - `MatchmakingService` aceita `queueKey` opcional em `JoinQueue` e `CreatePrivateRoom` e expõe `GetMatchQueueKey(matchId)`; sem chave, mantém o comportamento por `bestOf`.
+- `JoinPrivateRoom` só entra em sala do jogo esperado (prefixo da chave; padrão `velha`), para que um código de sala de xadrez não abra partida de jogo da velha e vice-versa.
+- `LeaveQueue(connectionId)` e `CancelPrivateRoom(connectionId)`: quem cancela a busca, sai da página ou fecha o circuito deixa de ser pareável (sem conexão fantasma na fila).
 
 **Não-objetivos (fora do escopo):**
 - Qualquer tela, rota ou componente (SPEC-0048 e as specs de xadrez).
@@ -72,13 +74,17 @@ enum GameType { TicTacToe = 0, Chess = 1 }
 MatchResult            GameType GameType { get; set; } = GameType.TicTacToe     // coluna int NOT NULL DEFAULT 0 + índice IX_MatchResults_GameType
 HistoryQuery           (..., int PageSize = 10, GameType Game = GameType.TicTacToe)   // parâmetro novo, no fim
 LeaderboardQuery       (Guid? MyPlayerId, int Page, int PageSize = 10, GameType Game = GameType.TicTacToe)
-GetPlayerSummaryAsync  (Guid playerId, GameType game = GameType.TicTacToe)
+GetPlayerSummaryAsync  (Guid playerId, GameType game = GameType.TicTacToe)   // virtual; os dublês de teste existentes (HistoryAdvancedUiTests) passam a sobrescrever a nova assinatura
 GetRecentAsync / GetLeaderboardAsync    → só GameType.TicTacToe (comportamento legado preservado)
 SaveResultAsync        → grava GameType.TicTacToe
 
 MatchmakingService
   Guid? JoinQueue(string connectionId, string playerName = "", Guid? playerId = null, int bestOf = 1, string? queueKey = null)
   string CreatePrivateRoom(string connectionId, string playerName, Guid? playerId = null, int bestOf = 1, string? queueKey = null)
+  Guid? JoinPrivateRoom(string roomCode, string connectionId, string playerName, Guid? playerId = null, string game = "velha")
+       // entra só se a chave da sala começa com $"{game}:"; caso contrário devolve nulo (sala inválida)
+  void LeaveQueue(string connectionId)          // remove a conexão de qualquer fila (idempotente); quem já foi pareado não é afetado
+  void CancelPrivateRoom(string connectionId)   // remove salas criadas por essa conexão que ainda esperam
   string GetMatchQueueKey(Guid matchId)
   // chave efetiva = queueKey ?? $"velha:{bestOf}"; só se pareiam jogadores da mesma chave efetiva; GetMatchBestOf continua valendo
 
@@ -96,6 +102,8 @@ Migration AddGameType: AddColumn<int> GameType (nullable: false, defaultValue: 0
 | Consultas legadas | GetRecentAsync e GetLeaderboardAsync com partidas dos dois jogos | Devolvem só jogo da velha, mesma ordem de antes | CH-01, IT-02 |
 | Fila por chave | Jogadores com chaves iguais e diferentes; sem chave | Só chaves iguais se pareiam; sem chave, comportamento por bestOf | UT-02 |
 | Chave da partida | Partida pareada e sala privada com chave | GetMatchQueueKey devolve a chave efetiva | UT-02 |
+| Sala do jogo errado | Código de sala de xadrez digitado no jogo da velha e vice-versa | Entrada recusada como sala inválida; a sala continua esperando | UT-03 |
+| Cancelar busca | Conexão sai da fila ou da sala e outro jogador entra | Nunca pareia com a conexão que saiu; quem já pareou não é afetado | UT-03 |
 | Migration aditiva | Migration AddGameType | Só AddColumn com valor padrão e CreateIndex; sem remoção | IT-03 |
 
 ## 7. Artefato B — Plano de Testes (TDD)
@@ -106,9 +114,10 @@ Migration AddGameType: AddColumn<int> GameType (nullable: false, defaultValue: 0
 ### 7.2 Testes Unitários
 - **UT-01** — Dado um `MatchResult` novo, então `GameType` é `TicTacToe`, e `GameResultService.SaveResultAsync` grava `TicTacToe`.
 - **UT-02** — Dado o `MatchmakingService`, quando dois jogadores entram com a mesma chave, então pareiam e `GetMatchQueueKey` devolve a chave; com chaves diferentes ficam esperando; sem chave o par se forma por `bestOf` e a chave efetiva é `velha:{bestOf}`; sala privada criada com chave entrega a chave a quem entra.
+- **UT-03** — Dado uma sala criada com `xadrez:blitz5+0` e outra com o padrão, quando se tenta entrar na de xadrez como `velha` (e o inverso), então a entrada é recusada e a sala segue esperando; e dado `LeaveQueue` e `CancelPrivateRoom` de uma conexão que espera, quando outro jogador entra na mesma chave, então ele não pareia com a conexão que saiu.
 
 ### 7.3 Testes de Integração
-- **IT-01** — Dado `GameplayDbContext` InMemory com linhas sem `GameType` e com `Chess`, então as sem valor são lidas como `TicTacToe`.
+- **IT-01** — Dado `GameplayDbContext` InMemory com linhas sem `GameType` explícito e com `Chess`, então as sem valor são lidas como `TicTacToe`, e a configuração do modelo declara o valor padrão 0 (`HasDefaultValue`).
 - **IT-02** — Dado partidas dos dois jogos, então `GetHistoryAsync`, `GetPlayerSummaryAsync` e `GetLeaderboardPageAsync` filtram pelo jogo (padrão jogo da velha), e as contagens do histórico refletem só o jogo pedido.
 - **IT-03** — Dada a migration `AddGameType`, então `Up` contém somente `AddColumn` com valor padrão 0 e `CreateIndex`, sem `DropColumn`, `AlterColumn` nem `DropTable`.
 

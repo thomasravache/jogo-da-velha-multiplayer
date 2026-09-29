@@ -7,10 +7,10 @@ user_facing: true
 status: proposed
 created: 2026-09-29
 parent: SPEC-0046
-depends_on: [SPEC-0047, SPEC-0056]
+depends_on: [SPEC-0047, SPEC-0058, SPEC-0060]
 consumes_contract: []
 contract_version: 1
-touches: [src/TicTacToe/TicTacToe.Web/Components/Pages/GameSelect.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/Home.razor, src/TicTacToe/TicTacToe.Web/Components/Layout/MainLayout.razor, tests/TicTacToe.Tests/GameSelectTests.cs, tests/TicTacToe.Tests/ShellLayoutTests.cs]
+touches: [src/TicTacToe/TicTacToe.Web/Components/Pages/GameSelect.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/Home.razor, src/TicTacToe/TicTacToe.Web/Components/Layout/MainLayout.razor, src/TicTacToe/TicTacToe.Web/wwwroot/css/cyber-arena.css, tests/TicTacToe.Tests/GameSelectTests.cs, tests/TicTacToe.Tests/ShellLayoutTests.cs]
 adrs: [ADR-0008]
 external: []
 size: S
@@ -37,7 +37,7 @@ Cria a tela de **seleção de jogos** (Jogo da Velha ou Xadrez) como entrada do 
 - Qualquer mudança no jogo da velha além da rota.
 
 ## 3. Dependências
-- **Implementações necessárias:** SPEC-0047 (jogo como conceito do modelo) e SPEC-0056 (a rota `/xadrez` precisa existir antes de ser linkada).
+- **Implementações necessárias:** SPEC-0047 (jogo como conceito do modelo), SPEC-0058 e SPEC-0060 (o xadrez só é linkado quando a partida está completa: lobby, arena, robô, abandono, revanche e desconexão).
 - **Contratos consumidos:** N/A
 - **Pré-requisitos externos:** N/A
 
@@ -104,7 +104,8 @@ N/A — sem contrato entre specs (o contrato desta spec é consumido pelas filha
 - **E2E-01** — Jornada (bUnit): abrir `/`, ver as duas cartas, seguir "Jogar" do jogo da velha e encontrar o lobby ("Procurar oponente").
 
 ### 7.6 Outros
-- Revisão visual (H2): 390px e 1280px contra `docs/design/stitch/chess/selecao-desktop.png`; lista de omitidos conferida.
+- Revisão visual (H2): 390px e 1280px contra `docs/design/stitch/chess/selecao-desktop.png`; lista de omitidos conferida (chip "Online" é rótulo fixo; contagem de jogadores online do mock não entra).
+- `tools/tailwind/build.sh` executado e `--check` sem diferença (classes novas nas cartas).
 - Lighthouse Acessibilidade ≥ 90 em `/`.
 
 **Dublês e dados de teste:** `BunitContext`, `FakeNavigationManager` do bUnit.
@@ -112,7 +113,7 @@ N/A — sem contrato entre specs (o contrato desta spec é consumido pelas filha
 **Ambiente de execução:** xUnit (+ bUnit nas specs de interface) local e no `build-and-test` do CI.
 
 ## 8. Plano de Rollout
-- **Estratégia:** Deploy direto (a rota `/xadrez` já existe pela SPEC-0056).
+- **Estratégia:** Deploy direto; esta é a spec que "liga" o xadrez: as rotas já existem e só passam a ter link aqui, quando o xadrez está completo.
 - **Dados/schema:** N/A
 - **Compatibilidade:** `/` deixa de ser o lobby do jogo da velha; favoritos antigos passam a ver a seleção (um clique a mais).
 - **Observabilidade:** N/A

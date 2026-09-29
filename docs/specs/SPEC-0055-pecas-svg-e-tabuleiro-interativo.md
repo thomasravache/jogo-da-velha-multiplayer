@@ -10,7 +10,7 @@ parent: SPEC-0046
 depends_on: [SPEC-0050]
 consumes_contract: []
 contract_version: 1
-touches: [src/TicTacToe/TicTacToe.Web/Components/Chess/ChessPiece.razor, src/TicTacToe/TicTacToe.Web/Components/Chess/ChessBoard.razor, src/TicTacToe/TicTacToe.Web/Components/Chess/PromotionPicker.razor, src/TicTacToe/TicTacToe.Web/Styles/cyber-arena.input.css, src/TicTacToe/TicTacToe.Web/wwwroot/css/cyber-arena.css, tests/TicTacToe.Tests/ChessPieceTests.cs, tests/TicTacToe.Tests/ChessBoardTests.cs, tests/TicTacToe.Tests/ChessDesignTokensTests.cs]
+touches: [src/TicTacToe/TicTacToe.Web/TicTacToe.Web.csproj, src/TicTacToe/TicTacToe.Web/Components/_Imports.razor, src/TicTacToe/TicTacToe.Web/Components/Chess/ChessPiece.razor, src/TicTacToe/TicTacToe.Web/Components/Chess/ChessBoard.razor, src/TicTacToe/TicTacToe.Web/Components/Chess/PromotionPicker.razor, src/TicTacToe/TicTacToe.Web/Styles/cyber-arena.input.css, src/TicTacToe/TicTacToe.Web/wwwroot/css/cyber-arena.css, tests/TicTacToe.Tests/ChessPieceTests.cs, tests/TicTacToe.Tests/ChessBoardTests.cs, tests/TicTacToe.Tests/ChessDesignTokensTests.cs]
 adrs: [ADR-0008]
 external: []
 size: M
@@ -31,8 +31,9 @@ Entrega os componentes visuais do xadrez: as **12 peças em SVG** (conjunto do S
 - `ChessBoard` (apresentação): recebe `Position`, orientação, casa selecionada, destinos legais, último lance, casa do rei em xeque e callbacks; coordenadas a–h e 1–8; rótulo de cada casa ("e2, peão branco", "e4, vazia, destino possível").
 - Interação: clicar peça e depois destino; teclado (setas movem o foco, Enter/Espaço selecionam, Esc cancela); arrastar e soltar; jogada de peça de promoção aciona `PromotionPicker`.
 - `PromotionPicker` (Dama, Torre, Bispo, Cavalo; atalhos Q R B N; Esc cancela) em diálogo acessível.
-- Tokens de cor do tabuleiro e das peças em `cyber-arena.input.css` com contraste ≥ 3:1 (contorno da peça × casa clara e casa escura), verificados por teste.
+- Tokens de cor do tabuleiro e das peças em `cyber-arena.input.css` com contraste ≥ 3:1 (contorno da peça × cada casa) e as duas casas distinguíveis entre si (razão ≥ 1,2:1); as duas casas são tons escuros (o contorno vermelho `#FF4757` só atinge 3:1 contra fundos de luminância ≤ ~0,055), verificados por teste.
 - Responsivo: tabuleiro quadrado que cabe em 390px de largura sem rolagem horizontal.
+- Referência do módulo Chess no projeto Web (`ProjectReference`) e `@using TicTacToe.Modules.Chess` nos `_Imports` de componentes; a Web passa a conhecer o módulo a partir daqui.
 
 **Não-objetivos (fora do escopo):**
 - Relógios, cartões de jogador, lista de lances e fim de partida (SPEC-0057).
@@ -89,7 +90,8 @@ PromotionPicker
 
 Tokens (cyber-arena.input.css, @theme): --color-board-light, --color-board-dark, --color-piece-white-outline (#00D2D3), --color-piece-black-outline (#FF4757),
   --color-square-selected, --color-square-target, --color-square-last, --color-square-check.
-  Regra testada: razão de contraste ≥ 3.0 entre cada contorno de peça e cada cor de casa; ≥ 3.0 entre destaque e casa.
+  Regra testada: razão de contraste ≥ 3.0 entre cada contorno de peça e cada cor de casa; ≥ 3.0 entre destaque e casa; ≥ 1.2 entre casa clara e casa escura;
+  o preenchimento da peça preta (#1B2030) também é comparado às casas (só informativo: a legibilidade vem do contorno).
 ```
 
 **Arquivos/módulos afetados:** ver `touches` no frontmatter. N/A
@@ -104,7 +106,7 @@ Tokens (cyber-arena.input.css, @theme): --color-board-light, --color-board-dark,
 | Teclado | Setas, Enter, Espaço, Esc | Foco percorre casas e ativa como o clique | UT-05 |
 | Arrastar | Soltar em destino e fora do tabuleiro | `OnDragMove` só em destino; soltar fora é ignorado | UT-06 |
 | Promoção | Quatro escolhas, atalhos, Esc | Callback da peça escolhida; cancelar não escolhe; foco inicial na dama | UT-07 |
-| Contraste | Tokens de casas, contornos e destaques | Razões ≥ 3:1 nos pares definidos | UT-08 |
+| Contraste | Tokens de casas, contornos e destaques | Razões ≥ 3:1 nos pares peça×casa e destaque×casa; ≥ 1,2:1 entre as casas | UT-08 |
 | Layout responsivo | Largura de 390px | Sem rolagem horizontal; tabuleiro quadrado (classes utilitárias esperadas) | UT-09 |
 | Sem legado | Marcação dos componentes | Sem `<style>` inline, sem MudBlazor | UT-09 |
 | Jornada | Partida curta jogada por cliques no tabuleiro | Lances legais aplicados, destaque de último lance, promoção escolhida | E2E-01 |
@@ -119,11 +121,11 @@ N/A — componentes novos.
 - **UT-02** — Dado `Position.Start` com orientação branca e preta, então há 64 casas `data-square`, 32 peças, coordenadas a–h/1–8 na ordem certa e a fileira 1 fica embaixo para as brancas e em cima para as pretas.
 - **UT-03** — Dado casa selecionada, destinos (vazios e com captura), último lance e rei em xeque, então cada estado tem marcação própria (atributo e texto no rótulo, além da cor).
 - **UT-04** — Dado clique em uma peça e depois em um destino, então `OnSquareActivated` é chamado na ordem; com `Interactive=false` nenhum callback é chamado.
-- **UT-05** — Dado setas, Enter, Espaço e Esc em uma casa focada, então o foco se move pela grade (e não sai dela), Enter/Espaço ativam a casa e Esc dispara o cancelamento da seleção.
+- **UT-05** — Dado setas, Enter, Espaço e Esc disparados em uma casa (`KeyDown` do bUnit), então o roving tabindex (`tabindex=0` só na casa focada, `-1` nas demais) acompanha as setas sem sair da grade, Enter/Espaço ativam a casa e Esc dispara o cancelamento da seleção. **Limitação herdada do `GameBoard`**: o servidor Blazor não impede a rolagem da página nas setas e no Espaço; registrada em Pendências.
 - **UT-06** — Dado arrastar uma peça e soltá-la em um destino ou fora do tabuleiro, então `OnDragMove` só é chamado com origem e destino válidos.
 - **UT-07** — Dado `PromotionPicker`, então há quatro botões (Dama, Torre, Bispo, Cavalo), as teclas Q/R/B/N escolhem a peça, Esc chama `OnCancel`, o foco inicial fica na dama e há `role="dialog"` com rótulo.
 - **UT-08** — Dado o CSS de entrada, então os tokens de contorno de peça e de casa atendem razão ≥ 3,0 em todos os pares definidos (branca e preta × casa clara e escura; destaques × casas).
-- **UT-09** — Dado a marcação, então não há `<style>` inline nem `mud-`, o contêiner do tabuleiro usa largura fluida com `aspect-square` e nenhuma classe de largura fixa maior que 390px.
+- **UT-09** — Dado a marcação, então não há `<style>` inline nem `mud-`, e o contêiner do tabuleiro tem as classes `w-full`, `max-w-…` e `aspect-square` esperadas (verificação por classes; o layout real é conferido no H2).
 
 ### 7.3 Testes de Integração
 - **IT-01** — Dado o `ChessBoard` ligado a um `ChessGame` de teste que responde aos callbacks (seleciona, destina, promove), quando se jogam `e2→e4`, `e7→e5` e uma promoção pelo tabuleiro, então a posição exibida acompanha o jogo e o último lance é destacado.

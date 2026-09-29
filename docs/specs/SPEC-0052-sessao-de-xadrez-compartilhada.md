@@ -10,7 +10,7 @@ parent: SPEC-0046
 depends_on: [SPEC-0050, SPEC-0051]
 consumes_contract: []
 contract_version: 1
-touches: [src/TicTacToe/TicTacToe.Modules.Chess/Session/**, tests/TicTacToe.Tests/ChessSessionTests.cs, tests/TicTacToe.Tests/ChessSessionLeaveTests.cs, tests/TicTacToe.Tests/ChessSessionRematchTests.cs, tests/TicTacToe.Tests/ChessSessionPresenceTests.cs]
+touches: [src/TicTacToe/TicTacToe.Modules.Chess/Session/ChessSession.cs, src/TicTacToe/TicTacToe.Modules.Chess/Session/ChessSnapshot.cs, src/TicTacToe/TicTacToe.Modules.Chess/Session/ChessMode.cs, tests/TicTacToe.Tests/ChessSessionTests.cs, tests/TicTacToe.Tests/ChessSessionSnapshotTests.cs]
 adrs: []
 external: []
 size: M
@@ -21,80 +21,80 @@ approved_at:
 # SPEC-0052 — Sessão de xadrez compartilhada
 
 ## 1. Visão Geral
-Cria a **sessão de xadrez** compartilhada pelos dois circuitos: jogadores e cores, lances validados por vez, relógio, resultado, desistência (abandono), revanche com aceite (trocando de cor), presença com W.O. por desconexão e evento de mudança de estado. É o equivalente do `GameSession` do jogo da velha para o xadrez.
+Cria o **núcleo da sessão de xadrez** compartilhada pelos dois circuitos: dois assentos (cada um com nome, identidade e cor corrente), lances validados por vez, relógio, resultado por regras e por tempo, `Snapshot` imutável para a interface e evento de mudança de estado. Abandono, revanche e presença ficam na SPEC-0061 (mesma classe, arquivo parcial).
 
 ## 2. Motivação & Escopo
-**Motivação:** A partida em rede precisa de um objeto único, atômico e observável por dois circuitos. No jogo da velha isso foi construído em várias specs (0027, 0041, 0042); aqui o domínio nasce completo e a interface só o apresenta.
+**Motivação:** A partida em rede precisa de um objeto único, atômico e observável por dois circuitos. O `GameSession` do jogo da velha cresceu em várias specs; aqui o núcleo nasce separado do ciclo de vida para caber em uma spec.
 
 **Objetivos (dentro do escopo):**
-- `ChessSession` com `TryMove` (valida quem joga, vez, fim e promoção) integrando `ChessGame` e `ChessClock`.
-- Resultado por regras (via `ChessGame`), por tempo (bandeira), por abandono (`Leave`) e por desconexão (`SetConnection` + `Tick`).
-- Revanche com aceite: `RequestRematch`/`AcceptRematch`/`DeclineRematch`, expiração em 30 s, **troca de cores** ao reiniciar; partida solo reinicia na hora.
-- `Forfeit` como único caminho de desistência; `Leave` descarta em solo; `HasLeft`.
-- Identidade (`SetPlayer` com nome e `PlayerId`), modo (`Online`, `Private`, `Solo`), `TryMarkResultRecorded`, instantes e duração.
-- Evento `OnStateChanged` sempre disparado fora do lock; `Tick()` dirige bandeira, desconexão e expiração da revanche.
+- `ChessSession` (`partial`) com dois **assentos** (0 e 1): `SetSeat`, `ColorOf(seat)`, `SeatOf(color)`; a cor de cada assento pode trocar (revanche, SPEC-0061), então a interface sempre pergunta a cor corrente pelo assento.
+- `TryMove` que primeiro reavalia o relógio (bandeira caída = derrota por tempo antes de aceitar o lance) e depois valida vez, fim, legalidade e promoção, jogando no `ChessGame` e pressionando o relógio.
+- Resultado por regras (`ChessGame`) e por tempo; **vitória por tempo vira empate quando quem venceria não tem material de mate** (K, K+B, K+N), como na FIDE.
+- `Snapshot()` imutável tirado sob lock (posição, lances copiados, capturadas, tempos, resultado, nomes, cores, modo): é o que a interface lê, nunca o `ChessGame` mutável.
+- Evento `OnStateChanged` sempre fora do lock; `Tick()` (bandeira e gancho `TickLifecycle`); `TryMarkResultRecorded`; instantes e duração; primeira posição = `start ?? Position.Start`.
 
 **Não-objetivos (fora do escopo):**
-- Pareamento, cores por preferência e persistência (SPEC-0053).
-- Robô (SPEC-0054/0058) e qualquer interface (SPEC-0055 a 0060).
-- Proposta de empate e série de partidas.
+- Abandono, desistência, revanche e presença (SPEC-0061).
+- Pareamento, cores por preferência e persistência (SPEC-0053); robô (SPEC-0054/0058); interface (SPEC-0055 a 0060).
+- Proposta de empate e série.
 
 ## 3. Dependências
-- **Implementações necessárias:** SPEC-0050 (`ChessGame`, resultado, SAN) e SPEC-0051 (`ChessClock`, `TimeControl`).
+- **Implementações necessárias:** SPEC-0050 (`ChessGame`, resultado, SAN, `HasMatingMaterial`) e SPEC-0051 (`ChessClock`, `TimeControl`).
 - **Contratos consumidos:** N/A
 - **Pré-requisitos externos:** N/A
 
 ## 4. Decisão Arquitetural
-**Contexto:** `GameSession` (SPEC-0027, 0040, 0041, 0042): estado compartilhado sob `lock`, `OnStateChanged` fora do lock, `TimeProvider` injetável, `Tick` por timer de 1 s, `Leave`/rematch/presença. Referência: `GameSession.cs`, `LeaveAndRematchTests`, `DisconnectForfeitTests`.
+**Contexto:** `GameSession` (SPEC-0027, 0040): estado compartilhado sob `lock`, `OnStateChanged` fora do lock, `TimeProvider` injetável, `Tick` por timer de 1 s. Referência: `GameSession.cs` e `GameSessionMatchDetailsTests`.
 
-**Decisão:** `ChessSession` no módulo Chess repetindo o padrão de `GameSession`, com tipos próprios (`ChessLeaveResult`, `ChessRematchState`, `ChessMode`) para não colidir com os de Gameplay nas páginas que importam os dois módulos.
+**Decisão:** `ChessSession` no módulo Chess, classe parcial (núcleo aqui, ciclo de vida na SPEC-0061), com assentos que guardam a cor corrente e `Snapshot` imutável para leitura pela interface; tipos próprios para não colidir com os de Gameplay nas páginas que importam os dois módulos.
 
-**Justificativa:** Mantém os módulos independentes e reaproveita o desenho já validado (atomicidade, eventos fora do lock, expiração no Tick).
+**Justificativa:** Assentos resolvem a troca de cores na revanche sem que a interface guarde cor fixa; o snapshot evita enumerar a lista de lances enquanto o outro circuito joga.
 
-**Desvio do padrão existente:** Nenhum (padrão existente aplicado a outro jogo).
+**Desvio do padrão existente:** Nenhum estrutural; a leitura por snapshot é mais estrita que a do jogo da velha (que expõe o estado direto), por causa da lista de lances.
 
-**Alternativas descartadas:** Generalizar `GameSession` para os dois jogos (refactor grande e arriscado no jogo da velha já entregue); compartilhar enums entre módulos (violaria a fronteira).
+**Alternativas descartadas:** Expor `ChessGame` e `ChessClock` diretamente (risco de `InvalidOperationException` ao enumerar `Moves` durante um lance); generalizar `GameSession` (refactor arriscado no jogo da velha entregue).
 
 **ADRs:** N/A
 
 ## 5. Requisitos Não-Funcionais
-- **Desempenho e escala:** Comandos em milissegundos; um evento de estado por comando; `Tick` O(1).
-- **Segurança:** Todo comando valida no servidor quem age e o estado (turno, fim, presença); comandos inválidos retornam falso e não alteram nada; o `PlayerId` não é exposto.
-- **Privacidade e dados pessoais:** N/A — nomes já visíveis; `PlayerId` só para gravação.
-- **Disponibilidade e resiliência:** Comandos concorrentes (dois aceites, abandono e lance simultâneos) produzem um único efeito; o pedido de revanche expira; eventos fora do lock evitam deadlock.
+- **Desempenho e escala:** Comandos em milissegundos; um evento por comando; `Snapshot` O(n) na quantidade de lances, sem custo perceptível.
+- **Segurança:** Todo comando valida no servidor quem age e o estado (turno, fim); comandos inválidos retornam falso sem alterar nada; o `PlayerId` não é exposto no snapshot.
+- **Privacidade e dados pessoais:** N/A — só nomes já visíveis.
+- **Disponibilidade e resiliência:** Comandos concorrentes produzem um único efeito; leituras por snapshot nunca observam estado parcial; eventos fora do lock evitam deadlock.
 - **Acessibilidade (UI):** N/A — sem interface.
 - **Custo:** N/A — sem serviço pago novo.
 
 ## 6. Artefato A — Contrato
-**Interface:** `TicTacToe.Modules.Chess: ChessSession, ChessMode, ChessLeaveResult, ChessRematchState`
+**Interface:** `TicTacToe.Modules.Chess: ChessSession (núcleo), ChessSnapshot, ChessMode`
 
 ```text
 enum ChessMode { Online, Private, Solo }
-enum ChessLeaveResult { Forfeited, Discarded, Left, Rejected }
-enum ChessRematchState { None, Requested, Declined, Expired }
 
-sealed class ChessSession : IDisposable
-  const int DisconnectGraceSeconds = 15;   // como no jogo da velha
+sealed partial class ChessSession : IDisposable
   ChessSession(TimeControl control, TimeProvider? timeProvider = null, bool enableBackgroundTimer = true, Position? start = null)
-  Guid Id;  ChessGame Game;  ChessClock Clock;  TimeControl Control;  ChessMode Mode { get; set; }
-  void SetPlayer(PieceColor color, string name, Guid? playerId);  string GetPlayerName(PieceColor);  Guid? GetPlayerId(PieceColor)
+  Guid Id;  TimeControl Control;  ChessMode Mode { get; set; }
+  // assentos: 0 e 1; cores opostas
+  void SetSeat(int seat, string name, Guid? playerId, PieceColor color)
+  PieceColor ColorOf(int seat);  int SeatOf(PieceColor color);  string GetSeatName(int seat);  Guid? GetSeatPlayerId(int seat)
+  string GetPlayerName(PieceColor color);  Guid? GetPlayerId(PieceColor color)            // pela cor corrente
   bool TryMove(PieceColor player, Square from, Square to, PieceType? promotion, out ChessMove? played)
-       // falso: fim, fora da vez, ilegal, promoção ausente; ao jogar: Clock.Press; fim por regras encerra e para o relógio
-  ChessResult? Result { get; }   bool IsOver { get; }
-  DateTimeOffset StartedAtUtc;  DateTimeOffset? EndedAtUtc;  TimeSpan? Duration
-  bool Forfeit(PieceColor loser, ChessEndReason reason)          // Resignation|Abandon|Disconnect|Timeout; falso se encerrada
-  ChessLeaveResult Leave(PieceColor player)                      // em andamento: Forfeited (Abandon) ou Discarded (solo); encerrada: Left; repetida: Rejected
-  bool HasLeft(PieceColor color)
-  bool RequestRematch(PieceColor player);  bool AcceptRematch(PieceColor player);  bool DeclineRematch(PieceColor player)
-       // solo: reinicia na hora; humanos: pedido/aceite/recusa, pedidos simultâneos = aceite automático, expira em 30 s;
-       // ao reiniciar: nova partida, cores TROCADAS, relógio novo, presença e pedido limpos
-  ChessRematchState RematchState { get; };  PieceColor? RematchRequestedBy { get; }
-  void SetConnection(PieceColor player, bool connected);  int? DisconnectSecondsLeft(PieceColor player)
-  void Tick()                                                    // bandeira (Timeout), desconexão (Disconnect) e expiração de revanche
-  event Action? OnStateChanged                                   // nunca dentro do lock
-  bool TryMarkResultRecorded()                                   // verdadeiro só no primeiro chamador por partida
-Regras: derrota por tempo = vitória do outro por Timeout (sem verificar material do vencedor);
-        abandono e desconexão só valem em partida humana; presença é ignorada em solo e com a partida encerrada.
+      // 1) Clock.Tick(): bandeira caída → encerra por Timeout e devolve falso; 2) recusa fim, vez errada, lance ilegal, promoção ausente;
+      // 3) Game.TryPlay + Clock.Press; 4) fim por regras encerra e para o relógio; evento fora do lock
+  ChessSnapshot Snapshot()
+  ChessResult? Result { get; }  bool IsOver { get; }
+  DateTimeOffset StartedAtUtc { get; }  DateTimeOffset? EndedAtUtc { get; }  TimeSpan? Duration { get; }
+  void Tick()                                      // reavalia bandeira; chama TickLifecycle() (partial void, implementado na SPEC-0061)
+  event Action? OnStateChanged                     // nunca dentro do lock
+  bool TryMarkResultRecorded()                     // verdadeiro só no primeiro chamador por partida
+  internal bool RestartCore(bool swapColors)       // nova partida de `start ?? Position.Start`, relógio novo, cores trocadas se pedido (usado pela SPEC-0061)
+  partial void TickLifecycle()
+
+record ChessSnapshot(Guid SessionId, ChessMode Mode, TimeControl Control, Position Position, IReadOnlyList<ChessMove> Moves,
+                     IReadOnlyList<PieceType> CapturedByWhite, IReadOnlyList<PieceType> CapturedByBlack,
+                     TimeSpan WhiteRemaining, TimeSpan BlackRemaining, PieceColor? ClockRunning, PieceColor SideToMove,
+                     ChessResult? Result, string WhiteName, string BlackName, DateTimeOffset StartedAtUtc, DateTimeOffset? EndedAtUtc)
+
+Fim por tempo: vence quem não caiu (Outcome do outro lado, Reason = Timeout); se esse vencedor não tem material de mate → Outcome = Draw, Reason = Timeout.
 ```
 
 **Arquivos/módulos afetados:** ver `touches` no frontmatter. N/A
@@ -102,17 +102,14 @@ Regras: derrota por tempo = vitória do outro por Timeout (sem verificar materia
 ### 6.1 Mapa de Comportamentos
 | Cenário | Condição / Entrada | Resultado esperado | Testes |
 |---|---|---|---|
-| Jogar lance | Lance legal na vez; fora da vez; ilegal; após o fim; promoção | Aceito só o legal na vez; relógio passa ao outro; demais retornam falso | UT-01 |
-| Fim por regras | Mate, afogamento, repetição na sessão | Resultado registrado, relógio parado, `EndedAtUtc` definido | UT-02 |
-| Fim por tempo | Bandeira cai com o relógio simulado | Vitória do outro por `Timeout` | UT-03 |
-| Desistência | `Forfeit`/`Leave` em andamento, solo, encerrada, repetida | Abandon, Discarded, Left, Rejected; idempotente | UT-04 |
-| Presença | Queda e retorno; 15 s; dois caem; solo e encerrada | Disconnect só após a tolerância; regras de exceção | UT-05 |
-| Revanche | Pedido, aceite, recusa, simultâneo, expiração, oponente ausente | Estados e efeitos do contrato; cores trocadas ao reiniciar | UT-06 |
-| Concorrência | Dois aceites e lance/abandono simultâneos | Um único efeito | UT-07 |
-| Solo | Revanche e abandono em solo | Reinício imediato; abandono descarta sem resultado gravável | UT-08 |
-| Gravação única | `TryMarkResultRecorded` repetido | Verdadeiro uma só vez por partida; volta a valer após revanche | UT-09 |
-| Eventos | Handler que reentra na sessão | Evento disparado fora do lock | UT-10 |
-| Partida completa | Mate do pastor com relógio; W.O. por tempo; revanche | Fluxos ponta a ponta no domínio | IT-01 |
+| Assentos e cores | Definir dois assentos; consultar por assento e por cor | Cores opostas; nomes e identidades pelo assento; consulta por cor corrente | UT-01 |
+| Jogar lance | Lance legal na vez; fora da vez; ilegal; após o fim; promoção | Aceito só o legal na vez; relógio passa ao outro; demais retornam falso | UT-02 |
+| Fim por regras | Mate, afogamento e demais regras na sessão | Resultado registrado, relógio parado, `EndedAtUtc` definido | UT-03 |
+| Fim por tempo | Bandeira cai; lance tentado depois da bandeira; vencedor sem material de mate | Vitória do outro por `Timeout`; lance recusado; empate se não há material de mate | UT-04 |
+| Snapshot | Leitura durante e depois de lances | Instantâneo consistente e imutável; sem exceção sob leitura × lance concorrentes | UT-05 |
+| Eventos | Handler que reentra na sessão | Evento disparado fora do lock | UT-06 |
+| Gravação única | `TryMarkResultRecorded` repetido | Verdadeiro uma só vez por partida | UT-07 |
+| Partida completa | Mate do pastor com relógio; partida por tempo | Fluxos ponta a ponta no domínio | IT-01 |
 
 ## 7. Artefato B — Plano de Testes (TDD)
 
@@ -120,19 +117,16 @@ Regras: derrota por tempo = vitória do outro por Timeout (sem verificar materia
 N/A — código novo.
 
 ### 7.2 Testes Unitários
-- **UT-01** — Dado uma sessão nova, quando brancas jogam `e2→e4`, então o lance entra no histórico e o relógio passa às pretas; jogar fora da vez, um lance ilegal, depois do fim ou promoção sem peça retorna falso sem mudar o estado.
-- **UT-02** — Dado o mate do pastor e uma posição de afogamento, então `Result` traz o resultado e o motivo por regras, `IsOver` é verdadeiro, o relógio para e `EndedAtUtc`/`Duration` ficam definidos.
-- **UT-03** — Dado o relógio simulado avançando além do tempo de quem joga e `Tick`, então o outro vence por `Timeout` e novos lances são recusados.
-- **UT-04** — Dado `Forfeit(loser, reason)` e `Leave` em partida em andamento, solo em andamento, encerrada e repetida, então: o outro vence com o motivo dado (Abandon para `Leave`), o solo devolve `Discarded` sem resultado gravável, a encerrada devolve `Left` e a repetida `Rejected`; `Forfeit` em partida encerrada retorna falso.
-- **UT-05** — Dado `SetConnection(false)` por 5 s e retorno, então a partida segue; por 15 s de `Tick`, o outro vence por `Disconnect`; com dois desconectados vale quem estoura primeiro; em solo e com a partida encerrada o evento é ignorado; `DisconnectSecondsLeft` conta de 15 a 0 e é nulo com a partida encerrada.
-- **UT-06** — Dado uma partida encerrada, então: pedido → `Requested`; aceite pelo outro reinicia com **as cores trocadas** e relógio novo; recusa → `Declined`; pedidos dos dois lados aceitam automaticamente; 30 s sem resposta → `Expired` (novo pedido permitido); pedido com o oponente ausente é recusado.
-- **UT-07** — Dado dois `AcceptRematch` em paralelo e um lance concorrente com `Leave`, então reinicia uma única vez e o abandono e o lance não produzem dois resultados.
-- **UT-08** — Dado uma sessão solo, então `RequestRematch` reinicia na hora (sem aceite, cores trocadas) e `Leave` em andamento descarta a partida.
-- **UT-09** — Dado `TryMarkResultRecorded` chamado duas vezes na mesma partida encerrada, então retorna verdadeiro e depois falso; após revanche volta a valer para a nova partida.
-- **UT-10** — Dado um handler de `OnStateChanged` que consulta a sessão a partir de outra thread, então a consulta não fica bloqueada (evento fora do lock) em lance, `Leave`, `Tick` que expira revanche e `SetConnection`.
+- **UT-01** — Dado `SetSeat(0, …, White)` e `SetSeat(1, …, Black)`, então `ColorOf`, `SeatOf`, `GetPlayerName(color)` e `GetPlayerId(color)` são coerentes, e cores iguais nos dois assentos são recusadas.
+- **UT-02** — Dado uma sessão nova, quando brancas jogam `e2→e4`, então o lance entra no histórico e o relógio das pretas passa a correr (o das brancas não descontou nada); jogar fora da vez, um lance ilegal, depois do fim ou promoção sem peça retorna falso sem mudar o estado.
+- **UT-03** — Dado o mate do pastor e uma posição de afogamento, então `Result` traz o resultado e o motivo por regras, `IsOver` é verdadeiro, o relógio para e `EndedAtUtc`/`Duration` ficam definidos.
+- **UT-04** — Dado o relógio simulado avançando além do tempo de quem joga, então `Tick` encerra com vitória do outro por `Timeout`; se ninguém rodou `Tick` e alguém tenta jogar depois da bandeira, o lance é recusado e a partida termina por `Timeout`; se o vencedor teria só rei (ou rei e uma peça menor), o resultado é `Draw` com motivo `Timeout`.
+- **UT-05** — Dado `Snapshot()` chamado antes e depois de lances, então cada snapshot é imutável (a lista de lances antiga não muda); dado uma thread lendo snapshots em laço enquanto outra joga 40 lances, então nenhuma exceção ocorre e cada snapshot é consistente (posição com o número de lances igual ao do histórico).
+- **UT-06** — Dado um handler de `OnStateChanged` que consulta a sessão a partir de outra thread, então a consulta não fica bloqueada (evento fora do lock) em lance e em `Tick` que derruba a bandeira.
+- **UT-07** — Dado `TryMarkResultRecorded` chamado duas vezes na mesma partida encerrada, então retorna verdadeiro e depois falso.
 
 ### 7.3 Testes de Integração
-- **IT-01** — Dado uma sessão real com `ManualTime`, quando se joga o mate do pastor com tempo correndo, depois outra partida termina por W.O. de tempo e uma revanche é aceita, então resultados, motivos, cores trocadas e relógios são os esperados de ponta a ponta.
+- **IT-01** — Dado uma sessão real com `ManualTime`, quando se joga o mate do pastor com tempo correndo e depois outra partida termina por tempo, então resultados, motivos, relógios e snapshots são os esperados de ponta a ponta.
 
 ### 7.4 Testes de Contrato
 N/A — sem contrato entre specs (o contrato desta spec é consumido pelas filhas seguintes por depends_on).
@@ -141,14 +135,14 @@ N/A — sem contrato entre specs (o contrato desta spec é consumido pelas filha
 N/A — `user_facing: false`.
 
 ### 7.6 Outros
-- Corrida entre `AcceptRematch`, `Leave` e `TryMove` repetida 200 vezes sem estado inconsistente (parte do UT-07).
+- A corrida leitura × lance do UT-05 repete 50 vezes no CI sem estado inconsistente.
 
 **Dublês e dados de teste:** `ManualTime` (existente), `ChessGame` e `ChessClock` reais; sem mocks.
 
 **Ambiente de execução:** xUnit (+ bUnit nas specs de interface) local e no `build-and-test` do CI.
 
 ## 8. Plano de Rollout
-- **Estratégia:** Deploy direto; sem consumidores até as specs de pareamento e interface.
+- **Estratégia:** Deploy direto; sem consumidores até as specs seguintes.
 - **Dados/schema:** N/A
 - **Compatibilidade:** N/A — código novo.
 - **Observabilidade:** N/A — biblioteca; logs na camada Web (specs seguintes).
@@ -156,8 +150,8 @@ N/A — `user_facing: false`.
 - **Etapas de migração/coexistência:** N/A
 
 ## 9. Questões em Aberto
-- - [x] Revanche troca as cores? — Sim, como no xadrez de torneio (Architect, 2026-09-29)
-- - [x] Vitória por tempo com material insuficiente do adversário? — Vitória simples, sem verificar material (Architect, 2026-09-29)
+- - [x] Vitória por tempo com o vencedor sem material de mate? — Empate, como na FIDE (Architect, 2026-09-29; revisão do plano)
+- - [x] O relógio corre desde a criação da sessão? — Não: só começa depois do primeiro lance das brancas (SPEC-0051); abortar partida parada fica para spec futura (Architect, 2026-09-29)
 
 ## 10. Aprovação (H1)
 Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o humano responder "Aprovado". O arquiteto nunca aprova a própria spec.

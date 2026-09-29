@@ -10,7 +10,7 @@ parent: SPEC-0046
 depends_on: [SPEC-0048, SPEC-0053]
 consumes_contract: []
 contract_version: 1
-touches: [src/TicTacToe/TicTacToe.Modules.Gameplay/HistoryModels.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/HistoryAnalysis.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/LeaderboardModels.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/GameResultService.cs, src/TicTacToe/TicTacToe.Web/Components/Pages/History.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/Leaderboard.razor, tests/TicTacToe.Tests/ChessHistoryTests.cs, tests/TicTacToe.Tests/ChessLeaderboardTests.cs, tests/TicTacToe.Tests/HistoryCyberArenaTests.cs, tests/TicTacToe.Tests/HistoryAdvancedUiTests.cs, tests/TicTacToe.Tests/LeaderboardAdvancedUiTests.cs]
+touches: [src/TicTacToe/TicTacToe.Modules.Gameplay/HistoryModels.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/HistoryAnalysis.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/LeaderboardModels.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/GameResultService.cs, src/TicTacToe/TicTacToe.Web/Components/Pages/History.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/Leaderboard.razor, src/TicTacToe/TicTacToe.Web/wwwroot/css/cyber-arena.css, tests/TicTacToe.Tests/ChessHistoryTests.cs, tests/TicTacToe.Tests/ChessLeaderboardTests.cs, tests/TicTacToe.Tests/HistoryCyberArenaTests.cs, tests/TicTacToe.Tests/HistoryAdvancedUiTests.cs, tests/TicTacToe.Tests/LeaderboardAdvancedUiTests.cs]
 adrs: [ADR-0012]
 external: []
 size: M
@@ -73,7 +73,7 @@ Seletor "Jogo" (radiogrupo aria-label="Jogo"): "Jogo da velha" | "Xadrez"; troca
 HistoryItem  (campos existentes)  + GameType Game = GameType.TicTacToe, string? TimeControl = null, int? MoveCount = null     // no fim, com padrão
 HistoryQuery.Game / LeaderboardQuery.Game = jogo escolhido (SPEC-0047)
 
-Tabela do histórico no xadrez: Resultado · Duelo (nome + "Brancas"/"Pretas") · Controle · Motivo · Lances · Duração · Data
+Tabela do histórico no xadrez: Resultado · Duelo (nome + "Brancas"/"Pretas") · Controle · Motivo · Lances (lances completos = ⌈MoveCount/2⌉, pois MoveCount guarda meios-lances) · Duração · Data
 Motivos (HistoryAnalysis.Reason): Checkmate "Xeque-mate" · Stalemate "Afogamento" · Insufficient "Material insuficiente" · FiftyMoves "Regra dos 50 lances" ·
    Repetition "Repetição de posição" · Timeout "Tempo esgotado" · Abandon "Abandono" · Disconnect "Desconexão do oponente"
 Summarize: "vitória mais rápida" considera Line e Checkmate; demais regras inalteradas
@@ -117,6 +117,7 @@ N/A — sem contrato entre specs (o contrato desta spec é consumido pelas filha
 
 ### 7.6 Outros
 - Revisão visual (H2): 390px e 1280px contra `docs/design/stitch/chess/historico-desktop.png` e `ranking-desktop.png`; lista de omitidos (rating, temporada, badges) conferida.
+- `tools/tailwind/build.sh` executado e `--check` sem diferença.
 - Lighthouse Acessibilidade ≥ 90 nas duas páginas.
 
 **Dublês e dados de teste:** EF InMemory com construtores de partida dos dois jogos, identidade em memória, serviço de teste para a UI.

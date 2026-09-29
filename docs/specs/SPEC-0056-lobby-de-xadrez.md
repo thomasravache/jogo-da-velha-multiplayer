@@ -10,7 +10,7 @@ parent: SPEC-0046
 depends_on: [SPEC-0053, SPEC-0057]
 consumes_contract: []
 contract_version: 1
-touches: [src/TicTacToe/TicTacToe.Web/Components/Pages/ChessHome.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/ChessHome.razor.cs, src/TicTacToe/TicTacToe.Web/Components/Chess/ChessLobby.razor, tests/TicTacToe.Tests/ChessLobbyTests.cs, tests/TicTacToe.Tests/ChessHomeTests.cs]
+touches: [src/TicTacToe/TicTacToe.Web/Components/Pages/ChessHome.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/ChessHome.razor.cs, src/TicTacToe/TicTacToe.Web/Components/Chess/ChessLobby.razor, src/TicTacToe/TicTacToe.Web/wwwroot/css/cyber-arena.css, tests/TicTacToe.Tests/ChessLobbyTests.cs, tests/TicTacToe.Tests/ChessHomeTests.cs]
 adrs: [ADR-0008]
 external: []
 size: M
@@ -29,9 +29,10 @@ Entrega a página `/xadrez`: o **lobby de xadrez** (apelido, controle de tempo, 
 **Objetivos (dentro do escopo):**
 - Página `/xadrez` (`ChessHome`, `@rendermode InteractiveServer`) e componente `ChessLobby` reaproveitando os primitivos do lobby do jogo da velha (`NeonInput`, `SegmentedControl`, `PillButton`, `StatusChip`).
 - Apelido lembrado pela identidade anônima (SPEC-0037), controle de tempo (Bullet 1+0, Blitz 5+0, Rápida 10+5) com descrição do escolhido e cor (Brancas, Pretas, Aleatória) com descrição.
-- "Procurar oponente": fila por `xadrez:{controle}`, estado "Na fila" com cancelar; "Sala privada": criar (código com copiar) e entrar com código, erro "Sala inválida ou já iniciada!".
-- Ao parear: `ColorAssignment`, criação da `ChessSession` com nomes, cores e `PlayerId`, registro no dicionário de sessões, modo imersivo do shell e `ChessArena`.
+- "Procurar oponente": fila por `xadrez:{controle}` (preferência de cor registrada **antes** de entrar), estado "Na fila" com cancelar (`LeaveQueue`); "Sala privada": criar (código com copiar) e entrar com código, erro "Sala inválida ou já iniciada!".
+- Ao parear: a sessão é criada **uma única vez** por `ChessMatchRegistry.GetOrCreate(matchId, …)` (sorteio de cores dentro do factory; nomes e `PlayerId` por assento); cada `ChessHome` descobre o próprio assento por `SeatOf(matchId, connectionId)` e renderiza `ChessArena MySeat`; modo imersivo do shell.
 - Gravação do resultado por `ChessResultRecorder` ao fim da partida (uma vez), e volta ao lobby.
+- Sair da página (descarte) cancela a busca ou a sala (`LeaveQueue`, `CancelPrivateRoom`) e solta as assinaturas.
 
 **Não-objetivos (fora do escopo):**
 - Modo solo contra o robô (SPEC-0058) e fluxos de abandono, revanche e desconexão (SPEC-0060).
@@ -75,13 +76,15 @@ ChessLobby (apresentação)
   [Parameter] bool IsWaiting · string? CreatedRoomCode · string InputRoomCode · EventCallback<string> InputRoomCodeChanged · string? RoomErrorMessage
   [Parameter] EventCallback OnPlayOnline · OnCancelSearch · OnCreateRoom · OnJoinRoom
   descrições: Bullet "1 minuto para cada jogador, sem acréscimo" · Blitz "5 minutos para cada jogador, sem acréscimo de tempo por lance"
-              Rápida "10 minutos para cada jogador, com 5 segundos por lance" · cor Aleatória "O sorteio de cores ocorrerá automaticamente no início da partida"
+              Rápida "10 minutos para cada jogador, com 5 segundos por lance"
+              cor: "Sua preferência é atendida quando possível; se os dois pedirem a mesma cor, as cores são sorteadas" · Aleatória "O sorteio de cores ocorrerá automaticamente no início da partida"
 
 ChessHome (/xadrez)  PageTitle "Xadrez · XO Arena"
-  fila: matchmaking.JoinQueue(conexão, apelido, playerId, queueKey: "xadrez:{controle.Id}") + preferência de cor
-  sala privada: CreatePrivateRoom/JoinPrivateRoom com a mesma chave
-  ao parear: cores por ColorAssignment; ChessSession(controle) com SetPlayer por cor; sessões em ConcurrentDictionary<Guid, ChessSession>; Mode Online|Private
-  em partida: <ChessArena Session MyColor/>, ShellState.Set(true, "Partida de xadrez"); ao fim: ChessResultRecorder.SaveOnceAsync
+  ordem: SetMatchPreference(conexão, preferência) ANTES de JoinQueue/CreatePrivateRoom/JoinPrivateRoom (o pareamento dispara dentro dessas chamadas)
+  fila: matchmaking.JoinQueue(conexão, apelido, playerId, queueKey: "xadrez:{controle.Id}"); cancelar: LeaveQueue(conexão)
+  sala privada: CreatePrivateRoom(..., queueKey) / JoinPrivateRoom(código, ..., game: "xadrez"); cancelar: CancelPrivateRoom
+  ao parear: ChessMatchRegistry.GetOrCreate(matchId, factory) cria ChessSession(controle) uma vez, com SetSeat 0 e 1 (cores por ColorAssignment) e Mode Online|Private
+  cada circuito: seat = registry.SeatOf(matchId, conexão); em partida: <ChessArena Session MySeat/>, ShellState.Set(true, "Partida de xadrez"); ao fim: ChessResultRecorder.SaveOnceAsync
 ```
 
 **Arquivos/módulos afetados:** ver `touches` no frontmatter. N/A
@@ -92,9 +95,10 @@ ChessHome (/xadrez)  PageTitle "Xadrez · XO Arena"
 | Apelido | Identidade com apelido salvo e sem | Campo preenchido com o apelido; chip de prontidão | UT-01 |
 | Controle de tempo | Escolher Bullet, Blitz, Rápida | Radiogrupo marcado e descrição do escolhido | UT-02 |
 | Cor | Escolher Brancas, Pretas, Aleatória | Radiogrupo marcado e descrição | UT-03 |
-| Fila | Procurar sem nome; com nome; cancelar | Desabilitado sem nome; estado "Na fila" e cancelar volta ao lobby | UT-04 |
+| Fila | Procurar sem nome; com nome; cancelar | Desabilitado sem nome; estado "Na fila"; cancelar volta ao lobby e tira a conexão da fila | UT-04 |
 | Sala privada | Criar, copiar, entrar com código válido e inválido | Código exibido e copiado; erro "Sala inválida ou já iniciada!" | UT-05 |
-| Pareamento de dois | Dois `ChessHome` com mesmo controle e preferências | Cada um vê a arena com a cor certa; sessão única compartilhada | IT-01 |
+| Pareamento de dois | Dois `ChessHome` com mesmo controle e preferências | Cada um vê a arena com a cor certa; sessão única; cores opostas mesmo com sorteio instável | IT-01 |
+| Sem fantasma | Um jogador cancela ou sai da página e outro procura | O outro não pareia com quem saiu | IT-03 |
 | Cores por preferência | Brancas × aleatória e pretas × pretas | Regra do contrato de cores; sorteio só no empate | IT-01 |
 | Gravação | Partida encerrada nos dois circuitos | Uma linha gravada com controle e lances | IT-02 |
 | Imersão e saída | Entrar e sair da partida | Shell imersivo ligado e restaurado | UT-06 |
@@ -116,20 +120,22 @@ N/A — página e componente novos; o `Home` do jogo da velha não muda.
 - **UT-07** — Dado o lobby, então cada controle tem rótulo, os grupos são `role="radiogroup"`, não há `<style>` inline nem `mud-` e o título da aba é "Xadrez · XO Arena".
 
 ### 7.3 Testes de Integração
-- **IT-01** — Dado dois `ChessHome` no bUnit com identidades diferentes, controle Blitz e preferências (Brancas × Aleatória; depois Pretas × Pretas), quando ambos procuram oponente, então se pareiam, cada um vê a arena com a cor certa, a sessão é a mesma e a preferência conflitante é sorteada.
+- **IT-01** — Dado dois `ChessHome` no bUnit com identidades diferentes, controle Blitz e preferências (Brancas × Aleatória; depois Pretas × Pretas), quando ambos procuram oponente (com um `coinFlip` de teste que devolve valores diferentes a cada chamada), então se pareiam, a sessão é a mesma e criada uma vez, e as duas arenas mostram cores opostas (no caso conflitante, sorteadas uma única vez).
 - **IT-02** — Dado os dois `ChessHome` pareados, quando a partida termina, então uma única linha é gravada (`GameType=Chess`, controle, lances) e ambos podem voltar ao lobby.
+- **IT-03** — Dado um `ChessHome` que cancela a busca (e outro que é descartado na fila), quando um terceiro procura oponente com o mesmo controle, então não pareia com nenhum dos dois; e a sala privada cancelada deixa de aceitar entrada.
 
 ### 7.4 Testes de Contrato
 N/A — sem contrato entre specs (o contrato desta spec é consumido pelas filhas seguintes por depends_on).
 
 ### 7.5 Testes E2E
-- **E2E-01** — Jornada (bUnit, dois jogadores): abrir `/xadrez`, escolher Blitz e Aleatória, procurar oponente, jogar o mate do pastor até o cartão de fim de partida, e ver o histórico gravado.
+- **E2E-01** — Jornada (bUnit, dois jogadores): abrir `/xadrez`, escolher Blitz e Aleatória, procurar oponente, jogar o mate do pastor até o cartão de fim de partida e conferir, por `GameResultService.GetHistoryAsync(Game=Chess)`, a partida gravada (a tela de histórico do xadrez chega na SPEC-0059).
 
 ### 7.6 Outros
 - Revisão visual (H2): 390px e 1280px contra `docs/design/stitch/chess/lobby-desktop.png`; lista de omitidos (modo de combate, barra de tempo de espera) conferida.
+- `tools/tailwind/build.sh` executado e `--check` sem diferença.
 - Lighthouse Acessibilidade ≥ 90 em `/xadrez`.
 
-**Dublês e dados de teste:** `MatchmakingService` real, identidade em memória (`InMemoryPlayerStorage`), EF InMemory, `ManualTime`.
+**Dublês e dados de teste:** `MatchmakingService` real, identidade em memória (`InMemoryPlayerStorage`), EF InMemory, `ManualTime`, `coinFlip` injetável no registro.
 
 **Ambiente de execução:** xUnit (+ bUnit nas specs de interface) local e no `build-and-test` do CI.
 
