@@ -3,7 +3,7 @@ id: SPEC-0021
 title: Engenharia de Qualidade e Refatoração Arquitetural
 tier: epic
 type: feature
-status: approved
+status: implemented
 created: 2026-09-29
 depends_on: []
 adrs: [ADR-0005, ADR-0006]
@@ -87,13 +87,13 @@ src/TicTacToe/
   *Mitigação:* Testes de componentes com `bUnit` validando o fluxo de renderização e callbacks.
 
 ## 7. Critérios de Aceite do Épico
-- [ ] Compilação limpa com TreatWarningsAsErrors ativo em todos os projetos — SPEC-0022:UT-01
-- [ ] Limpeza dos scripts temporários da raiz do repositório — SPEC-0022:UT-02
-- [ ] Coleta de cobertura automatizada configurada no sdd-config.yml — SPEC-0023:UT-01
-- [ ] Testes de componentes bUnit cobrindo renderização do Lobby e Tabuleiro — SPEC-0023:IT-01
-- [ ] Componente Home decomposto com CSS Isolation e zero regressões funcionais — SPEC-0024:E2E-01
-- [ ] Polling por timer eliminado em favor de eventos reativos de sessão — SPEC-0025:UT-01
-- [ ] Migração inicial do EF Core aplicada no startup sem EnsureCreatedAsync — SPEC-0025:IT-01
+- [x] Compilação limpa com TreatWarningsAsErrors ativo em todos os projetos — SPEC-0022:UT-01
+- [x] Limpeza dos scripts temporários da raiz do repositório — SPEC-0022:UT-02
+- [x] Coleta de cobertura automatizada configurada no sdd-config.yml — SPEC-0023:UT-01
+- [x] Testes de componentes bUnit cobrindo renderização do Lobby e Tabuleiro — SPEC-0023:IT-01
+- [x] Componente Home decomposto com CSS Isolation e zero regressões funcionais — SPEC-0024:E2E-01
+- [x] Polling por timer eliminado em favor de eventos reativos de sessão — SPEC-0025:UT-01
+- [x] Migração inicial do EF Core aplicada no startup sem EnsureCreatedAsync — SPEC-0025:IT-01
 
 ## 8. Questões em Aberto
 Nenhuma.
@@ -106,6 +106,36 @@ Uma aprovação humana cobre o épico e as specs filhas apresentadas junto com e
 |---|---|---|---|---|---|---|---|---|
 
 ## 11. Relatório de Entrega
+
+### O que foi entregue
+O Épico SPEC-0021 foi concluído integralmente através da entrega de quatro ondas de implementação coordenadas:
+1. **Onda 1 (SPEC-0022):** Padronização estrita de código com `.editorconfig`, `Directory.Build.props` ativando `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>`, `Nullable` e análise estática recomendada pelo Roslyn, além do arquivamento de scripts legados para `tools/archive/`.
+2. **Onda 2 (SPEC-0023):** Configuração de cobertura de testes via Coverlet no `sdd-config.yml` e inclusão do framework `bUnit` para testes unitários de componentes Blazor em memória.
+3. **Onda 3 (SPEC-0024):** Decomposição arquitetural do componente monolítico `Home.razor` em subcomponentes coesos (`Lobby.razor`, `Scoreboard.razor`, `GameBoard.razor`), isolamento de estilos com `Home.razor.css` e lógica de controle em `Home.razor.cs`.
+4. **Onda 4 (SPEC-0025):** Eliminação definitiva do polling de timers em favor de eventos reativos C# puros (`OnPlayerMatched` e `OnStateChanged`), acompanhada da migração formal versionada do Entity Framework Core (`20260929130250_InitialCreate` e snapshot) e adoção de `MigrateAsync()`.
+
+### Como foi feito
+- Todas as 4 specs filhas seguiram a disciplina rigorosa do SDD (TDD Red -> Green -> Refactor -> Verify -> Gates G1-G7).
+- Suíte expandida de 43 para 55 testes automatizados cobrindo domínio, higiene, bUnit e migrações.
+- Zero advertências do compilador ou linter permitidas.
+
+### Prova de Correção
+- Todos os 55 testes passando com sucesso.
+- Análise de formatação e linter via `dotnet format --verify-no-changes` com 0 violações.
+
+### Verificação
+| Filha | Descrição | Status |
+|---|---|---|
+| SPEC-0022 | Padronização e TreatWarningsAsErrors | IMPLEMENTED |
+| SPEC-0023 | Cobertura de Código e bUnit | IMPLEMENTED |
+| SPEC-0024 | Decomposição de UI e CSS Isolation | IMPLEMENTED |
+| SPEC-0025 | Eventos Reativos e EF Core Migrations | IMPLEMENTED |
+
+### Definição de Pronto
+- [x] Todas as specs filhas implementadas e fechadas com G7
+- [x] Critérios de aceite do épico satisfeitos e verificados por testes
+- [x] Suíte de testes 100% verde (55/55 testes passando)
+- [x] Zero avisos de compilação ou linter
 
 ## 12. Emendas
 | Versão | Data | Mudança | Motivo | Specs impactadas | Aprovado por |

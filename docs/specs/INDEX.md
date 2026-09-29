@@ -4,7 +4,7 @@
 
 ## Saúde
 
-- Validação (G0): **76 erro(s), 15 aviso(s)** — rode `spec_graph.py validate`
+- Validação (G0): **76 erro(s), 14 aviso(s)** — rode `spec_graph.py validate`
 - Specs: implemented 21
 - Impedimentos: **0 aberto(s)**, 0 resolvido(s)
 
@@ -19,7 +19,7 @@ Nenhuma spec aberta.
 | SPEC-0001 | Fundação do Projeto | implemented | 3/3 implementadas |
 | SPEC-0005 | Jogo da Velha | implemented | 3/3 implementadas |
 | SPEC-0013 | Evolução do Jogo da Velha | implemented | 6/6 implementadas |
-| SPEC-0021 | Engenharia de Qualidade e Refatoração Arquitetural | approved | 4/4 implementadas |
+| SPEC-0021 | Engenharia de Qualidade e Refatoração Arquitetural | implemented | 4/4 implementadas |
 
 ## Todas as Specs
 
@@ -45,7 +45,7 @@ Nenhuma spec aberta.
 | [SPEC-0018](SPEC-0018-sincronizacao-reativa-por-eventos.md) | Sincronização Reativa por Eventos | full | feature | implemented | 2026-09-29 | SPEC-0013 | SPEC-0016 | — |
 | [SPEC-0019](SPEC-0019-selecao-de-dificuldade-do-robo-na-ui.md) | Seleção de Dificuldade do Robô na UI | full | feature | implemented | 2026-09-29 | SPEC-0013 | SPEC-0015 | — |
 | [SPEC-0020](SPEC-0020-correcao-de-inversao-de-nomes-em-salas-privadas-e-partidas.md) | Correção de Inversão de Nomes em Salas Privadas e Partidas | lite | fix | implemented | 2026-09-29 | — | — | — |
-| [SPEC-0021](SPEC-0021-engenharia-de-qualidade-e-refatoracao-arquitetural.md) | Engenharia de Qualidade e Refatoração Arquitetural | epic | feature | approved | 2026-09-29 | — | — | — |
+| [SPEC-0021](SPEC-0021-engenharia-de-qualidade-e-refatoracao-arquitetural.md) | Engenharia de Qualidade e Refatoração Arquitetural | epic | feature | implemented | 2026-09-29 | — | — | — |
 | [SPEC-0022](SPEC-0022-padronizacao-de-codigo-com-editorconfig-e-directory-build-pr.md) | Padronização de Código com EditorConfig e Directory.Build.props | full | foundation | implemented | 2026-09-29 | SPEC-0021 | — | — |
 | [SPEC-0023](SPEC-0023-infraestrutura-de-cobertura-de-codigo-e-testes-com-bunit.md) | Infraestrutura de Cobertura de Código e Testes com bUnit | full | foundation | implemented | 2026-09-29 | SPEC-0021 | SPEC-0022 | — |
 | [SPEC-0024](SPEC-0024-decomposicao-do-componente-home-e-isolamento-de-css.md) | Decomposição do Componente Home e Isolamento de CSS | full | refactor | implemented | 2026-09-29 | SPEC-0021 | SPEC-0023 | — |
