@@ -27,21 +27,29 @@ public class ChessResultRecorder(GameResultService results, ILogger<ChessResultR
     public async Task<bool> SaveOnceAsync(ChessSession session)
     {
         ArgumentNullException.ThrowIfNull(session);
-        if (!session.TryMarkResultRecorded())
-        {
-            return false;
-        }
-
         var sessionId = session.Id;
         try
         {
+            // Lê tudo ANTES de consumir a marca: se a revanche reiniciar a sessão depois, os dados já são desta partida.
+            // Snapshot também aplica a bandeira caída, então Result reflete o estado real.
             var snapshot = session.Snapshot();
-            var result = snapshot.Result!;
+            if (snapshot.Result is not { } result)
+            {
+                return false;
+            }
+
+            var whiteId = session.GetPlayerId(PieceColor.White);
+            var blackId = session.GetPlayerId(PieceColor.Black);
+            if (!session.TryMarkResultRecorded())
+            {
+                return false;
+            }
+
             var record = new ChessMatchRecord(
                 snapshot.WhiteName,
                 snapshot.BlackName,
-                session.GetPlayerId(PieceColor.White),
-                session.GetPlayerId(PieceColor.Black),
+                whiteId,
+                blackId,
                 result.Outcome switch
                 {
                     ChessOutcome.WhiteWins => "X",
@@ -62,6 +70,7 @@ public class ChessResultRecorder(GameResultService results, ILogger<ChessResultR
                 });
 
             await results.SaveChessAsync(record);
+            // SaveChessAsync engole falhas de banco (só registra): este log não garante que a linha foi gravada.
             if (logger.IsEnabled(LogLevel.Information))
             {
                 logger.LogInformation("Partida de xadrez {SessionId} gravada. Reason={Reason}", sessionId, record.Reason);

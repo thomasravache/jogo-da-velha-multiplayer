@@ -65,7 +65,15 @@ public class MatchmakingService
 
         OnPlayerMatched?.Invoke(player1, matchId);
         OnPlayerMatched?.Invoke(player2, matchId);
+        ClearPreferences(player1, player2);
         return matchId;
+    }
+
+    // A preferência só vale até o pareamento; os handlers do evento já a leram.
+    private void ClearPreferences(string first, string second)
+    {
+        _preferences.TryRemove(first, out _);
+        _preferences.TryRemove(second, out _);
     }
 
     private void RemoveFromQueues(string connectionId)
@@ -79,7 +87,11 @@ public class MatchmakingService
     /// <summary>Remove a conexão de qualquer fila (idempotente); quem já foi pareado não é afetado.</summary>
     public void LeaveQueue(string connectionId)
     {
-        lock (_gate) RemoveFromQueues(connectionId);
+        lock (_gate)
+        {
+            RemoveFromQueues(connectionId);
+            _preferences.TryRemove(connectionId, out _);
+        }
     }
 
     /// <summary>Remove as salas privadas criadas pela conexão que ainda esperam.</summary>
@@ -92,6 +104,8 @@ public class MatchmakingService
                 _privateRooms.TryRemove(code, out _);
                 _roomInfo.Remove(code);
             }
+
+            _preferences.TryRemove(connectionId, out _);
         }
     }
 
@@ -196,6 +210,7 @@ public class MatchmakingService
 
         OnPlayerMatched?.Invoke(hostConnectionId, matchId);
         OnPlayerMatched?.Invoke(connectionId, matchId);
+        ClearPreferences(hostConnectionId, connectionId);
         return matchId;
     }
 }

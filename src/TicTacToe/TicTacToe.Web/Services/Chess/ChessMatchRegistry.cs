@@ -17,8 +17,20 @@ public sealed class ChessMatchRegistry
     // Lazy garante que o factory (e o sorteio de cores dentro dele) rode uma única vez por partida.
     private readonly ConcurrentDictionary<Guid, Lazy<ChessMatch>> _matches = new();
 
-    public ChessMatch GetOrCreate(Guid matchId, Func<ChessMatch> factory) =>
-        _matches.GetOrAdd(matchId, _ => new Lazy<ChessMatch>(factory, LazyThreadSafetyMode.ExecutionAndPublication)).Value;
+    public ChessMatch GetOrCreate(Guid matchId, Func<ChessMatch> factory)
+    {
+        var lazy = _matches.GetOrAdd(matchId, _ => new Lazy<ChessMatch>(factory, LazyThreadSafetyMode.ExecutionAndPublication));
+        try
+        {
+            return lazy.Value;
+        }
+        catch
+        {
+            // Não deixa o Lazy quebrado cacheado: a próxima chamada roda o factory de novo.
+            _matches.TryRemove(KeyValuePair.Create(matchId, lazy));
+            throw;
+        }
+    }
 
     public bool TryGet(Guid matchId, out ChessMatch match)
     {
@@ -42,9 +54,14 @@ public sealed class ChessMatchRegistry
             return false;
         }
 
-        if (lazy.IsValueCreated)
+        // Forçar o valor espera um factory em execução, para não deixar a sessão órfã com o timer vivo.
+        try
         {
             lazy.Value.Session.Dispose();
+        }
+        catch (Exception)
+        {
+            // Factory falhou: não há sessão a descartar.
         }
 
         return true;
