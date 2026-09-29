@@ -1,6 +1,17 @@
+<span data-captured role="group" aria-label="@Label" class="flex min-h-6 flex-wrap items-center gap-0.5">
+    @foreach (var type in Pieces)
+    {
+        <ChessPiece Color="Color" Type="type" Size="22" />
+    }
+</span>
+
 @code {
     [Parameter] public IReadOnlyList<PieceType> Pieces { get; set; } = [];
 
     /// <summary>Cor das peças exibidas (a oposta à de quem capturou).</summary>
     [Parameter] public PieceColor Color { get; set; }
+
+    private string Label => Pieces.Count == 0
+        ? "Nenhuma peça capturada"
+        : "Peças capturadas: " + string.Join(", ", Pieces.Select(t => ChessPiece.Title(Color, t)));
 }

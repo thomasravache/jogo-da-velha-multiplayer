@@ -1,3 +1,8 @@
+<section data-end-card aria-labelledby="chess-end-title" class="@("flex flex-col gap-2 rounded-card border p-4 " + (Result.Outcome == ChessOutcome.Draw ? "border-stroke bg-surface/80" : "border-success/60 bg-success/10"))">
+    <h2 id="chess-end-title" data-end-title class="text-title-sm">@Title</h2>
+    <p data-end-summary class="text-body-md text-ink-muted">@Summary</p>
+</section>
+
 @code {
     [Parameter] public ChessResult Result { get; set; } = default!;
     [Parameter] public string? WinnerName { get; set; }
@@ -5,4 +10,28 @@
     /// <summary>Meios-lances jogados.</summary>
     [Parameter] public int MoveCount { get; set; }
     [Parameter] public TimeSpan Duration { get; set; }
+
+    private string Title => Result.Reason switch
+    {
+        ChessEndReason.Checkmate => $"Xeque-mate — {WinnerName} venceu",
+        ChessEndReason.Stalemate => "Empate por afogamento",
+        ChessEndReason.InsufficientMaterial => "Empate por material insuficiente",
+        ChessEndReason.FiftyMoveRule => "Empate pela regra dos 50 lances",
+        ChessEndReason.ThreefoldRepetition => "Empate por repetição",
+        ChessEndReason.Timeout when Result.Outcome == ChessOutcome.Draw => "Empate por tempo (sem material de mate)",
+        ChessEndReason.Timeout => $"Vitória por tempo — {WinnerName} venceu",
+        ChessEndReason.Resignation => $"Vitória por desistência — {WinnerName} venceu",
+        ChessEndReason.Abandon => $"Vitória por abandono — {WinnerName} venceu",
+        ChessEndReason.Disconnect => $"Vitória por desconexão — {WinnerName} venceu",
+        _ => "Partida encerrada",
+    };
+
+    private string Summary
+    {
+        get
+        {
+            var moves = (MoveCount + 1) / 2;
+            return $"{moves} {(moves == 1 ? "lance" : "lances")} · duração {ChessPlayerCard.Format(Duration)}";
+        }
+    }
 }
