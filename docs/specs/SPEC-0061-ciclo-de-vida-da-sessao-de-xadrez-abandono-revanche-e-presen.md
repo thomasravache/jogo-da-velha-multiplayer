@@ -4,7 +4,7 @@ title: "Ciclo de vida da sessão de xadrez: abandono, revanche e presença"
 tier: full
 type: feature
 user_facing: false
-status: approved
+status: in-progress
 created: 2026-09-29
 parent: SPEC-0046
 depends_on: [SPEC-0052]
@@ -170,10 +170,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | Gate | Status | Evidência | Data |
 |---|---|---|---|
 | G0 Spec | PASS | `spec_graph.py validate` limpo (0 erro, 0 aviso); checklist de julgamento do G0 feito pelo Architect | 2026-09-29 |
-| G1 Red | PENDING | | |
-| G2 Green | PENDING | | |
-| G3 Arquitetura | PENDING | | |
-| G4 Review | PENDING | | |
+| G1 Red | PASS | verify SPEC-0061: Red antes do Green (3a93641), 9/9 testes do plano rastreados; 44 falharam por NotImplementedException | 2026-09-29 |
+| G2 Green | PASS | dotnet test 720 verdes (1 pulado: perft pesado); 47 testes da spec em 5 execuções sem falha; format limpo; verify PASS | 2026-09-29 |
+| G3 Arquitetura | N/A | fronteira de módulos coberta por ChessModuleBoundaryTests (SPEC-0049) | 2026-09-29 |
+| G4 Review | PASS | Review independente (subagente): PASS com ressalvas; maior (_restarting liberado tarde: abandono e queda perdidos no handler do restart) corrigido com 3 testes; revanche solo passou a exigir partida encerrada. Dívidas: Forfeit(Resignation) marca o perdedor ausente (a UI usa Leave/Abandon), Forfeit(Timeout) público ignora material de mate, RestartCore zera a marca de gravação (o gravador precisa registrar antes da revanche), Snapshot não expõe presença/revanche | 2026-09-29 |
 | G5 Integração & CI | PENDING | | |
 | H2 Integração aprovada | PENDING | | |
 | G6 Deploy | PENDING | | |
