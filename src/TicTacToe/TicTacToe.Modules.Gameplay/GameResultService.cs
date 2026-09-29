@@ -29,6 +29,8 @@ public class GameResultService(GameplayDbContext db, ILogger<GameResultService> 
                 WinningLine = game.WinningLine is { } line ? string.Join(',', line) : null,
                 FinalBoard = game.FinalBoard,
                 Mode = game.Mode,
+                PlayerXId = game.GetPlayerId(Player.X),
+                PlayerOId = game.GetPlayerId(Player.O),
             };
 
             db.MatchResults.Add(result);

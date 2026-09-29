@@ -118,9 +118,31 @@ public class GameSession : IDisposable
         }
     }
 
-    public void SetPlayerId(Player player, Guid? id) => throw new NotImplementedException();
+    private readonly Dictionary<Player, Guid> _playerIds = new();
 
-    public Guid? GetPlayerId(Player player) => throw new NotImplementedException();
+    /// <summary>Identidade anônima do jogador (nula para o robô e para quem não tem identidade).</summary>
+    public void SetPlayerId(Player player, Guid? id)
+    {
+        lock (_lock)
+        {
+            if (id is { } value)
+            {
+                _playerIds[player] = value;
+            }
+            else
+            {
+                _playerIds.Remove(player);
+            }
+        }
+    }
+
+    public Guid? GetPlayerId(Player player)
+    {
+        lock (_lock)
+        {
+            return _playerIds.TryGetValue(player, out var id) ? id : null;
+        }
+    }
 
     public void SetPlayerName(Player player, string name) =>
         _playerNames[player] = name;

@@ -4,6 +4,7 @@ using TicTacToe.Modules.Gameplay;
 using TicTacToe.Modules.Matchmaking;
 using TicTacToe.Web.Components;
 using TicTacToe.Web.Components.Ui;
+using TicTacToe.Web.Services.PlayerIdentity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +14,8 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddScoped<ShellState>();
+builder.Services.AddScoped<IPlayerStorage, BrowserPlayerStorage>();
+builder.Services.AddScoped<PlayerIdentityService>();
 builder.Services.AddOutputCache();
 
 // Módulo Matchmaking

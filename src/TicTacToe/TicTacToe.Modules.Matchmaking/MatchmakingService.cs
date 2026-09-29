@@ -7,6 +7,7 @@ public class MatchmakingService
 {
     private readonly ConcurrentQueue<string> _waitingPlayers = new();
     private readonly ConcurrentDictionary<string, string> _playerNames = new();
+    private readonly ConcurrentDictionary<string, Guid> _playerIds = new();
 
     // playerConnectionId -> matchId
     public ConcurrentDictionary<string, Guid> ActiveMatches { get; } = new();
@@ -18,6 +19,7 @@ public class MatchmakingService
 
     public Guid? JoinQueue(string connectionId, string playerName = "", Guid? playerId = null)
     {
+        RememberId(connectionId, playerId);
         _playerNames[connectionId] = string.IsNullOrWhiteSpace(playerName) ? connectionId : playerName;
         _waitingPlayers.Enqueue(connectionId);
 
@@ -42,7 +44,26 @@ public class MatchmakingService
     /// <summary>Verdadeiro se a partida veio de uma sala privada (e não da fila pública).</summary>
     public bool IsPrivateMatch(Guid matchId) => _privateMatches.ContainsKey(matchId);
 
-    public (Guid? X, Guid? O)? GetMatchPlayerIds(Guid matchId) => throw new NotImplementedException();
+    private void RememberId(string connectionId, Guid? playerId)
+    {
+        if (playerId is { } id)
+        {
+            _playerIds[connectionId] = id;
+        }
+        else
+        {
+            _playerIds.TryRemove(connectionId, out _);
+        }
+    }
+
+    /// <summary>Identidades anônimas (se informadas) dos jogadores X e O da partida.</summary>
+    public (Guid? X, Guid? O)? GetMatchPlayerIds(Guid matchId)
+    {
+        if (!_matchPlayers.TryGetValue(matchId, out var pair)) return null;
+
+        Guid? Id(string connectionId) => _playerIds.TryGetValue(connectionId, out var id) ? id : null;
+        return (Id(pair.PlayerX), Id(pair.PlayerO));
+    }
 
     public string? GetPlayerName(string connectionId) =>
         _playerNames.TryGetValue(connectionId, out var name) ? name : null;
@@ -65,6 +86,7 @@ public class MatchmakingService
 
     public string CreatePrivateRoom(string connectionId, string playerName, Guid? playerId = null)
     {
+        RememberId(connectionId, playerId);
         _playerNames[connectionId] = string.IsNullOrWhiteSpace(playerName) ? connectionId : playerName;
         string code = "SALA-" + Guid.NewGuid().ToString("N")[..4].ToUpperInvariant();
         _privateRooms[code] = connectionId;
@@ -78,6 +100,7 @@ public class MatchmakingService
 
         if (_privateRooms.TryRemove(normalized, out var hostConnectionId))
         {
+            RememberId(connectionId, playerId);
             _playerNames[connectionId] = string.IsNullOrWhiteSpace(playerName) ? connectionId : playerName;
             var matchId = Guid.NewGuid();
             ActiveMatches[hostConnectionId] = matchId;
