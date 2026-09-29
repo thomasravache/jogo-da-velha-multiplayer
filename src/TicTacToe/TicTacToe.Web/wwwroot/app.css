@@ -1,9 +1,27 @@
+:root {
+    --x-color: #e74c3c;
+    --o-color: #3498db;
+    --bg: #1a1a2e;
+    --surface: #16213e;
+    --surface2: #0f3460;
+    --text: #e0e0e0;
+}
+
 html, body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: 'Roboto', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background-color: var(--bg);
+    color: var(--text);
+    margin: 0;
+    padding: 0;
+}
+
+main, .mud-main-content {
+    background-color: var(--bg);
+    color: var(--text);
 }
 
 a, .btn-link {
-    color: #006bb7;
+    color: #3498db;
 }
 
 .btn-primary {

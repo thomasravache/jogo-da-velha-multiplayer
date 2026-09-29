@@ -1,23 +1,46 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+<MudThemeProvider Theme="_theme" IsDarkMode="true" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
+<MudLayout>
+    <MudAppBar Elevation="2" Dense="true" Color="Color.Surface" Fixed="true">
+        <MudText Typo="Typo.h6" Class="d-flex align-center font-weight-bold">
+            <MudIcon Icon="@Icons.Material.Filled.SportsEsports" Class="mr-2" Color="Color.Primary" />
+            Jogo da Velha Multiplayer
+        </MudText>
+        <MudSpacer />
+        <MudButton Href="/" StartIcon="@Icons.Material.Filled.PlayArrow" Color="Color.Inherit">Jogar</MudButton>
+        <MudButton Href="/history" StartIcon="@Icons.Material.Filled.History" Color="Color.Inherit">Histórico</MudButton>
+        <MudButton Href="/leaderboard" StartIcon="@Icons.Material.Filled.Leaderboard" Color="Color.Inherit">Ranking</MudButton>
+    </MudAppBar>
 
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
+    <MudMainContent Class="d-flex justify-center align-center min-vh-100 pa-4">
+        @Body
+    </MudMainContent>
+</MudLayout>
 
 <div id="blazor-error-ui">
     An unhandled error has occurred.
     <a href="" class="reload">Reload</a>
     <a class="dismiss">🗙</a>
 </div>
+
+@code {
+    private MudTheme _theme = new MudTheme
+    {
+        PaletteDark = new PaletteDark
+        {
+            Primary = "#e74c3c",
+            Secondary = "#3498db",
+            Background = "#1a1a2e",
+            Surface = "#16213e",
+            AppbarBackground = "#16213e",
+            TextPrimary = "#e0e0e0",
+            TextSecondary = "#aaaaaa",
+            ActionDefault = "#e0e0e0"
+        }
+    };
+}

@@ -34,9 +34,10 @@ public class MudBlazorIntegrationTests
 
     [Fact(DisplayName = "SPEC-0026:UT-02 — MainLayout utiliza MudThemeProvider com IsDarkMode e MudAppBar")]
     [Trait("Category", "SPEC-0026:UT-02")]
-    public void MainLayout_ShouldRenderMudLayoutAndAppBar()
+    public async Task MainLayout_ShouldRenderMudLayoutAndAppBar()
     {
-        using var ctx = new BunitContext();
+        await using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         ctx.Services.AddMudServices();
 
         var cut = ctx.Render<MainLayout>();
@@ -49,9 +50,9 @@ public class MudBlazorIntegrationTests
 
     [Fact(DisplayName = "SPEC-0026:IT-01 — Lobby utiliza componentes MudBlazor no tema escuro")]
     [Trait("Category", "SPEC-0026:IT-01")]
-    public void Lobby_ShouldUseMudBlazorComponents()
+    public async Task Lobby_ShouldUseMudBlazorComponents()
     {
-        using var ctx = new BunitContext();
+        await using var ctx = new BunitContext();
         ctx.Services.AddMudServices();
 
         var cut = ctx.Render<Lobby>(parameters => parameters
@@ -66,12 +67,12 @@ public class MudBlazorIntegrationTests
 
     [Fact(DisplayName = "SPEC-0026:IT-02 — GameBoard processa jogadas e possui estilização compatível")]
     [Trait("Category", "SPEC-0026:IT-02")]
-    public void GameBoard_ShouldRenderAndProcessMoves()
+    public async Task GameBoard_ShouldRenderAndProcessMoves()
     {
         var game = new GameSession();
         int clickedIndex = -1;
 
-        using var ctx = new BunitContext();
+        await using var ctx = new BunitContext();
         ctx.Services.AddMudServices();
 
         var cut = ctx.Render<GameBoard>(parameters => parameters

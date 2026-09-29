@@ -1,7 +1,9 @@
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using Bunit;
 using Microsoft.AspNetCore.Components.Web;
+using MudBlazor.Services;
 using TicTacToe.Modules.Gameplay;
 using TicTacToe.Web.Components.Game;
 using Xunit;
@@ -14,9 +16,10 @@ public class DecomposedComponentsTests
 
     [Fact(DisplayName = "SPEC-0024:UT-01 — Lobby exibe inputs, botões de modo e seletores")]
     [Trait("Category", "SPEC-0024:UT-01")]
-    public void Lobby_ShouldRenderInputsAndButtons()
+    public async Task Lobby_ShouldRenderInputsAndButtons()
     {
-        using var ctx = new BunitContext();
+        await using var ctx = new BunitContext();
+        ctx.Services.AddMudServices();
         var cut = ctx.Render<Lobby>(parameters => parameters
             .Add(p => p.PlayerName, "Thomas")
             .Add(p => p.SelectedDifficulty, AiDifficulty.Hard));
