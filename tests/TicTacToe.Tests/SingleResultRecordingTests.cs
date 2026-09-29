@@ -132,6 +132,8 @@ public class SingleResultRecordingTests
         ctx.Services.AddSingleton<MatchmakingService>();
         ctx.Services.AddSingleton<ConcurrentDictionary<Guid, GameSession>>();
         ctx.Services.AddSingleton(new TicTacToe.Web.Components.Ui.ShellState());
+        ctx.Services.AddSingleton<TicTacToe.Web.Services.PlayerIdentity.IPlayerStorage>(new InMemoryPlayerStorage());
+        ctx.Services.AddScoped<TicTacToe.Web.Services.PlayerIdentity.PlayerIdentityService>();
         ctx.Services.AddTransient(_ => new GameplayDbContext(options));
         ctx.Services.AddTransient(sp => new GameResultService(
             sp.GetRequiredService<GameplayDbContext>(), NullLogger<GameResultService>.Instance));
