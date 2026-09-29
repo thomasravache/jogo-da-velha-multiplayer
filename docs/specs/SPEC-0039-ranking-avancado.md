@@ -194,10 +194,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | Gate | Status | Evidência | Data |
 |---|---|---|---|
 | G0 Spec | PASS | `spec_graph.py validate` das 18 specs: 0 erros, 0 avisos | 2026-09-29 |
-| G1 Red | PENDING | | |
-| G2 Green | PENDING | | |
-| G3 Arquitetura | PENDING | | |
-| G4 Review | PENDING | | |
+| G1 Red | PASS | verify SPEC-0039: Red antes do Green (60878cb), 9/9 testes do plano rastreados | 2026-09-29 |
+| G2 Green | PASS | dotnet test 260/260 local; format e tailwind --check limpos; verify PASS | 2026-09-29 |
+| G3 Arquitetura | N/A | sem suíte Category=Architecture | 2026-09-29 |
+| G4 Review | PASS | Review independente (subagente): PASS, 0 bloqueantes/maiores; menores tratados (mesma chave nos dois lados ignorada com teste, chip VOCÊ aria-hidden). Restam como follow-up: teste da sequência anti-resposta velha, fuso do servidor em FormatDate | 2026-09-29 |
 | G5 Integração & CI | PENDING | | |
 | H2 Integração aprovada | PENDING | | |
 | G6 Deploy | PENDING | | |
