@@ -249,6 +249,18 @@ public class SeriesRulesTests
         Assert.Equal(Player.X, g.CurrentTurn);
     }
 
+    [Fact(DisplayName = "SPEC-0040:UT-06b — RoundStarter já indica quem abre a próxima rodada assim que a atual é decidida")]
+    [Trait("Category", "SPEC-0040:UT-06")]
+    public void Series_RoundStarterIsNextOpenerRightAfterRoundEnds()
+    {
+        using var g = Series();
+        WinRound(g, Player.X);
+        Assert.Equal(Player.O, g.RoundStarter);
+        g.Restart();
+        WinRound(g, Player.O);
+        Assert.Equal(Player.X, g.RoundStarter);
+    }
+
     [Fact(DisplayName = "SPEC-0040:UT-07 — Restart: rodada em andamento não muda nada; encerrada avança; série encerrada começa nova série")]
     [Trait("Category", "SPEC-0040:UT-07")]
     public void Series_RestartBehavior()
