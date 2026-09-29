@@ -4,7 +4,7 @@ title: "Regras de partida do xadrez: lances, SAN e fim de jogo"
 tier: full
 type: feature
 user_facing: false
-status: approved
+status: in-progress
 created: 2026-09-29
 parent: SPEC-0046
 depends_on: [SPEC-0049]
@@ -186,10 +186,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | Gate | Status | Evidência | Data |
 |---|---|---|---|
 | G0 Spec | PASS | `spec_graph.py validate` limpo (0 erro, 0 aviso); checklist de julgamento do G0 feito pelo Architect | 2026-09-29 |
-| G1 Red | PENDING | | |
-| G2 Green | PENDING | | |
-| G3 Arquitetura | PENDING | | |
-| G4 Review | PENDING | | |
+| G1 Red | PASS | verify SPEC-0050: Red antes do Green (e1ba2d2), 11/11 testes do plano rastreados; 61 falharam por NotImplementedException | 2026-09-29 |
+| G2 Green | PASS | dotnet test 567 verdes (1 pulado: perft pesado); format limpo; verify PASS | 2026-09-29 |
+| G3 Arquitetura | N/A | fronteira de módulos coberta por ChessModuleBoundaryTests (SPEC-0049) | 2026-09-29 |
+| G4 Review | PASS | Review independente (subagente): PASS, 0 bloqueantes/maiores. Menores aceitos: construtor não avalia fim da posição inicial, End aceita qualquer resultado, Moves expõe a lista interna (a sessão entrega cópias no Snapshot), faltam testes de SAN com captura desambiguada e precedência 50 lances × repetição | 2026-09-29 |
 | G5 Integração & CI | PENDING | | |
 | H2 Integração aprovada | PENDING | | |
 | G6 Deploy | PENDING | | |

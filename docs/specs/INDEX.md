@@ -5,18 +5,18 @@
 ## Saúde
 
 - Validação (G0): **0 erro(s), 0 aviso(s)**
-- Specs: approved 13, implemented 41
+- Specs: approved 12, in-progress 1, implemented 41
 - Impedimentos: **0 aberto(s)**, 0 resolvido(s)
 
 ## Plano de Execução
 
-**Em andamento:** —  
+**Em andamento:** SPEC-0050  
 **Paradas por impedimento:** —  
-**Próximo lote:** SPEC-0050, SPEC-0051
+**Próximo lote:** SPEC-0051
 
 | Onda | Spec | Título | Tier/Tam. | Status | Prontidão | Observação |
 |---|---|---|---|---|---|---|
-| 1 | SPEC-0050 | Regras de partida do xadrez: lances, SAN e fim de jogo | full/M | approved | ✅ pronta |  |
+| 1 | SPEC-0050 | Regras de partida do xadrez: lances, SAN e fim de jogo | full/M | in-progress | 🔄 em andamento |  |
 | 1 | SPEC-0051 | Relógio de xadrez com incremento | full/S | approved | ✅ pronta |  |
 | 2 | SPEC-0052 | Sessão de xadrez compartilhada | full/M | approved | ⛔ aguarda implementação de SPEC-0050; aguarda implementação de SPEC-0051 |  |
 | 2 | SPEC-0054 | Robô de xadrez com níveis de dificuldade | full/M | approved | ⛔ aguarda implementação de SPEC-0050 |  |
@@ -52,7 +52,7 @@ flowchart LR
     S0047["SPEC-0047<br/>Generalização multi-jogo (GameType, fil…"]:::implemented
     S0048["SPEC-0048<br/>Seleção de jogos e navegação por jogo"]:::approved
     S0049["SPEC-0049<br/>Motor de xadrez: tabuleiro, lances lega…"]:::implemented
-    S0050["SPEC-0050<br/>Regras de partida do xadrez: lances, SA…"]:::approved
+    S0050["SPEC-0050<br/>Regras de partida do xadrez: lances, SA…"]:::inprogress
     S0051["SPEC-0051<br/>Relógio de xadrez com incremento"]:::approved
     S0052["SPEC-0052<br/>Sessão de xadrez compartilhada"]:::approved
     S0053["SPEC-0053<br/>Pareamento e persistência do xadrez"]:::approved
@@ -152,7 +152,7 @@ flowchart LR
 | [SPEC-0047](SPEC-0047-generalizacao-multi-jogo-gametype-filtros-e-fila-por-chave.md) | Generalização multi-jogo (GameType, filtros e fila por chave) | full | migration | implemented | 2026-09-29 | SPEC-0046 | — | — |
 | [SPEC-0048](SPEC-0048-selecao-de-jogos-e-navegacao-por-jogo.md) | Seleção de jogos e navegação por jogo | full | feature | approved | 2026-09-29 | SPEC-0046 | SPEC-0047, SPEC-0058, SPEC-0060 | — |
 | [SPEC-0049](SPEC-0049-motor-de-xadrez-tabuleiro-lances-legais-e-perft.md) | Motor de xadrez: tabuleiro, lances legais e perft | full | foundation | implemented | 2026-09-29 | SPEC-0046 | — | — |
-| [SPEC-0050](SPEC-0050-regras-de-partida-do-xadrez-lances-san-e-fim-de-jogo.md) | Regras de partida do xadrez: lances, SAN e fim de jogo | full | feature | approved | 2026-09-29 | SPEC-0046 | SPEC-0049 | — |
+| [SPEC-0050](SPEC-0050-regras-de-partida-do-xadrez-lances-san-e-fim-de-jogo.md) | Regras de partida do xadrez: lances, SAN e fim de jogo | full | feature | in-progress | 2026-09-29 | SPEC-0046 | SPEC-0049 | — |
 | [SPEC-0051](SPEC-0051-relogio-de-xadrez-com-incremento.md) | Relógio de xadrez com incremento | full | feature | approved | 2026-09-29 | SPEC-0046 | SPEC-0049 | — |
 | [SPEC-0052](SPEC-0052-sessao-de-xadrez-compartilhada.md) | Sessão de xadrez compartilhada | full | feature | approved | 2026-09-29 | SPEC-0046 | SPEC-0050, SPEC-0051 | — |
 | [SPEC-0053](SPEC-0053-pareamento-e-persistencia-do-xadrez.md) | Pareamento e persistência do xadrez | full | feature | approved | 2026-09-29 | SPEC-0046 | SPEC-0047, SPEC-0052, SPEC-0055, SPEC-0061 | — |
