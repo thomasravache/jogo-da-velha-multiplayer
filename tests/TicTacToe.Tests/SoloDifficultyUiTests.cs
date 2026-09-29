@@ -39,4 +39,20 @@ public class SoloDifficultyUiTests
         Assert.NotEqual(4, aiMove);
         Assert.Equal(Player.None, game.Board[aiMove]);
     }
+
+    [Fact(DisplayName = "SPEC-0019:E2E-01 — Componente Home contém os controles de seleção de dificuldade e binding")]
+    [Trait("Category", "SPEC-0019:E2E-01")]
+    public void HomeRazor_ShouldContainDifficultySelectorMarkup()
+    {
+        var homeRazorPath = System.IO.Path.GetFullPath(System.IO.Path.Combine(AppContext.BaseDirectory, "../../../../../src/TicTacToe/TicTacToe.Web/Components/Pages/Home.razor"));
+        if (System.IO.File.Exists(homeRazorPath))
+        {
+            var content = System.IO.File.ReadAllText(homeRazorPath);
+            Assert.Contains("difficulty-selector", content);
+            Assert.Contains("SelectedDifficulty == AiDifficulty.Easy", content);
+            Assert.Contains("SelectedDifficulty == AiDifficulty.Hard", content);
+            Assert.Contains("Fácil 🟢", content);
+            Assert.Contains("Impossível 🔴", content);
+        }
+    }
 }

@@ -49,11 +49,30 @@
                             @onclick="FindMatch">
                         Jogar Online 🌐
                     </button>
-                    <button class="btn-play btn-solo"
-                            disabled="@(string.IsNullOrWhiteSpace(PlayerName))"
-                            @onclick="StartSoloGame">
-                        Jogar vs Robô (IA) 🤖
-                    </button>
+                    <div class="solo-section">
+                        <div class="difficulty-container">
+                            <span class="difficulty-label">Dificuldade:</span>
+                            <div class="difficulty-selector" role="group" aria-label="Dificuldade da IA">
+                                <button type="button"
+                                        class="btn-diff @(SelectedDifficulty == AiDifficulty.Easy ? "active" : "")"
+                                        aria-pressed="@(SelectedDifficulty == AiDifficulty.Easy)"
+                                        @onclick="() => SelectedDifficulty = AiDifficulty.Easy">
+                                    Fácil 🟢
+                                </button>
+                                <button type="button"
+                                        class="btn-diff @(SelectedDifficulty == AiDifficulty.Hard ? "active" : "")"
+                                        aria-pressed="@(SelectedDifficulty == AiDifficulty.Hard)"
+                                        @onclick="() => SelectedDifficulty = AiDifficulty.Hard">
+                                    Impossível 🔴
+                                </button>
+                            </div>
+                        </div>
+                        <button class="btn-play btn-solo"
+                                disabled="@(string.IsNullOrWhiteSpace(PlayerName))"
+                                @onclick="StartSoloGame">
+                            Jogar vs Robô (IA) 🤖
+                        </button>
+                    </div>
                     <button class="btn-play btn-private"
                             disabled="@(string.IsNullOrWhiteSpace(PlayerName))"
                             @onclick="CreateRoom">
@@ -163,6 +182,13 @@
     .btn-play:hover:not(:disabled) { transform: translateY(-2px); opacity: .9; }
     .btn-play:disabled { opacity: .4; cursor: not-allowed; }
     .mode-actions { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 260px; }
+    .solo-section { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+    .difficulty-container { display: flex; align-items: center; justify-content: space-between; gap: 8px; background: rgba(0, 0, 0, 0.25); padding: 6px 10px; border-radius: 8px; border: 1px solid var(--surface2); }
+    .difficulty-label { font-size: 0.82rem; color: #aaa; font-weight: 500; }
+    .difficulty-selector { display: flex; gap: 4px; }
+    .btn-diff { padding: 4px 8px; font-size: 0.8rem; border: 1px solid transparent; border-radius: 6px; background: var(--surface2); color: #ccc; cursor: pointer; transition: all 0.2s ease; }
+    .btn-diff:hover { color: #fff; background: #1a4478; }
+    .btn-diff.active { background: #8e44ad; color: #fff; font-weight: bold; border-color: #9b59b6; box-shadow: 0 0 8px rgba(142, 68, 173, 0.5); }
     .btn-solo { background: linear-gradient(135deg, #8e44ad, #9b59b6); }
     .btn-private { background: linear-gradient(135deg, #2c3e50, #34495e); }
     .join-room-box { display: flex; gap: 6px; margin-top: 6px; }
@@ -369,7 +395,7 @@
 
         var game = new GameSession();
         game.SetPlayerName(Player.X, PlayerName.Trim());
-        game.SetPlayerName(Player.O, "Robô Minimax 🤖");
+        game.SetPlayerName(Player.O, AiPlayer.GetBotName(SelectedDifficulty));
         game.OnStateChanged += OnGameStateChanged;
         Games.TryAdd(MatchId.Value, game);
 

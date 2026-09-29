@@ -20,6 +20,13 @@ public static class AiPlayer
         [0, 4, 8], [2, 4, 6]
     ];
 
+    public static string GetBotName(AiDifficulty difficulty) => difficulty switch
+    {
+        AiDifficulty.Easy => "Robô Fácil 🤖",
+        AiDifficulty.Hard => "Robô Impossível 🤖",
+        _ => "Robô Minimax 🤖"
+    };
+
     public static int GetBestMove(GameSession game, Player aiPlayer, AiDifficulty difficulty)
     {
         var freeCells = new List<int>();
