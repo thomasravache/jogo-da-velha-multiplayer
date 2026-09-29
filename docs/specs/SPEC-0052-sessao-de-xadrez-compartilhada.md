@@ -4,7 +4,7 @@ title: Sessão de xadrez compartilhada
 tier: full
 type: feature
 user_facing: false
-status: approved
+status: in-progress
 created: 2026-09-29
 parent: SPEC-0046
 depends_on: [SPEC-0050, SPEC-0051]
@@ -179,10 +179,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | Gate | Status | Evidência | Data |
 |---|---|---|---|
 | G0 Spec | PASS | `spec_graph.py validate` limpo (0 erro, 0 aviso); checklist de julgamento do G0 feito pelo Architect | 2026-09-29 |
-| G1 Red | PENDING | | |
-| G2 Green | PENDING | | |
-| G3 Arquitetura | PENDING | | |
-| G4 Review | PENDING | | |
+| G1 Red | PASS | verify SPEC-0052: Red antes do Green (ae795cc), 8/8 testes do plano rastreados; 19 falharam por NotImplementedException | 2026-09-29 |
+| G2 Green | PASS | dotnet test 601 verdes (1 pulado: perft pesado); format limpo; verify PASS | 2026-09-29 |
+| G3 Arquitetura | N/A | fronteira de módulos coberta por ChessModuleBoundaryTests (SPEC-0049) | 2026-09-29 |
+| G4 Review | PASS | Review independente (subagente): PASS, 0 bloqueantes/maiores. Menores aceitos: SetSeat lança exceção (contrato diz void), leituras do relógio em instantes diferentes com TimeProvider.System (janela de microssegundos), handler que lança em OnStateChanged propaga (padrão do GameSession), InternalsVisibleTo dentro de ChessSession.cs, UT-05 pode dar falso verde mas nunca flaky, RestartCore sem validação (a SPEC-0061 valida) | 2026-09-29 |
 | G5 Integração & CI | PENDING | | |
 | H2 Integração aprovada | PENDING | | |
 | G6 Deploy | PENDING | | |
