@@ -174,10 +174,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | Gate | Status | Evidência | Data |
 |---|---|---|---|
 | G0 Spec | PASS | `spec_graph.py validate` das 18 specs: 0 erros, 0 avisos | 2026-09-29 |
-| G1 Red | PENDING | | |
-| G2 Green | PENDING | | |
-| G3 Arquitetura | PENDING | | |
-| G4 Review | PENDING | | |
+| G1 Red | PASS | `verify SPEC-0034`: Red antes do Green; 10/10 testes rastreados; 17 falhas iniciais pelos motivos esperados (CH-01 guarda) | 2026-09-29 |
+| G2 Green | PASS | `dotnet test` 153/153; `dotnet format --verify-no-changes` limpo; `dotnet list package --vulnerable` limpo; `build.sh --check` sem drift | 2026-09-29 |
+| G3 Arquitetura | PASS | Regras do ADR-0008 (sem Mud/Bootstrap/<style>) garantidas por SPEC-0034:UT-01/02/03/05/06 | 2026-09-29 |
+| G4 Review | PASS | Reviewer independente APPROVED em 06b43d0 (0 blocker, 0 major; minors tratados) | 2026-09-29 |
 | G5 Integração & CI | PENDING | | |
 | H2 Integração aprovada | PENDING | | |
 | G6 Deploy | PENDING | | |
