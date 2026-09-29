@@ -4,13 +4,13 @@ title: Lobby Cyber Arena
 tier: full
 type: feature
 user_facing: true
-status: approved
+status: in-progress
 created: 2026-09-29
 parent: SPEC-0028
 depends_on: [SPEC-0043]
 consumes_contract: []
 contract_version: 1
-touches: [src/TicTacToe/TicTacToe.Web/Components/Game/Lobby.razor, src/TicTacToe/TicTacToe.Web/Components/Game/Lobby.razor.css, tests/TicTacToe.Tests/LobbyCyberArenaTests.cs, tests/TicTacToe.Tests/DecomposedComponentsTests.cs, tests/TicTacToe.Tests/SoloDifficultyUiTests.cs, tests/TicTacToe.Tests/MudBlazorIntegrationTests.cs]
+touches: [src/TicTacToe/TicTacToe.Web/Components/Game/Lobby.razor, src/TicTacToe/TicTacToe.Web/Components/Game/Lobby.razor.css, tests/TicTacToe.Tests/LobbyCyberArenaTests.cs, tests/TicTacToe.Tests/DecomposedComponentsTests.cs, tests/TicTacToe.Tests/SoloDifficultyUiTests.cs, tests/TicTacToe.Tests/MudBlazorIntegrationTests.cs, tests/TicTacToe.Tests/ShellLayoutTests.cs, tests/TicTacToe.Tests/SingleResultRecordingTests.cs]
 adrs: [ADR-0008]
 external: []
 size: M
@@ -232,3 +232,4 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 <!-- Mudança em spec aprovada: uma linha por emenda. Mudou o contrato? Incremente `contract_version` e rode `spec_graph.py impacted SPEC-0030`. -->
 | Versão do contrato | Data | Mudança | Motivo | Specs impactadas | Aprovado por |
 |---|---|---|---|---|---|
+| 1 (contrato inalterado) | 2026-09-29 | `touches` inclui `ShellLayoutTests.cs` e `SingleResultRecordingTests.cs` | Os novos rótulos do Stitch quebram `SPEC-0043:IT-01` (procura "Jogar Online") e `SPEC-0045:IT-02` (clica pelo texto do botão); só os textos são atualizados | SPEC-0043, SPEC-0045 (testes) | thomas (2026-09-29) |
