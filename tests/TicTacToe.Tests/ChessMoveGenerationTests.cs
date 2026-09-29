@@ -474,4 +474,14 @@ public class ChessMoveGenerationTests
         Assert.False(Position.Start.IsInCheck(PieceColor.White));
         Assert.False(Position.Start.IsInCheck(PieceColor.Black));
     }
+
+    [Fact(DisplayName = "SPEC-0049:UT-03 — A lista de lances legais devolvida não permite corromper o cache da posição")]
+    [Trait("Category", "SPEC-0049:UT-03")]
+    public void LegalMoves_ShouldNotExposeMutableCache()
+    {
+        var position = Position.Start;
+
+        Assert.False(position.LegalMoves() is System.Collections.Generic.List<Move>);
+        Assert.Equal(20, position.LegalMoves().Count);
+    }
 }

@@ -66,6 +66,7 @@ public class ChessPositionTests
     [InlineData("")]
     [InlineData("   ")]
     [InlineData("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -")]
+    [InlineData("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w  - 0 1")]
     [InlineData("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 extra")]
     [InlineData("8/8/8/8/8/8/8/8 w - - 0 1")]
     [InlineData("4k3/8/8/8/8/8/8/K3K3 w - - 0 1")]
