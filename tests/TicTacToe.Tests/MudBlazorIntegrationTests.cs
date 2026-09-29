@@ -32,19 +32,21 @@ public class MudBlazorIntegrationTests
         Assert.Contains("MudBlazor.min.js", appContent);
     }
 
-    [Fact(DisplayName = "SPEC-0026:UT-02 — MainLayout utiliza MudThemeProvider com IsDarkMode e MudAppBar")]
+    [Fact(DisplayName = "SPEC-0026:UT-02 — MainLayout usa o shell Cyber Arena e mantém o tema escuro do MudBlazor (atualizado pela SPEC-0043)")]
     [Trait("Category", "SPEC-0026:UT-02")]
-    public async Task MainLayout_ShouldRenderMudLayoutAndAppBar()
+    public async Task MainLayout_ShouldRenderCyberArenaShell()
     {
         await using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         ctx.Services.AddMudServices();
+        ctx.Services.AddSingleton(new TicTacToe.Web.Components.Ui.ShellState());
 
         var cut = ctx.Render<MainLayout>();
         var markup = cut.Markup;
 
-        Assert.Contains("mud-layout", markup);
-        Assert.Contains("mud-appbar", markup);
+        Assert.Contains("<header", markup);
+        Assert.Contains("aria-label=\"Principal\"", markup);
+        Assert.DoesNotContain("mud-appbar", markup);
         Assert.DoesNotContain("top-row px-4", markup);
     }
 
