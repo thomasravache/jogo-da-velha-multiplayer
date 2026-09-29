@@ -1,0 +1,8 @@
+@using TicTacToe.Modules.Gameplay
+
+<div class="scoreboard-stub"></div>
+
+@code {
+    [Parameter] public GameSession Game { get; set; } = default!;
+    [Parameter] public Player MyPlayer { get; set; }
+}

@@ -1,0 +1,19 @@
+@using TicTacToe.Modules.Gameplay
+
+<div class="lobby-stub"></div>
+
+@code {
+    [Parameter] public string PlayerName { get; set; } = "";
+    [Parameter] public EventCallback<string> PlayerNameChanged { get; set; }
+    [Parameter] public AiDifficulty SelectedDifficulty { get; set; } = AiDifficulty.Hard;
+    [Parameter] public EventCallback<AiDifficulty> DifficultyChanged { get; set; }
+    [Parameter] public string InputRoomCode { get; set; } = "";
+    [Parameter] public EventCallback<string> InputRoomCodeChanged { get; set; }
+    [Parameter] public bool IsWaiting { get; set; }
+    [Parameter] public string? CreatedRoomCode { get; set; }
+    [Parameter] public string? RoomErrorMessage { get; set; }
+    [Parameter] public EventCallback OnPlayOnline { get; set; }
+    [Parameter] public EventCallback OnPlaySolo { get; set; }
+    [Parameter] public EventCallback OnCreateRoom { get; set; }
+    [Parameter] public EventCallback OnJoinRoom { get; set; }
+}

@@ -1,0 +1,9 @@
+@using TicTacToe.Modules.Gameplay
+
+<div class="gameboard-stub"></div>
+
+@code {
+    [Parameter] public GameSession Game { get; set; } = default!;
+    [Parameter] public Player MyPlayer { get; set; }
+    [Parameter] public EventCallback<int> OnCellClick { get; set; }
+}

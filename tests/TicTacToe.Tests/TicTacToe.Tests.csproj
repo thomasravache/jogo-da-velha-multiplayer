@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -23,6 +23,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\TicTacToe\TicTacToe.Modules.Gameplay\TicTacToe.Modules.Gameplay.csproj" />
     <ProjectReference Include="..\..\src\TicTacToe\TicTacToe.Modules.Matchmaking\TicTacToe.Modules.Matchmaking.csproj" />
+    <ProjectReference Include="..\..\src\TicTacToe\TicTacToe.Web\TicTacToe.Web.csproj" />
   </ItemGroup>
 
 </Project>
