@@ -32,8 +32,12 @@ public sealed class MatchPresenceCircuitHandler(MatchPresenceContext context, IL
         if (session is null) return;
 
         session.SetConnection(player, connected);
-        logger?.LogInformation(
-            "Presença da partida {GameId}: jogador {Player} {State} (tolerância de {Seconds}s).",
-            session.Id, player, connected ? "reconectado" : "desconectado", GameSession.DisconnectGraceSeconds);
+        if (logger is not null && logger.IsEnabled(LogLevel.Information))
+        {
+            var state = connected ? "reconectado" : "desconectado";
+            logger.LogInformation(
+                "Presença da partida {GameId}: jogador {Player} {State} (tolerância de {Seconds}s).",
+                session.Id, player, state, GameSession.DisconnectGraceSeconds);
+        }
     }
 }

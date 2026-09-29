@@ -194,9 +194,11 @@ public partial class Home : IDisposable
                 catch { }
             }
 
-            if (await GameResultService.SaveOnceAsync(g) && g.EndReason == EndReason.Disconnect)
+            var saved = await GameResultService.SaveOnceAsync(g);
+            if (saved && g.EndReason == EndReason.Disconnect && Logger.IsEnabled(LogLevel.Information))
             {
-                Logger.LogInformation("Partida {GameId} encerrada por W.O. de desconexão (vencedor: {Winner}).", g.Id, g.Winner);
+                var winner = g.Winner;
+                Logger.LogInformation("Partida {GameId} encerrada por W.O. de desconexão (vencedor: {Winner}).", g.Id, winner);
             }
         }
         await InvokeAsync(StateHasChanged);
