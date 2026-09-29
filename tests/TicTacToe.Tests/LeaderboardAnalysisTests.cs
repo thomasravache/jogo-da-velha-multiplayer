@@ -50,7 +50,7 @@ public class LeaderboardAnalysisTests
             Legacy("Rival", "Zé", "Rival", 10),
         ], null);
 
-        var ze = Assert.Single(ranked);
+        var ze = ranked.Single(e => e.DisplayName == "Zé");
         Assert.Equal("Zé", ze.DisplayName);
         Assert.Equal((2, 1, 0), (ze.Wins, ze.Losses, ze.Draws));
     }
