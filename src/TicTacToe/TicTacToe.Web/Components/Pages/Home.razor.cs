@@ -107,6 +107,8 @@ public partial class Home : IDisposable
         }
     }
 
+    private bool _resultSaved;
+
     private async void OnGameStateChanged()
     {
         if (MatchId != null && Games.TryGetValue(MatchId.Value, out var g))
@@ -120,6 +122,12 @@ public partial class Home : IDisposable
                 }
                 catch { }
             }
+
+            if ((g.Winner != Player.None || g.IsDraw) && !_resultSaved)
+            {
+                _resultSaved = true;
+                await GameResultService.SaveResultAsync(g);
+            }
         }
         await InvokeAsync(StateHasChanged);
     }
@@ -131,6 +139,7 @@ public partial class Home : IDisposable
         IsSoloGame = true;
         MatchId = Guid.NewGuid();
         MyPlayer = Player.X;
+        _resultSaved = false;
 
         var game = new GameSession();
         game.SetPlayerName(Player.X, PlayerName.Trim());
@@ -150,7 +159,11 @@ public partial class Home : IDisposable
                 {
                     if (game.Winner != Player.None || game.IsDraw)
                     {
-                        await GameResultService.SaveResultAsync(game);
+                        if (!_resultSaved)
+                        {
+                            _resultSaved = true;
+                            await GameResultService.SaveResultAsync(game);
+                        }
                     }
                     else if (IsSoloGame && game.CurrentTurn == Player.O)
                     {
@@ -163,7 +176,11 @@ public partial class Home : IDisposable
                                 game.MakeMove(aiMove, Player.O);
                                 if (game.Winner != Player.None || game.IsDraw)
                                 {
-                                    await GameResultService.SaveResultAsync(game);
+                                    if (!_resultSaved)
+                                    {
+                                        _resultSaved = true;
+                                        await GameResultService.SaveResultAsync(game);
+                                    }
                                 }
                                 await InvokeAsync(StateHasChanged);
                             }
@@ -179,6 +196,7 @@ public partial class Home : IDisposable
         if (MatchId != null && Games.TryGetValue(MatchId.Value, out var game))
         {
             _confettiFired = false;
+            _resultSaved = false;
             game.Restart();
         }
     }
