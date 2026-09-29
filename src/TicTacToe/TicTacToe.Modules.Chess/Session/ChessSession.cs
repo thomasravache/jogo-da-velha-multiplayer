@@ -1,3 +1,7 @@
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("TicTacToe.Tests")]
+
 namespace TicTacToe.Modules.Chess;
 
 /// <summary>Núcleo da sessão de xadrez compartilhada; o ciclo de vida fica em ChessSession.Lifecycle.cs (SPEC-0061).</summary>
