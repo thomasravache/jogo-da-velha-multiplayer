@@ -9,6 +9,7 @@ Cada entrada cita a spec de origem (`SPEC-NNNN`); gere-as com `spec_graph.py rep
 ## [Unreleased]
 
 ### Added
+- Ciclo de vida da sessão de xadrez: abandono, revanche com troca de cores e W.O. por desconexão (SPEC-0061)
 - Peças SVG, tabuleiro interativo e seletor de promoção do xadrez (SPEC-0055)
 - Robô de xadrez com níveis Fácil e Médio (SPEC-0054)
 - Sessão de xadrez compartilhada: assentos, lances com relógio e resultado por regras e por tempo (SPEC-0052)

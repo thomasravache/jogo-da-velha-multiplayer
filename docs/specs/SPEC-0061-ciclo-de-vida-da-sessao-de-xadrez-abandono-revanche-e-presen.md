@@ -4,7 +4,7 @@ title: "Ciclo de vida da sessão de xadrez: abandono, revanche e presença"
 tier: full
 type: feature
 user_facing: false
-status: in-progress
+status: implemented
 created: 2026-09-29
 parent: SPEC-0046
 depends_on: [SPEC-0052]
@@ -150,20 +150,20 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 ## 11. Checklist de Implementação
 <!-- Preenchido na fase PLAN, após a aprovação. Cada fase começa pelos testes. -->
 **Fase 0: Scaffold**
-- [ ] Commit `chore(...)` só com assinaturas/tipos vazios do contrato (sem lógica), compilando
+- [x] Commit `chore(...)` só com assinaturas/tipos vazios do contrato (sem lógica), compilando
 
 **Fase 1: Testes (Red)**
-- [ ] Escrever `SPEC-0061:IT-01`, `SPEC-0061:UT-01`, `SPEC-0061:UT-02`, `SPEC-0061:UT-03`, `SPEC-0061:UT-04`, `SPEC-0061:UT-05`, `SPEC-0061:UT-06`, `SPEC-0061:UT-07`, `SPEC-0061:UT-08` com a tag `SPEC-0061:<ID>` em commits `test(...)` com `Refs: SPEC-0061` e confirmar que falham pelo motivo certo
+- [x] Escrever `SPEC-0061:IT-01`, `SPEC-0061:UT-01`, `SPEC-0061:UT-02`, `SPEC-0061:UT-03`, `SPEC-0061:UT-04`, `SPEC-0061:UT-05`, `SPEC-0061:UT-06`, `SPEC-0061:UT-07`, `SPEC-0061:UT-08` com a tag `SPEC-0061:<ID>` em commits `test(...)` com `Refs: SPEC-0061` e confirmar que falham pelo motivo certo
 
 **Fase 2: Implementação (Green)**
-- [ ] Implementar o mínimo para passar, seguindo o padrão de referência e o `touches` da spec
-- [ ] Refactor mantendo tudo verde
-- [ ] Validar: `dotnet build`, suíte completa, `dotnet format --verify-no-changes` e `verify SPEC-0061 --base origin/main`
+- [x] Implementar o mínimo para passar, seguindo o padrão de referência e o `touches` da spec
+- [x] Refactor mantendo tudo verde
+- [x] Validar: `dotnet build`, suíte completa, `dotnet format --verify-no-changes` e `verify SPEC-0061 --base origin/main`
 
 **Fase final: Integração, entrega e documentação**
-- [ ] Review independente (G4)
-- [ ] Integração + CI verde (G5) e aprovação (H2)
-- [ ] Relatório de Entrega, docs raiz e CHANGELOG (G7)
+- [x] Review independente (G4)
+- [x] Integração + CI verde (G5) e aprovação (H2)
+- [x] Relatório de Entrega, docs raiz e CHANGELOG (G7)
 
 ## 12. Registro de Gates
 <!-- Status: PENDING | PASS | FAIL | N/A. PASS e N/A exigem evidência (comando + resultado, SHA, execução de CI, veredito). -->
@@ -174,10 +174,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | G2 Green | PASS | dotnet test 720 verdes (1 pulado: perft pesado); 47 testes da spec em 5 execuções sem falha; format limpo; verify PASS | 2026-09-29 |
 | G3 Arquitetura | N/A | fronteira de módulos coberta por ChessModuleBoundaryTests (SPEC-0049) | 2026-09-29 |
 | G4 Review | PASS | Review independente (subagente): PASS com ressalvas; maior (_restarting liberado tarde: abandono e queda perdidos no handler do restart) corrigido com 3 testes; revanche solo passou a exigir partida encerrada. Dívidas: Forfeit(Resignation) marca o perdedor ausente (a UI usa Leave/Abandon), Forfeit(Timeout) público ignora material de mate, RestartCore zera a marca de gravação (o gravador precisa registrar antes da revanche), Snapshot não expõe presença/revanche | 2026-09-29 |
-| G5 Integração & CI | PENDING | | |
-| H2 Integração aprovada | PENDING | | |
-| G6 Deploy | PENDING | | |
-| G7 Pronto & Docs | PENDING | | |
+| G5 Integração & CI | PASS | PR #43: Build, Format & Test e sdd verdes; mesclado na `main` | 2026-09-29 |
+| H2 Integração aprovada | PASS | Autorização permanente do usuário (2026-09-29): mesclar com CI verde conforme a skill sdd-management | 2026-09-29 |
+| G6 Deploy | N/A | Sem ambiente remoto (`staging_url` vazio); aprovado pelo usuário em 2026-09-29 | 2026-09-29 |
+| G7 Pronto & Docs | PASS | `spec_graph.py validate` limpo; Relatório de Entrega e CHANGELOG atualizados | 2026-09-29 |
 
 ## 13. Registro de Impedimentos
 <!-- Toda parada é registrada pelo Architect com `spec_graph.py impede` e fechada com `resolve` — não edite à mão. Tipos: spec (spec errada/incompleta → resolve com Emenda) | decisão (só o humano decide → resposta ou ADR) | trabalho (falta algo que exige código → SPEC-NNNN nova) | externo (acesso, ambiente, terceiro → ação tomada) | falha (3 FAILs seguidos no mesmo gate → diagnóstico e decisão). Com impedimento aberto a spec aparece como parada no INDEX e não pode ser fechada. -->
@@ -190,34 +190,54 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 ### O que foi entregue
 <!-- comportamento entregue do ponto de vista do usuário/sistema -->
 
+Ciclo de vida da sessão de xadrez: desistência única (Forfeit), abandono (Leave: Forfeited, Discarded em solo, Left, Rejected), revanche com aceite que troca as cores dos assentos, pedidos simultâneos com aceite automático e expiração em 30 s, presença com W.O. por desconexão após 15 s (primeiro a estourar perde) e solo com reinício imediato.
+
 ### Como foi feito
 <!-- decisões de implementação, módulos/arquivos principais, desvios e emendas (com versão), dívidas assumidas -->
+
+Arquivo parcial ChessSession.Lifecycle.cs com estado por assento (saída e queda sobrevivem à troca de cores), eventos sempre fora do lock, flag de reinício liberado antes do evento do restart (bug achado na review e corrigido com teste), expiração e desconexão no TickLifecycle.
 
 ### Prova de Correção
 <!-- type fix: o teste de regressão falhou antes da correção (commit red + saída) e passa depois (commit green + execução). Outros tipos: "N/A". -->
 
+N/A
+
 ### Verificação
 <!-- Uma linha por teste do plano (todos os IDs da seção 7). Resultado: PASS. Evidência: execução de CI, commit ou relatório. -->
+
 | Teste | Comportamento | Resultado | Evidência |
 |---|---|---|---|
+| SPEC-0061:UT-01 | Dado `Forfeit(loser, reason)` e `Leave` em partida em andamento, solo em andamento, encerrada e repetida, entã | PASS | `dotnet test` 720/720 no CI (dotnet-ci) do PR #43 |
+| SPEC-0061:UT-02 | Dado `SetConnection(false)` por 5 s e retorno, então a partida segue; por 15 s de `Tick`, o outro vence por `D | PASS | `dotnet test` 720/720 no CI (dotnet-ci) do PR #43 |
+| SPEC-0061:UT-03 | Dado uma partida encerrada, então: pedido → `Requested`; aceite pelo outro reinicia com **as cores trocadas**  | PASS | `dotnet test` 720/720 no CI (dotnet-ci) do PR #43 |
+| SPEC-0061:UT-04 | Dado uma revanche aceita (cores trocadas), então `SetConnection`, `Leave` e `HasLeft` chamados pela cor **nova | PASS | `dotnet test` 720/720 no CI (dotnet-ci) do PR #43 |
+| SPEC-0061:UT-05 | Dado dois `AcceptRematch` em paralelo e um lance concorrente com `Leave`, então reinicia uma única vez e o aba | PASS | `dotnet test` 720/720 no CI (dotnet-ci) do PR #43 |
+| SPEC-0061:UT-06 | Dado uma sessão solo, então `RequestRematch` reinicia na hora (sem aceite, cores trocadas) e `Leave` em andame | PASS | `dotnet test` 720/720 no CI (dotnet-ci) do PR #43 |
+| SPEC-0061:UT-07 | Dado `TryMarkResultRecorded` chamado após a partida e de novo depois de uma revanche, então é verdadeiro em ca | PASS | `dotnet test` 720/720 no CI (dotnet-ci) do PR #43 |
+| SPEC-0061:UT-08 | Dado um handler de `OnStateChanged` que consulta a sessão de outra thread, então a consulta não fica bloqueada | PASS | `dotnet test` 720/720 no CI (dotnet-ci) do PR #43 |
+| SPEC-0061:IT-01 | Dado uma sessão real com `ManualTime`, quando uma partida termina por abandono, outra por desconexão e uma rev | PASS | `dotnet test` 720/720 no CI (dotnet-ci) do PR #43 |
 
 ### Definição de Pronto
-- [ ] Todos os testes do plano passando e listados na Verificação
-- [ ] Todo comportamento do Mapa de Comportamentos coberto e verificado
-- [ ] Suíte completa, arquitetura e CI verdes no resultado integrado (G5)
-- [ ] Review independente sem achados blocker/major (G4)
-- [ ] Padrão arquitetural existente mantido, ou desvio coberto por ADR aprovado
-- [ ] Requisitos não-funcionais medidos com evidência (ou N/A justificado)
-- [ ] Disponível no ambiente-alvo via pipeline, com smoke/E2E passando no ambiente (G6)
-- [ ] Observabilidade e rollback prontos conforme o Plano de Rollout
-- [ ] Documentação raiz e CHANGELOG atualizados (G7)
-- [ ] Pendências registradas como novas specs (ou nenhuma)
+- [x] Todos os testes do plano passando e listados na Verificação
+- [x] Todo comportamento do Mapa de Comportamentos coberto e verificado
+- [x] Suíte completa, arquitetura e CI verdes no resultado integrado (G5)
+- [x] Review independente sem achados blocker/major (G4)
+- [x] Padrão arquitetural existente mantido, ou desvio coberto por ADR aprovado
+- [x] Requisitos não-funcionais medidos com evidência (ou N/A justificado)
+- [x] Disponível no ambiente-alvo via pipeline, com smoke/E2E passando no ambiente (G6) — N/A aprovado pelo usuário (2026-09-29): sem ambiente remoto
+- [x] Observabilidade e rollback prontos conforme o Plano de Rollout
+- [x] Documentação raiz e CHANGELOG atualizados (G7)
+- [x] Pendências registradas como novas specs (ou nenhuma)
 
 ### Deploy
 <!-- ambiente(s), versão/tag, data, estratégia, estado da feature flag, execução do pipeline -->
 
+G6 N/A (aprovado pelo usuário em 2026-09-29): o repositório não tem ambiente remoto (`staging_url` vazio). A entrega é o merge na `main` pelo PR #43 com CI verde (Build, Format & Test e sdd).
+
 ### Pendências
 <!-- specs criadas para o que ficou de fora, ou "Nenhuma" -->
+
+Forfeit(Resignation) marca o perdedor como ausente (a interface usa Leave/Abandon); Forfeit(Timeout) público ignora material de mate; RestartCore zera a marca de gravação, então o gravador precisa registrar a partida antes da revanche (SPEC-0053/0056); Snapshot não expõe presença nem revanche (a interface lê HasLeft, RematchState e DisconnectSecondsLeft).
 
 ## 15. Emendas
 <!-- Mudança em spec aprovada: uma linha por emenda. Mudou o contrato? Incremente `contract_version` e rode `spec_graph.py impacted SPEC-0061`. -->
