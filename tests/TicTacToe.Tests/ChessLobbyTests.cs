@@ -197,4 +197,31 @@ public class ChessLobbyTests
         Assert.NotEmpty(cut.FindAll("[aria-live]"));
         Assert.Equal("alert", cut.Find("[role='alert']").GetAttribute("role"));
     }
+
+    [Fact(DisplayName = "SPEC-0056:UT-04 — Na fila, criar/entrar em sala fica desabilitado; com sala criada, procurar oponente fica desabilitado")]
+    [Trait("Category", "SPEC-0056:UT-04")]
+    public void QueueAndRoom_ShouldBeMutuallyExclusive()
+    {
+        using var ctx = NewContext();
+        var cut = Render(ctx, p => p.Add(l => l.PlayerName, "Ana").Add(l => l.IsWaiting, true).Add(l => l.InputRoomCode, "SALA-ABCD"));
+
+        Assert.True(Button(cut, "Criar sala").HasAttribute("disabled"));
+        Radio(cut, "Ação da sala privada", "Entrar com código").Click();
+        Assert.True(Button(cut, "Entrar").HasAttribute("disabled"));
+
+        cut.Render(p => p.Add(l => l.IsWaiting, false).Add(l => l.CreatedRoomCode, "SALA-X7K2"));
+        Assert.True(Button(cut, "Procurar oponente").HasAttribute("disabled"));
+    }
+
+    [Fact(DisplayName = "SPEC-0056:UT-05 — Entrar com código informa que o controle de tempo é o do anfitrião")]
+    [Trait("Category", "SPEC-0056:UT-05")]
+    public void JoinTab_ShouldHintHostControl()
+    {
+        using var ctx = NewContext();
+        var cut = Render(ctx, p => p.Add(l => l.PlayerName, "Ana"));
+
+        Radio(cut, "Ação da sala privada", "Entrar com código").Click();
+
+        Assert.Contains("controle de tempo da sala é o do anfitrião", cut.Markup, StringComparison.Ordinal);
+    }
 }

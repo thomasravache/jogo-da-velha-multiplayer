@@ -100,6 +100,29 @@ public sealed class ChessHomeTests : IDisposable
         return await db.MatchResults.ToListAsync();
     }
 
+    private async Task WaitForHistoryAsync(int expected)
+    {
+        var deadline = DateTime.UtcNow.AddSeconds(5);
+        while (DateTime.UtcNow < deadline)
+        {
+            await using var db = new GameplayDbContext(_options);
+            var service = new GameResultService(db, NullLogger<GameResultService>.Instance);
+            var page = await service.GetHistoryAsync(new HistoryQuery(null, HistoryScope.All, HistoryFilter.All, null, HistorySort.Recent, 1, 10, GameType.Chess));
+            if (page.TotalItems >= expected)
+            {
+                return;
+            }
+
+            await Task.Delay(25);
+        }
+    }
+
+    private static string ConnOf(IRenderedComponent<ChessHome> cut) =>
+        (string)typeof(ChessHome).GetField("_connectionId", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.GetValue(cut.Instance)!;
+
+    private static Task<object?> Call(IRenderedComponent<ChessHome> cut, string method) =>
+        cut.InvokeAsync(() => typeof(ChessHome).GetMethod(method, System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.Invoke(cut.Instance, null));
+
     private (IRenderedComponent<ChessHome> A, IRenderedComponent<ChessHome> B) Pair(string colorA, string colorB, string control = "Blitz")
     {
         var a = Open(NewCircuit("Ana"), "Ana");
@@ -206,7 +229,7 @@ public sealed class ChessHomeTests : IDisposable
 
         a.WaitForAssertion(() => Assert.NotEmpty(a.FindAll("[data-end-card]")));
         b.WaitForAssertion(() => Assert.NotEmpty(b.FindAll("[data-end-card]")));
-        await Task.Delay(200);
+        await WaitForHistoryAsync(1);
         var row = Assert.Single(await RowsAsync());
         Assert.Equal(GameType.Chess, row.GameType);
         Assert.Equal("blitz5+0", row.TimeControl);
@@ -275,6 +298,102 @@ public sealed class ChessHomeTests : IDisposable
         }
     }
 
+
+    // ---------- exclusividade fila x sala ----------
+
+    [Fact(DisplayName = "SPEC-0056:IT-03 — Na fila, criar sala cancela a fila: sem fila fantasma")]
+    [Trait("Category", "SPEC-0056:IT-03")]
+    public async Task CreateRoomWhileQueued_ShouldLeaveQueue()
+    {
+        var a = Open(NewCircuit("Ana"), "Ana");
+        Search(a, "Blitz", "Brancas");
+        Assert.Contains("Na fila", a.Markup, StringComparison.Ordinal);
+
+        await Call(a, "CreateRoom");
+
+        Assert.DoesNotContain("Na fila", a.Markup, StringComparison.Ordinal);
+        Assert.NotEmpty(a.FindAll("[aria-label='Código da sala']"));
+        var b = Open(NewCircuit("Bia"), "Bia");
+        Search(b, "Blitz", "Pretas");
+        Assert.Empty(b.FindComponents<ChessArena>());
+        Assert.Empty(a.FindComponents<ChessArena>());
+    }
+
+    [Fact(DisplayName = "SPEC-0056:IT-03 — Na fila, entrar em sala inválida tira da fila e a tela reflete isso")]
+    [Trait("Category", "SPEC-0056:IT-03")]
+    public async Task InvalidJoinWhileQueued_ShouldLeaveQueueAndUpdateScreen()
+    {
+        var a = Open(NewCircuit("Ana"), "Ana");
+        Search(a, "Blitz", "Brancas");
+        Choose(a, "Entrar com código");
+        a.Find("input#roomCode").Input("SALA-ZZZZ");
+
+        await Call(a, "JoinRoom");
+
+        Assert.DoesNotContain("Na fila", a.Markup, StringComparison.Ordinal);
+        Assert.Contains("Sala inválida ou já iniciada!", a.Find("[role='alert']").TextContent, StringComparison.Ordinal);
+        var b = Open(NewCircuit("Bia"), "Bia");
+        Search(b, "Blitz", "Pretas");
+        Assert.Empty(b.FindComponents<ChessArena>());
+    }
+
+    [Fact(DisplayName = "SPEC-0056:IT-03 — Com sala criada, procurar oponente cancela a sala")]
+    [Trait("Category", "SPEC-0056:IT-03")]
+    public async Task FindMatchWhileHosting_ShouldCancelRoom()
+    {
+        var a = Open(NewCircuit("Ana"), "Ana");
+        Button(a, "Criar sala").Click();
+        var code = a.Find("[aria-label='Código da sala']").TextContent.Trim();
+
+        await Call(a, "FindMatch");
+
+        Assert.Empty(a.FindAll("[aria-label='Código da sala']"));
+        Assert.Contains("Na fila", a.Markup, StringComparison.Ordinal);
+        Assert.Null(_matchmaking.JoinPrivateRoom(code, "intruso", "Intruso", null, "xadrez"));
+    }
+
+    // ---------- corrida com o descarte ----------
+
+    [Fact(DisplayName = "SPEC-0056:IT-03 — Pareamento entregue a página já descartada não cria partida nem assento")]
+    [Trait("Category", "SPEC-0056:IT-03")]
+    public async Task MatchDeliveredAfterDispose_ShouldCreateNothing()
+    {
+        var ctx = NewCircuit("Ana");
+        var a = Open(ctx, "Ana");
+        var connA = ConnOf(a);
+        var stale = (Action<string, Guid>)typeof(MatchmakingService)
+            .GetField("OnPlayerMatched", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.GetValue(_matchmaking)!;
+        await ctx.DisposeComponentsAsync();
+        _matchmaking.JoinQueue(connA, "Ana", null, queueKey: "xadrez:blitz5+0");
+        var id = _matchmaking.JoinQueue("raw", "Raw", null, queueKey: "xadrez:blitz5+0")!.Value;
+
+        stale(connA, id);
+
+        Assert.False(_registry.TryGet(id, out _));
+    }
+
+    [Fact(DisplayName = "SPEC-0056:IT-03 — Parceiro descartado antes do pareamento não segura a sessão: ao sair o outro, ela é removida")]
+    [Trait("Category", "SPEC-0056:IT-03")]
+    public async Task DeadOpponent_ShouldNotLeakSession()
+    {
+        var ctxA = NewCircuit("Ana");
+        var a = Open(ctxA, "Ana");
+        var connA = ConnOf(a);
+        await ctxA.DisposeComponentsAsync();
+        var b = Open(NewCircuit("Bia"), "Bia");
+        var connB = ConnOf(b);
+        _matchmaking.JoinQueue(connA, "Ana", null, queueKey: "xadrez:blitz5+0");
+        var id = _matchmaking.JoinQueue(connB, "Bia", null, queueKey: "xadrez:blitz5+0")!.Value;
+        WaitForArena(b);
+        var session = SessionOf(b);
+        Assert.True(session.Forfeit(session.ColorOf(1 - SeatOf(b)), ChessEndReason.Resignation));
+        b.WaitForAssertion(() => Button(b, "Voltar ao lobby"));
+
+        Button(b, "Voltar ao lobby").Click();
+
+        Assert.False(_registry.TryGet(id, out _));
+    }
+
     // ---------- UT-06 ----------
 
     [Fact(DisplayName = "SPEC-0056:UT-06 — Shell imersivo na partida e restaurado ao voltar ao lobby e ao descartar")]
@@ -339,7 +458,7 @@ public sealed class ChessHomeTests : IDisposable
 
         a.WaitForAssertion(() => Assert.Contains("Xeque-mate", a.Find("[data-end-card]").TextContent, StringComparison.Ordinal));
         b.WaitForAssertion(() => Assert.Contains("Xeque-mate", b.Find("[data-end-card]").TextContent, StringComparison.Ordinal));
-        await Task.Delay(200);
+        await WaitForHistoryAsync(1);
 
         await using var db = new GameplayDbContext(_options);
         var service = new GameResultService(db, NullLogger<GameResultService>.Instance);
