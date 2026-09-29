@@ -17,11 +17,25 @@ public sealed class MediumChessBot : IChessBot
     private readonly int _maxNodes;
     private readonly object _lock = new();
 
+    /// <param name="seed">Semente do desempate entre lances de mesma nota.</param>
+    /// <param name="maxNodes">
+    /// Teto de nós da busca (padrão <see cref="DefaultMaxNodes"/>). Valores menores ou iguais a zero não
+    /// permitem nenhuma busca: o robô devolve o primeiro lance legal na ordem de capturas primeiro.
+    /// </param>
     public MediumChessBot(int? seed = null, int? maxNodes = null)
     {
         _random = seed is { } value ? new Random(value) : new Random();
         _maxNodes = maxNodes ?? DefaultMaxNodes;
     }
+
+    /// <summary>
+    /// Gancho de teste chamado a cada nó visitado, com a contagem acumulada (permite cancelar no meio da busca
+    /// de forma determinística). Executa na thread da busca.
+    /// </summary>
+    public Action<long>? OnNodeVisited { get; set; }
+
+    /// <summary>Última profundidade concluída por inteiro na última busca (para testes).</summary>
+    public int LastCompletedDepth { get; private set; }
 
     public string Name => ChessBots.NameOf(ChessBotLevel.Medium);
 
@@ -47,13 +61,15 @@ public sealed class MediumChessBot : IChessBot
         if (legal.Count == 0)
         {
             LastNodeCount = 0;
+            LastCompletedDepth = 0;
             return null;
         }
 
-        var search = new SearchState(_maxNodes, ct);
+        var search = new SearchState(_maxNodes, OnNodeVisited, ct);
         var ordered = Shuffle(legal, random);
         ordered = Order(root, ordered);
         var best = ordered[0];
+        var completedDepth = 0;
 
         for (var depth = 1; depth <= MaxDepth && legal.Count > 1; depth++)
         {
@@ -82,6 +98,7 @@ public sealed class MediumChessBot : IChessBot
             }
 
             best = depthBest;
+            completedDepth = depth;
             ordered = [best, .. ordered.Where(m => m != best)];
             if (alpha >= MateScore - 100)
             {
@@ -90,6 +107,7 @@ public sealed class MediumChessBot : IChessBot
         }
 
         LastNodeCount = search.Nodes;
+        LastCompletedDepth = completedDepth;
         return best;
     }
 
@@ -144,7 +162,7 @@ public sealed class MediumChessBot : IChessBot
         return Math.Clamp(score, 0, 500);
     }
 
-    private sealed class SearchState(int maxNodes, CancellationToken ct)
+    private sealed class SearchState(int maxNodes, Action<long>? onNode, CancellationToken ct)
     {
         public long Nodes { get; private set; }
 
@@ -159,6 +177,7 @@ public sealed class MediumChessBot : IChessBot
             }
 
             Nodes++;
+            onNode?.Invoke(Nodes);
 
             if (position.HalfmoveClock >= 100)
             {
