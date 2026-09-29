@@ -134,4 +134,16 @@ public class DisconnectForfeitTests
         Assert.True(g.HasLeft(Player.X));
         Assert.False(g.RequestRematch(Player.O));
     }
+
+    [Fact(DisplayName = "SPEC-0042:UT-02b — Rodada encerrada com o oponente já desconectado não deixa contagem obsoleta")]
+    [Trait("Category", "SPEC-0042:UT-02")]
+    public void EndedRound_ShouldNotReportStaleCountdown()
+    {
+        var time = new ManualTime();
+        using var g = Online(time);
+        g.SetConnection(Player.O, false);
+        SeriesRulesTests.WinRound(g, Player.X);
+
+        Assert.Null(g.DisconnectSecondsLeft(Player.O));
+    }
 }

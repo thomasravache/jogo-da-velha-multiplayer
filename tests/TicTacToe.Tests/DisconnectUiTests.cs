@@ -39,7 +39,11 @@ public class DisconnectUiTests
         time.Advance(TimeSpan.FromSeconds(4));
         var waiting = Render(Player.X).Find("[data-disconnect-notice]");
         Assert.Equal("polite", waiting.GetAttribute("aria-live"));
-        Assert.Contains("Oponente desconectado. Aguardando reconexão… 11s", waiting.TextContent);
+        Assert.Contains("Oponente desconectado. Aguardando reconexão…", waiting.TextContent);
+        Assert.DoesNotContain("11s", waiting.TextContent); // a região live não muda a cada segundo
+        var count = Render(Player.X).Find("[data-disconnect-count]");
+        Assert.Equal("true", count.GetAttribute("aria-hidden"));
+        Assert.Contains("11s", count.TextContent);
         Assert.Equal("", Render(Player.O).Find("[data-disconnect-notice]").TextContent.Trim()); // o desconectado não vê o próprio aviso
 
         time.Advance(TimeSpan.FromSeconds(11));
