@@ -206,10 +206,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | Gate | Status | Evidência | Data |
 |---|---|---|---|
 | G0 Spec | PASS | `spec_graph.py validate` das 18 specs: 0 erros, 0 avisos | 2026-09-29 |
-| G1 Red | PENDING | | |
-| G2 Green | PENDING | | |
-| G3 Arquitetura | PENDING | | |
-| G4 Review | PENDING | | |
+| G1 Red | PASS | `verify SPEC-0029`: primeiro red 238afeb (6/6 falham); 6/6 testes rastreados | 2026-09-29 |
+| G2 Green | PASS | `dotnet test` 74/74; `build.sh --check` sem drift; feat a56db55 | 2026-09-29 |
+| G3 Arquitetura | PASS | Regra do ADR-0008 (versão pinada, sha256, tokens, sem preflight) garantida por `TailwindDesignSystemTests` | 2026-09-29 |
+| G4 Review | PASS | Reviewer independente APPROVED em a56db55 (0 blocker, 0 major, 5 minor; 2 corrigidos em f0026fe) | 2026-09-29 |
 | G5 Integração & CI | PENDING | | |
 | H2 Integração aprovada | PENDING | | |
 | G6 Deploy | PENDING | | |

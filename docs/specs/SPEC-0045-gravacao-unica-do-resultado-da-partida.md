@@ -163,10 +163,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | Gate | Status | Evidência | Data |
 |---|---|---|---|
 | G0 Spec | PASS | `spec_graph.py validate` das 18 specs: 0 erros, 0 avisos | 2026-09-29 |
-| G1 Red | PENDING | | |
-| G2 Green | PENDING | | |
-| G3 Arquitetura | PENDING | | |
-| G4 Review | PENDING | | |
+| G1 Red | PASS | `verify SPEC-0045`: primeiro red 61b7e55; IT-02 falhou com 2 linhas (esperado 1); 7/7 testes rastreados | 2026-09-29 |
+| G2 Green | PASS | `dotnet test` 76/76; `dotnet format --verify-no-changes` limpo; fix d06c33c | 2026-09-29 |
+| G3 Arquitetura | N/A | Sem suíte `Category=Architecture` no projeto; nenhuma dependência entre módulos alterada | 2026-09-29 |
+| G4 Review | PASS | Reviewer independente APPROVED em 80e2b69 (0 blocker, 0 major, 5 minor) | 2026-09-29 |
 | G5 Integração & CI | PENDING | | |
 | H2 Integração aprovada | PENDING | | |
 | G6 Deploy | PENDING | | |
