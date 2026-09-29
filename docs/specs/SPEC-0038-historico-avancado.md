@@ -4,13 +4,13 @@ title: Histórico avançado
 tier: full
 type: feature
 user_facing: true
-status: approved
+status: in-progress
 created: 2026-09-29
 parent: SPEC-0035
 depends_on: [SPEC-0032, SPEC-0036, SPEC-0037]
 consumes_contract: []
-contract_version: 1
-touches: [src/TicTacToe/TicTacToe.Modules.Gameplay/GameResultService.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/HistoryModels.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/HistoryAnalysis.cs, src/TicTacToe/TicTacToe.Web/Components/Pages/History.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/History.razor.css, src/TicTacToe/TicTacToe.Web/Components/Ui/StatTile.razor, src/TicTacToe/TicTacToe.Web/Components/Ui/Pager.razor, tests/TicTacToe.Tests/HistoryAnalysisTests.cs, tests/TicTacToe.Tests/HistoryQueryTests.cs, tests/TicTacToe.Tests/HistoryAdvancedUiTests.cs]
+contract_version: 2
+touches: [src/TicTacToe/TicTacToe.Modules.Gameplay/GameResultService.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/HistoryModels.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/HistoryAnalysis.cs, src/TicTacToe/TicTacToe.Web/Components/Pages/History.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/History.razor.css, src/TicTacToe/TicTacToe.Web/Components/Ui/StatTile.razor, src/TicTacToe/TicTacToe.Web/Components/Ui/Pager.razor, tests/TicTacToe.Tests/HistoryAnalysisTests.cs, tests/TicTacToe.Tests/HistoryQueryTests.cs, tests/TicTacToe.Tests/HistoryAdvancedUiTests.cs, tests/TicTacToe.Tests/HistoryCyberArenaTests.cs]
 adrs: [ADR-0009]
 external: []
 size: M
@@ -79,8 +79,9 @@ enum HistorySort    { Recent, ShortestDuration, Result }         // Result: Vit�
 record HistoryQuery(Guid? PlayerId, HistoryScope Scope, HistoryFilter Filter, string? Opponent,
                     HistorySort Sort, int Page /*1-based*/, int PageSize = 10)
 
-record HistoryItem(Guid Id, string PlayerXName, string PlayerOName, HistoryOutcome Outcome /*Win|Loss|Draw|null=all scope*/,
-                   bool WalkOver, string Reason, int? DurationSeconds, GameMode? Mode, DateTime PlayedAtUtc, bool IAmX /*ou O; nulo no escopo global*/)
+record HistoryItem(Guid Id, string PlayerXName, string PlayerOName, HistoryOutcome? Outcome /*Win|Loss|Draw; nulo no escopo global*/,
+                   bool WalkOver, string Reason, int? DurationSeconds, GameMode? Mode, DateTime PlayedAtUtc,
+                   bool? IAmX /*nulo no escopo global*/, string? WinnerSide /*"X"|"O"|nulo; Emenda v2*/)
 
 record HistoryPage(IReadOnlyList<HistoryItem> Items, int TotalItems, int Page, int PageCount, HistoryCounts Counts)
 record HistoryCounts(int All, int Wins, int Losses, int Draws, int WalkOvers)
@@ -249,3 +250,4 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 <!-- Mudança em spec aprovada: uma linha por emenda. Mudou o contrato? Incremente `contract_version` e rode `spec_graph.py impacted SPEC-0038`. -->
 | Versão do contrato | Data | Mudança | Motivo | Specs impactadas | Aprovado por |
 |---|---|---|---|---|---|
+| 2 | 2026-09-29 | `HistoryItem` ganha `WinnerSide` (string?), `Outcome` e `IAmX` passam a anuláveis; `touches` inclui `HistoryCyberArenaTests.cs` | O escopo global precisa exibir o vencedor (como na SPEC-0032) sem depender do nome; os testes da SPEC-0032 precisam registrar a identidade e ajustar o escopo padrão | SPEC-0032 (testes); sem consumidores do contrato | thomas (autorização permanente, 2026-09-29) |
