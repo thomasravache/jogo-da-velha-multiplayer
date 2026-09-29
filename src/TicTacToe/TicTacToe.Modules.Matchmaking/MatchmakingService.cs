@@ -37,6 +37,8 @@ public class MatchmakingService
         return null;
     }
 
+    public bool IsPrivateMatch(Guid matchId) => throw new NotImplementedException();
+
     public string? GetPlayerName(string connectionId) =>
         _playerNames.TryGetValue(connectionId, out var name) ? name : null;
 

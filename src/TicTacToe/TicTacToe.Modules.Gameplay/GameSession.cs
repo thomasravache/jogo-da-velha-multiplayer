@@ -27,13 +27,31 @@ public class GameSession : IDisposable
 
     public event Action? OnStateChanged;
 
-    public GameSession(bool enableBackgroundTimer = true)
+    public GameSession(bool enableBackgroundTimer = true, TimeProvider? timeProvider = null)
     {
         if (enableBackgroundTimer)
         {
             _timer = new Timer(_ => Tick(), null, 1000, 1000);
         }
     }
+
+    public GameMode Mode
+    {
+        get => throw new NotImplementedException();
+        set => throw new NotImplementedException();
+    }
+
+    public DateTimeOffset StartedAtUtc => throw new NotImplementedException();
+
+    public DateTimeOffset? EndedAtUtc => throw new NotImplementedException();
+
+    public TimeSpan? Duration => throw new NotImplementedException();
+
+    public int MoveCount => throw new NotImplementedException();
+
+    public EndReason? EndReason => throw new NotImplementedException();
+
+    public string FinalBoard => throw new NotImplementedException();
 
     private bool _resultRecorded;
     private IReadOnlyList<int>? _winningLine;
