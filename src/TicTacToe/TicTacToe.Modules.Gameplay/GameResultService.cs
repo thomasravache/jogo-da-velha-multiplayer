@@ -33,6 +33,23 @@ public class GameResultService(GameplayDbContext db, ILogger<GameResultService> 
         }
     }
 
+    /// <summary>Grava o resultado uma única vez por rodada, independente de quantos circuitos observam a partida.</summary>
+    public async Task<bool> SaveOnceAsync(GameSession game)
+    {
+        if (game.Winner == Player.None && !game.IsDraw) return false;
+        if (!game.TryMarkResultRecorded())
+        {
+            if (logger.IsEnabled(LogLevel.Debug))
+            {
+                logger.LogDebug("Resultado da partida {GameId} já gravado; gravação ignorada.", game.Id);
+            }
+            return false;
+        }
+
+        await SaveResultAsync(game);
+        return true;
+    }
+
     public async Task<List<MatchResult>> GetRecentAsync(int count = 10) =>
         await db.MatchResults
             .OrderByDescending(m => m.PlayedAt)
