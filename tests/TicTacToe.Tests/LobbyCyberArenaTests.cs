@@ -48,7 +48,7 @@ public class LobbyCyberArenaTests
         });
 
     private static IElement Button(IRenderedComponent<Lobby> cut, string text) =>
-        cut.FindAll("button").First(b => b.TextContent.Contains(text));
+        cut.FindAll("button").First(b => !b.HasAttribute("role") && b.TextContent.Contains(text));
 
     private static IElement Radio(IRenderedComponent<Lobby> cut, string text) =>
         cut.FindAll("[role='radio']").First(r => r.TextContent.Contains(text));
@@ -184,7 +184,7 @@ public class LobbyCyberArenaTests
     public async Task CopyCode_ShouldUseClipboard_AndHandleFailure()
     {
         await using var ctx = new BunitContext();
-        ctx.JSInterop.SetupVoid("navigator.clipboard.writeText", "SALA-ABCD");
+        ctx.JSInterop.SetupVoid("navigator.clipboard.writeText", "SALA-ABCD").SetVoidResult();
         var cut = RenderLobby(ctx, p => p.Add(l => l.PlayerName, "Thomas").Add(l => l.CreatedRoomCode, "SALA-ABCD"));
 
         await cut.InvokeAsync(() => Button(cut, "Copiar").Click());
@@ -205,7 +205,7 @@ public class LobbyCyberArenaTests
     public async Task LobbyJourney_ShouldWorkEndToEnd()
     {
         await using var ctx = new BunitContext();
-        ctx.JSInterop.SetupVoid("navigator.clipboard.writeText", "SALA-ABCD");
+        ctx.JSInterop.SetupVoid("navigator.clipboard.writeText", "SALA-ABCD").SetVoidResult();
         var solo = 0;
         var joined = 0;
         var difficulty = AiDifficulty.Hard;
