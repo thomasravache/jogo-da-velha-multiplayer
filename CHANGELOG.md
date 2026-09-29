@@ -9,6 +9,7 @@ Cada entrada cita a spec de origem (`SPEC-NNNN`); gere-as com `spec_graph.py rep
 ## [Unreleased]
 
 ### Added
+- Motor de regras do xadrez (módulo Chess) validado por perft (SPEC-0049)
 - W.O. por desconexão do oponente com tolerância de 15 s e aviso na arena (SPEC-0042)
 - Abandonar partida com confirmação, voltar ao lobby e revanche com aceite do oponente (SPEC-0041)
 - Interface da série melhor de 5: formato no lobby, rodada, marcadores, match point e avisos na arena (SPEC-0044)
@@ -30,3 +31,6 @@ Cada entrada cita a spec de origem (`SPEC-NNNN`); gere-as com `spec_graph.py rep
 
 ### Removed
 - MudBlazor, Bootstrap, página de exemplo `/counter` e menu lateral legado; reset de CSS (preflight) do Tailwind habilitado (SPEC-0034)
+
+### Changed
+- Modelo de partidas e matchmaking generalizados para vários jogos, sem mudar o jogo da velha (SPEC-0047)

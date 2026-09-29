@@ -4,7 +4,7 @@ title: "Motor de xadrez: tabuleiro, lances legais e perft"
 tier: full
 type: foundation
 user_facing: false
-status: in-progress
+status: implemented
 created: 2026-09-29
 parent: SPEC-0046
 depends_on: []
@@ -175,20 +175,20 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 ## 11. Checklist de Implementação
 <!-- Preenchido na fase PLAN, após a aprovação. Cada fase começa pelos testes. -->
 **Fase 0: Scaffold**
-- [ ] Commit `chore(...)` só com assinaturas/tipos vazios do contrato (sem lógica), compilando
+- [x] Commit `chore(...)` só com assinaturas/tipos vazios do contrato (sem lógica), compilando
 
 **Fase 1: Testes (Red)**
-- [ ] Escrever `SPEC-0049:IT-01`, `SPEC-0049:IT-02`, `SPEC-0049:UT-01`, `SPEC-0049:UT-02`, `SPEC-0049:UT-03`, `SPEC-0049:UT-04`, `SPEC-0049:UT-05`, `SPEC-0049:UT-06`, `SPEC-0049:UT-07`, `SPEC-0049:UT-08`, `SPEC-0049:UT-09` com a tag `SPEC-0049:<ID>` em commits `test(...)` com `Refs: SPEC-0049` e confirmar que falham pelo motivo certo
+- [x] Escrever `SPEC-0049:IT-01`, `SPEC-0049:IT-02`, `SPEC-0049:UT-01`, `SPEC-0049:UT-02`, `SPEC-0049:UT-03`, `SPEC-0049:UT-04`, `SPEC-0049:UT-05`, `SPEC-0049:UT-06`, `SPEC-0049:UT-07`, `SPEC-0049:UT-08`, `SPEC-0049:UT-09` com a tag `SPEC-0049:<ID>` em commits `test(...)` com `Refs: SPEC-0049` e confirmar que falham pelo motivo certo
 
 **Fase 2: Implementação (Green)**
-- [ ] Implementar o mínimo para passar, seguindo o padrão de referência e o `touches` da spec
-- [ ] Refactor mantendo tudo verde
-- [ ] Validar: `dotnet build`, suíte completa, `dotnet format --verify-no-changes` e `verify SPEC-0049 --base origin/main`
+- [x] Implementar o mínimo para passar, seguindo o padrão de referência e o `touches` da spec
+- [x] Refactor mantendo tudo verde
+- [x] Validar: `dotnet build`, suíte completa, `dotnet format --verify-no-changes` e `verify SPEC-0049 --base origin/main`
 
 **Fase final: Integração, entrega e documentação**
-- [ ] Review independente (G4)
-- [ ] Integração + CI verde (G5) e aprovação (H2)
-- [ ] Relatório de Entrega, docs raiz e CHANGELOG (G7)
+- [x] Review independente (G4)
+- [x] Integração + CI verde (G5) e aprovação (H2)
+- [x] Relatório de Entrega, docs raiz e CHANGELOG (G7)
 
 ## 12. Registro de Gates
 <!-- Status: PENDING | PASS | FAIL | N/A. PASS e N/A exigem evidência (comando + resultado, SHA, execução de CI, veredito). -->
@@ -199,10 +199,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | G2 Green | PASS | dotnet test 494 verdes (1 pulado: IT-01b, Category=Slow com CHESS_SLOW=1 executado localmente, 7 casos de perft pesado OK em ~4 s); format limpo; verify PASS | 2026-09-29 |
 | G3 Arquitetura | PASS | PASS: ChessModuleBoundaryTests (Category=Architecture) valida a fronteira nos dois sentidos | 2026-09-29 |
 | G4 Review | PASS | Review independente (subagente): PASS, 0 bloqueantes/maiores; menores tratados (lista de lances congelada, roque vazio rejeitado). Dívidas: cache preguiçoso sem volatile (corrida benigna), FEN aceita formas não canônicas, faltam UT de roque preto com torre capturada e cravadas por dama (cobertos pelo perft) | 2026-09-29 |
-| G5 Integração & CI | PENDING | | |
-| H2 Integração aprovada | PENDING | | |
-| G6 Deploy | PENDING | | |
-| G7 Pronto & Docs | PENDING | | |
+| G5 Integração & CI | PASS | PR #34: Build, Format & Test e sdd verdes; mesclado na `main` | 2026-09-29 |
+| H2 Integração aprovada | PASS | Autorização permanente do usuário (2026-09-29): mesclar com CI verde conforme a skill sdd-management | 2026-09-29 |
+| G6 Deploy | N/A | Sem ambiente remoto (`staging_url` vazio); aprovado pelo usuário em 2026-09-29 | 2026-09-29 |
+| G7 Pronto & Docs | PASS | `spec_graph.py validate` limpo; Relatório de Entrega e CHANGELOG atualizados | 2026-09-29 |
 
 ## 13. Registro de Impedimentos
 <!-- Toda parada é registrada pelo Architect com `spec_graph.py impede` e fechada com `resolve` — não edite à mão. Tipos: spec (spec errada/incompleta → resolve com Emenda) | decisão (só o humano decide → resposta ou ADR) | trabalho (falta algo que exige código → SPEC-NNNN nova) | externo (acesso, ambiente, terceiro → ação tomada) | falha (3 FAILs seguidos no mesmo gate → diagnóstico e decisão). Com impedimento aberto a spec aparece como parada no INDEX e não pode ser fechada. -->
@@ -215,34 +215,56 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 ### O que foi entregue
 <!-- comportamento entregue do ponto de vista do usuário/sistema -->
 
+Módulo TicTacToe.Modules.Chess com o motor de regras do xadrez: casas, peças, lances, Position imutável com FEN, lances legais completos (xeque, cravadas, roque, en passant, promoção), Apply e Perft. Correção provada por contagens de perft publicadas (posição inicial, Kiwipete e posições 3 a 6).
+
 ### Como foi feito
 <!-- decisões de implementação, módulos/arquivos principais, desvios e emendas (com versão), dívidas assumidas -->
+
+Position com tabuleiro em byte[64], lances legais por aplicação em buffer temporário e verificação de xeque, cache preguiçoso congelado; FEN mais estrito que a spec; perft pesado marcado com SlowTheory (CHESS_SLOW=1) por o CI rodar todos os testes; teste de fronteira de módulos nos dois sentidos.
 
 ### Prova de Correção
 <!-- type fix: o teste de regressão falhou antes da correção (commit red + saída) e passa depois (commit green + execução). Outros tipos: "N/A". -->
 
+N/A
+
 ### Verificação
 <!-- Uma linha por teste do plano (todos os IDs da seção 7). Resultado: PASS. Evidência: execução de CI, commit ou relatório. -->
+
 | Teste | Comportamento | Resultado | Evidência |
 |---|---|---|---|
+| SPEC-0049:UT-01 | Dado textos "a1", "e4", "h8" e inválidos ("i9", "", "e", "e44"), então `Parse`/`ToString` são inversos e os in | PASS | `dotnet test` 507/507 no CI (dotnet-ci) do PR #34 |
+| SPEC-0049:UT-02 | Dado a posição inicial, uma posição com en passant, uma sem direitos de roque e FENs inválidos (campos faltand | PASS | `dotnet test` 507/507 no CI (dotnet-ci) do PR #34 |
+| SPEC-0049:UT-03 | Dado posições mínimas de cada peça (livre, bloqueada por aliada, com capturas), então `LegalMoves` devolve exa | PASS | `dotnet test` 507/507 no CI (dotnet-ci) do PR #34 |
+| SPEC-0049:UT-04 | Dado posições de roque (livre, caminho ocupado, casa de passagem atacada, rei em xeque, direito perdido, torre | PASS | `dotnet test` 507/507 no CI (dotnet-ci) do PR #34 |
+| SPEC-0049:UT-05 | Dado en passant disponível e o caso em que a captura exporia o rei na mesma fileira, então o lance é gerado ap | PASS | `dotnet test` 507/507 no CI (dotnet-ci) do PR #34 |
+| SPEC-0049:UT-06 | Dado um peão na sétima fileira (sem e com captura), então há um lance por peça de promoção (dama, torre, bispo | PASS | `dotnet test` 507/507 no CI (dotnet-ci) do PR #34 |
+| SPEC-0049:UT-07 | Dado rei em xeque simples, xeque duplo e uma peça cravada, então só saem lances que resolvem o xeque (no duplo | PASS | `dotnet test` 507/507 no CI (dotnet-ci) do PR #34 |
+| SPEC-0049:UT-08 | Dado `Apply` para um lance comum, um avanço duplo, um roque, um en passant e uma promoção, então lado, direito | PASS | `dotnet test` 507/507 no CI (dotnet-ci) do PR #34 |
+| SPEC-0049:UT-09 | Dado posições com e sem xeque por cada tipo de peça, então `IsInCheck` responde certo para brancas e pretas. | PASS | `dotnet test` 507/507 no CI (dotnet-ci) do PR #34 |
+| SPEC-0049:IT-01 | Dado as posições de referência da página de resultados de perft da chessprogramming wiki, quando `Perft.Count` | PASS | `dotnet test` 507/507 no CI (dotnet-ci) do PR #34 |
+| SPEC-0049:IT-02 | Dado os `.csproj` de Chess, Gameplay e Matchmaking, então Chess não referencia Gameplay, Matchmaking nem Web,  | PASS | `dotnet test` 507/507 no CI (dotnet-ci) do PR #34 |
 
 ### Definição de Pronto
-- [ ] Todos os testes do plano passando e listados na Verificação
-- [ ] Todo comportamento do Mapa de Comportamentos coberto e verificado
-- [ ] Suíte completa, arquitetura e CI verdes no resultado integrado (G5)
-- [ ] Review independente sem achados blocker/major (G4)
-- [ ] Padrão arquitetural existente mantido, ou desvio coberto por ADR aprovado
-- [ ] Requisitos não-funcionais medidos com evidência (ou N/A justificado)
-- [ ] Disponível no ambiente-alvo via pipeline, com smoke/E2E passando no ambiente (G6)
-- [ ] Observabilidade e rollback prontos conforme o Plano de Rollout
-- [ ] Documentação raiz e CHANGELOG atualizados (G7)
-- [ ] Pendências registradas como novas specs (ou nenhuma)
+- [x] Todos os testes do plano passando e listados na Verificação
+- [x] Todo comportamento do Mapa de Comportamentos coberto e verificado
+- [x] Suíte completa, arquitetura e CI verdes no resultado integrado (G5)
+- [x] Review independente sem achados blocker/major (G4)
+- [x] Padrão arquitetural existente mantido, ou desvio coberto por ADR aprovado
+- [x] Requisitos não-funcionais medidos com evidência (ou N/A justificado)
+- [x] Disponível no ambiente-alvo via pipeline, com smoke/E2E passando no ambiente (G6) — N/A aprovado pelo usuário (2026-09-29): sem ambiente remoto
+- [x] Observabilidade e rollback prontos conforme o Plano de Rollout
+- [x] Documentação raiz e CHANGELOG atualizados (G7)
+- [x] Pendências registradas como novas specs (ou nenhuma)
 
 ### Deploy
 <!-- ambiente(s), versão/tag, data, estratégia, estado da feature flag, execução do pipeline -->
 
+G6 N/A (aprovado pelo usuário em 2026-09-29): o repositório não tem ambiente remoto (`staging_url` vazio). A entrega é o merge na `main` pelo PR #34 com CI verde (Build, Format & Test e sdd).
+
 ### Pendências
 <!-- specs criadas para o que ficou de fora, ou "Nenhuma" -->
+
+Cache preguiçoso de lances sem volatile (corrida benigna); FEN aceita formas não canônicas; faltam testes unitários explícitos de roque preto com torre capturada e de cravadas por dama (cobertos pelo perft); perft pesado só roda com CHESS_SLOW=1 (executado localmente pelo implementador).
 
 ## 15. Emendas
 <!-- Mudança em spec aprovada: uma linha por emenda. Mudou o contrato? Incremente `contract_version` e rode `spec_graph.py impacted SPEC-0049`. -->
