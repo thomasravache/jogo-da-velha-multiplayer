@@ -5,18 +5,17 @@
 ## Saúde
 
 - Validação (G0): **0 erro(s), 0 aviso(s)**
-- Specs: approved 9, implemented 30
+- Specs: approved 8, implemented 31
 - Impedimentos: **0 aberto(s)**, 0 resolvido(s)
 
 ## Plano de Execução
 
 **Em andamento:** —  
 **Paradas por impedimento:** —  
-**Próximo lote:** SPEC-0034, SPEC-0036
+**Próximo lote:** SPEC-0036
 
 | Onda | Spec | Título | Tier/Tam. | Status | Prontidão | Observação |
 |---|---|---|---|---|---|---|
-| 1 | SPEC-0034 | Remoção do MudBlazor e do Bootstrap | full/M | approved | ✅ pronta |  |
 | 1 | SPEC-0036 | Persistência enriquecida de partidas | full/M | approved | ✅ pronta |  |
 | 2 | SPEC-0037 | Identidade anônima do jogador | full/M | approved | ⛔ aguarda implementação de SPEC-0036 |  |
 | 3 | SPEC-0038 | Histórico avançado | full/M | approved | ⛔ aguarda implementação de SPEC-0036; aguarda implementação de SPEC-0037 |  |
@@ -34,7 +33,7 @@
 | SPEC-0005 | Jogo da Velha | implemented | 3/3 implementadas |
 | SPEC-0013 | Evolução do Jogo da Velha | implemented | 6/6 implementadas |
 | SPEC-0021 | Engenharia de Qualidade e Refatoração Arquitetural | implemented | 4/4 implementadas |
-| SPEC-0028 | Redesign Cyber Arena — migração da UI para Tailwind (Fase 1 visual) | approved | 6/7 implementadas |
+| SPEC-0028 | Redesign Cyber Arena — migração da UI para Tailwind (Fase 1 visual) | implemented | 7/7 implementadas |
 | SPEC-0035 | Evolução funcional a partir do Stitch (Fase 2) | approved | 1/9 implementadas |
 
 ## Grafo de Dependências
@@ -48,7 +47,6 @@ flowchart LR
     S0031["SPEC-0031<br/>Arena da partida Cyber Arena"]:::implemented
     S0032["SPEC-0032<br/>Histórico de partidas Cyber Arena"]:::implemented
     S0033["SPEC-0033<br/>Ranking Cyber Arena"]:::implemented
-    S0034["SPEC-0034<br/>Remoção do MudBlazor e do Bootstrap"]:::approved
   end
   subgraph E0035["SPEC-0035 · Evolução funcional a partir do Stitch (Fase 2)"]
     S0036["SPEC-0036<br/>Persistência enriquecida de partidas"]:::approved
@@ -61,10 +59,6 @@ flowchart LR
     S0044["SPEC-0044<br/>Série melhor de 5: interface no lobby e…"]:::approved
     S0045["SPEC-0045<br/>Gravação única do resultado da partida"]:::implemented
   end
-  S0030 --> S0034
-  S0031 --> S0034
-  S0032 --> S0034
-  S0033 --> S0034
   S0031 --> S0036
   S0045 --> S0036
   S0036 --> S0037
@@ -119,13 +113,13 @@ flowchart LR
 | [SPEC-0025](SPEC-0025-eventos-em-tempo-real-sem-polling-e-ef-core-migrations.md) | Eventos em Tempo Real sem Polling e EF Core Migrations | full | refactor | implemented | 2026-09-29 | SPEC-0021 | SPEC-0024 | — |
 | [SPEC-0026](SPEC-0026-redesign-de-ui-e-tema-escuro-com-mudblazor.md) | Redesign de UI e Tema Escuro Imersivo com MudBlazor | full | migration | implemented | 2026-09-29 | — | — | — |
 | [SPEC-0027](SPEC-0027-timer-de-turno-e-timeout-por-w-o.md) | Timer de turno e timeout por W.O. | full | feature | implemented | 2026-09-29 | — | — | — |
-| [SPEC-0028](SPEC-0028-redesign-cyber-arena-migracao-da-ui-para-tailwind-fase-1-vis.md) | Redesign Cyber Arena — migração da UI para Tailwind (Fase 1 visual) | epic | migration | approved | 2026-09-29 | — | — | — |
+| [SPEC-0028](SPEC-0028-redesign-cyber-arena-migracao-da-ui-para-tailwind-fase-1-vis.md) | Redesign Cyber Arena — migração da UI para Tailwind (Fase 1 visual) | epic | migration | implemented | 2026-09-29 | — | — | — |
 | [SPEC-0029](SPEC-0029-pipeline-tailwind-tokens-e-fontes-cyber-arena.md) | Pipeline Tailwind, tokens e fontes Cyber Arena | full | migration | implemented | 2026-09-29 | SPEC-0028 | — | — |
 | [SPEC-0030](SPEC-0030-lobby-cyber-arena.md) | Lobby Cyber Arena | full | feature | implemented | 2026-09-29 | SPEC-0028 | SPEC-0043 | — |
 | [SPEC-0031](SPEC-0031-arena-da-partida-cyber-arena.md) | Arena da partida Cyber Arena | full | feature | implemented | 2026-09-29 | SPEC-0028 | SPEC-0043 | — |
 | [SPEC-0032](SPEC-0032-historico-de-partidas-cyber-arena.md) | Histórico de partidas Cyber Arena | full | feature | implemented | 2026-09-29 | SPEC-0028 | SPEC-0043 | — |
 | [SPEC-0033](SPEC-0033-ranking-cyber-arena.md) | Ranking Cyber Arena | full | feature | implemented | 2026-09-29 | SPEC-0028 | SPEC-0043 | — |
-| [SPEC-0034](SPEC-0034-remocao-do-mudblazor-e-do-bootstrap.md) | Remoção do MudBlazor e do Bootstrap | full | migration | approved | 2026-09-29 | SPEC-0028 | SPEC-0030, SPEC-0031, SPEC-0032, SPEC-0033 | — |
+| [SPEC-0034](SPEC-0034-remocao-do-mudblazor-e-do-bootstrap.md) | Remoção do MudBlazor e do Bootstrap | full | migration | implemented | 2026-09-29 | SPEC-0028 | SPEC-0030, SPEC-0031, SPEC-0032, SPEC-0033 | — |
 | [SPEC-0035](SPEC-0035-evolucao-funcional-a-partir-do-stitch-fase-2.md) | Evolução funcional a partir do Stitch (Fase 2) | epic | feature | approved | 2026-09-29 | — | — | — |
 | [SPEC-0036](SPEC-0036-persistencia-enriquecida-de-partidas.md) | Persistência enriquecida de partidas | full | feature | approved | 2026-09-29 | SPEC-0035 | SPEC-0031, SPEC-0045 | — |
 | [SPEC-0037](SPEC-0037-identidade-anonima-do-jogador.md) | Identidade anônima do jogador | full | feature | approved | 2026-09-29 | SPEC-0035 | SPEC-0036 | — |
@@ -148,6 +142,6 @@ flowchart LR
 | [ADR-0004](../adr/ADR-0004-arquitetura.md) | Arquitetura | accepted | N/A — histórico |
 | [ADR-0005](../adr/ADR-0005-padronizacao-de-analise-estatica-e-compilacao-estrita.md) | Padronização de Análise Estática e Compilação Estrita | accepted | Directory.Build.props e dotnet format |
 | [ADR-0006](../adr/ADR-0006-componentizacao-blazor-css-isolation-e-testes-com-bunit.md) | Componentização Blazor, CSS Isolation e Testes com bUnit | accepted | Testes de componentes bUnit |
-| [ADR-0007](../adr/ADR-0007-adocao-do-mudblazor-como-design-system-e-componentes.md) | Adoção do MudBlazor como Design System e Componentes | accepted | tests/TicTacToe.Tests/MudBlazorIntegrationTests.cs |
+| [ADR-0007](../adr/ADR-0007-adocao-do-mudblazor-como-design-system-e-componentes.md) | Adoção do MudBlazor como Design System e Componentes | superseded | tests/TicTacToe.Tests/MudBlazorIntegrationTests.cs |
 | [ADR-0008](../adr/ADR-0008-tailwind-css-standalone-como-camada-de-estilo-e-design-syste.md) | Tailwind CSS standalone como camada de estilo e design system próprio | accepted | tests/TicTacToe.Tests/TailwindDesignSystemTests.cs |
 | [ADR-0009](../adr/ADR-0009-identidade-anonima-persistente-do-jogador.md) | Identidade anônima persistente do jogador | accepted | tests/TicTacToe.Tests/PlayerIdentityTests.cs |

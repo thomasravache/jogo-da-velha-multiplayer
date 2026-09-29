@@ -4,11 +4,6 @@
 @inject NavigationManager Navigation
 @inject ShellState Shell
 
-<MudThemeProvider Theme="_theme" IsDarkMode="true" />
-<MudPopoverProvider />
-<MudDialogProvider />
-<MudSnackbarProvider />
-
 <div class="relative min-h-screen bg-canvas font-display text-ink antialiased">
     <div aria-hidden="true" class="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-15%,rgb(255_71_87/0.12),transparent_70%),radial-gradient(ellipse_70%_50%_at_50%_110%,rgb(0_210_211/0.08),transparent_60%)]"></div>
 
@@ -54,7 +49,7 @@
 
 <div id="blazor-error-ui">
     An unhandled error has occurred.
-    <a href="" class="reload">Reload</a>
+    <a href="" class="reload underline">Reload</a>
     <a class="dismiss">🗙</a>
 </div>
 
@@ -67,21 +62,6 @@
         new("/history", "Histórico", "history"),
         new("/leaderboard", "Ranking", "leaderboard"),
     ];
-
-    private MudTheme _theme = new MudTheme
-    {
-        PaletteDark = new PaletteDark
-        {
-            Primary = "#e74c3c",
-            Secondary = "#3498db",
-            Background = "#1a1a2e",
-            Surface = "#16213e",
-            AppbarBackground = "#16213e",
-            TextPrimary = "#e0e0e0",
-            TextSecondary = "#aaaaaa",
-            ActionDefault = "#e0e0e0"
-        }
-    };
 
     protected override void OnInitialized()
     {

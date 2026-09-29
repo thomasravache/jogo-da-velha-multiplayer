@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using Microsoft.EntityFrameworkCore;
-using MudBlazor.Services;
 using TicTacToe.Modules.Gameplay;
 using TicTacToe.Modules.Matchmaking;
 using TicTacToe.Web.Components;
@@ -13,7 +12,6 @@ builder.AddServiceDefaults();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-builder.Services.AddMudServices();
 builder.Services.AddScoped<ShellState>();
 builder.Services.AddOutputCache();
 
