@@ -8,7 +8,7 @@
 
 <div class="mx-auto flex w-full max-w-[var(--size-frame)] flex-col gap-6 py-4">
     <PageHeader Eyebrow="Partidas" Title="Histórico de Partidas"
-                Subtitle="@(_loading ? null : $"Últimas {_results.Count} partidas")">
+                Subtitle="@SubtitleText">
         <PillButton Href="/" Icon="play">Novo duelo</PillButton>
     </PageHeader>
 
@@ -56,17 +56,17 @@
                             </td>
                             <td class="block py-2 md:table-cell md:px-5 md:py-4">
                                 <span class="flex flex-wrap items-center gap-2 text-body-lg">
-                                    <span class="text-primary" data-winner="@(xWins ? "true" : null)">
+                                    <span class="min-w-0 break-words text-primary" data-winner="@(xWins ? "true" : null)">
                                         ✕ @r.PlayerXName@if (xWins) {<Icon Name="trophy" Size="16" Label="Vencedor" />}
                                     </span>
                                     <span class="text-ink-muted">vs</span>
-                                    <span class="text-secondary" data-winner="@(oWins ? "true" : null)">
+                                    <span class="min-w-0 break-words text-secondary" data-winner="@(oWins ? "true" : null)">
                                         ◯ @r.PlayerOName@if (oWins) {<Icon Name="trophy" Size="16" Label="Vencedor" />}
                                     </span>
                                 </span>
                             </td>
                             <td class="block font-numeric text-label-numeric text-ink-muted md:table-cell md:px-5 md:py-4">
-                                @HistoryDateFormatter.Format(r.PlayedAt, DateTime.Now)
+                                @HistoryDateFormatter.Format(r.PlayedAt, _now)
                             </td>
                         </tr>
                     }
@@ -79,10 +79,16 @@
 @code {
     private List<MatchResult> _results = [];
     private bool _loading = true;
+    private DateTime _now = DateTime.Now;
+
+    private string? SubtitleText => _loading || _results.Count == 0
+        ? null
+        : _results.Count == 1 ? "Última partida" : $"Últimas {_results.Count} partidas";
 
     protected override async Task OnInitializedAsync()
     {
         _results = await GameResultService.GetRecentAsync(10);
+        _now = DateTime.Now;
         _loading = false;
     }
 }
