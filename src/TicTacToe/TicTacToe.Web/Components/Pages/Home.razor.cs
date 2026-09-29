@@ -181,7 +181,7 @@ public partial class Home : IDisposable
         if (MatchId != null && Games.TryGetValue(MatchId.Value, out var game))
         {
             _confettiFired = false;
-                game.Restart();
+            game.Restart();
         }
     }
 
