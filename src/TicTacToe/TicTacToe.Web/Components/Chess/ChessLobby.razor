@@ -1,0 +1,24 @@
+@using TicTacToe.Modules.Chess
+
+@code {
+    [Parameter] public string PlayerName { get; set; } = "";
+    [Parameter] public EventCallback<string> PlayerNameChanged { get; set; }
+    [Parameter] public string? ReturningPlayerName { get; set; }
+
+    [Parameter] public TimeControl SelectedControl { get; set; } = TimeControl.Blitz;
+    [Parameter] public EventCallback<TimeControl> ControlChanged { get; set; }
+
+    [Parameter] public ColorPreference SelectedColor { get; set; } = ColorPreference.Random;
+    [Parameter] public EventCallback<ColorPreference> ColorChanged { get; set; }
+
+    [Parameter] public bool IsWaiting { get; set; }
+    [Parameter] public string? CreatedRoomCode { get; set; }
+    [Parameter] public string InputRoomCode { get; set; } = "";
+    [Parameter] public EventCallback<string> InputRoomCodeChanged { get; set; }
+    [Parameter] public string? RoomErrorMessage { get; set; }
+
+    [Parameter] public EventCallback OnPlayOnline { get; set; }
+    [Parameter] public EventCallback OnCancelSearch { get; set; }
+    [Parameter] public EventCallback OnCreateRoom { get; set; }
+    [Parameter] public EventCallback OnJoinRoom { get; set; }
+}
