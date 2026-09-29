@@ -27,6 +27,20 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      - name: Cache do binário do Tailwind CSS
+        id: tailwind-cache
+        uses: actions/cache@v4
+        with:
+          path: tools/tailwind/bin
+          key: tailwind-${{ runner.os }}-${{ hashFiles('tools/tailwind/version.txt') }}
+
+      - name: Instalar Tailwind CSS standalone (sha256 verificado)
+        if: steps.tailwind-cache.outputs.cache-hit != 'true'
+        run: tools/tailwind/install.sh
+
+      - name: Verificar drift do CSS gerado (Tailwind)
+        run: tools/tailwind/build.sh --check
+
       - name: Restore dependencies
         run: dotnet restore
 
