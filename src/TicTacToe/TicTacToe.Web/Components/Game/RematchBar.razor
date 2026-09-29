@@ -1,3 +1,4 @@
+@using TicTacToe.Modules.Gameplay
 @using TicTacToe.Web.Components.Ui
 @if (Finished)
 {
@@ -10,6 +11,15 @@
     public enum RematchKind { Rematch, NextRound, NewSeries }
 
     [Parameter] public RematchKind Kind { get; set; } = RematchKind.Rematch;
+    [Parameter] public bool Consent { get; set; }
+    [Parameter] public RematchState State { get; set; }
+    [Parameter] public bool RequestedByMe { get; set; }
+    [Parameter] public string? RequesterName { get; set; }
+    [Parameter] public bool OpponentLeft { get; set; }
+    [Parameter] public EventCallback OnRequest { get; set; }
+    [Parameter] public EventCallback OnAccept { get; set; }
+    [Parameter] public EventCallback OnDecline { get; set; }
+    [Parameter] public EventCallback OnBackToLobby { get; set; }
     private string Label => Kind switch
     {
         RematchKind.NextRound => "Próxima rodada",

@@ -7,6 +7,10 @@ namespace TicTacToe.Modules.Gameplay;
 
 public enum Player { None, X, O }
 
+public enum LeaveResult { Forfeited, Discarded, Left, Rejected }
+
+public enum RematchState { None, Requested, Declined, Expired }
+
 #pragma warning disable CA1720 // nome definido pelo contrato da SPEC-0040
 public enum SeriesFormat { Single = 0, BestOf5 = 1 }
 #pragma warning restore CA1720
@@ -167,6 +171,37 @@ public class GameSession : IDisposable
     public Player SeriesWinner => _seriesWinner;
     public Player RoundStarter => _roundStarter;
     public bool IsMatchPoint(Player player) => !SeriesOver && _format == SeriesFormat.BestOf5 && GetScore(player) == SeriesTarget - 1;
+
+    // Abandono e revanche com aceite (SPEC-0041). Scaffold: ainda sem regras.
+    private readonly HashSet<Player> _left = [];
+
+    public RematchState RematchState { get; private set; }
+    public Player? RematchRequestedBy { get; private set; }
+
+    public bool HasLeft(Player player)
+    {
+        lock (_lock) { return _left.Contains(player); }
+    }
+
+    public LeaveResult Leave(Player player)
+    {
+        lock (_lock) { _ = player; return LeaveResult.Rejected; }
+    }
+
+    public bool RequestRematch(Player player)
+    {
+        lock (_lock) { _ = player; return false; }
+    }
+
+    public bool AcceptRematch(Player player)
+    {
+        lock (_lock) { _ = player; return false; }
+    }
+
+    public bool DeclineRematch(Player player)
+    {
+        lock (_lock) { _ = player; return false; }
+    }
 
     public void SetPlayerName(Player player, string name) =>
         _playerNames[player] = name;

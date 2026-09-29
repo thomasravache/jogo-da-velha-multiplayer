@@ -4,7 +4,7 @@ title: Abandonar partida e pedir revanche
 tier: full
 type: feature
 user_facing: true
-status: approved
+status: in-progress
 created: 2026-09-29
 parent: SPEC-0035
 depends_on: [SPEC-0044, SPEC-0045]
