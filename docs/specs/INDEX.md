@@ -5,19 +5,19 @@
 ## Saúde
 
 - Validação (G0): **0 erro(s), 0 aviso(s)**
-- Specs: approved 6, in-progress 1, implemented 32
+- Specs: approved 5, in-progress 2, implemented 32
 - Impedimentos: **0 aberto(s)**, 0 resolvido(s)
 
 ## Plano de Execução
 
-**Em andamento:** SPEC-0037  
+**Em andamento:** SPEC-0037, SPEC-0038  
 **Paradas por impedimento:** —  
 **Próximo lote:** —
 
 | Onda | Spec | Título | Tier/Tam. | Status | Prontidão | Observação |
 |---|---|---|---|---|---|---|
 | 1 | SPEC-0037 | Identidade anônima do jogador | full/M | in-progress | 🔄 em andamento |  |
-| 2 | SPEC-0038 | Histórico avançado | full/M | approved | ⛔ aguarda implementação de SPEC-0037 |  |
+| 2 | SPEC-0038 | Histórico avançado | full/M | in-progress | 🔄 em andamento |  |
 | 3 | SPEC-0039 | Ranking avançado | full/M | approved | ⛔ aguarda implementação de SPEC-0037; aguarda implementação de SPEC-0038 |  |
 | 4 | SPEC-0040 | Série melhor de 5 (MD5) | full/M | approved | ✅ pronta | saiu da onda 1: arquivos em comum com SPEC-0037; saiu da onda 2: arquivos em comum com SPEC-0038; saiu da onda 3: arquivos em comum com SPEC-0039 |
 | 5 | SPEC-0044 | Série melhor de 5: interface no lobby e na arena | full/M | approved | ⛔ aguarda implementação de SPEC-0040 |  |
@@ -50,7 +50,7 @@ flowchart LR
   subgraph E0035["SPEC-0035 · Evolução funcional a partir do Stitch (Fase 2)"]
     S0036["SPEC-0036<br/>Persistência enriquecida de partidas"]:::implemented
     S0037["SPEC-0037<br/>Identidade anônima do jogador"]:::inprogress
-    S0038["SPEC-0038<br/>Histórico avançado"]:::approved
+    S0038["SPEC-0038<br/>Histórico avançado"]:::inprogress
     S0039["SPEC-0039<br/>Ranking avançado"]:::approved
     S0040["SPEC-0040<br/>Série melhor de 5 (MD5)"]:::approved
     S0041["SPEC-0041<br/>Abandonar partida e pedir revanche"]:::approved
@@ -122,7 +122,7 @@ flowchart LR
 | [SPEC-0035](SPEC-0035-evolucao-funcional-a-partir-do-stitch-fase-2.md) | Evolução funcional a partir do Stitch (Fase 2) | epic | feature | approved | 2026-09-29 | — | — | — |
 | [SPEC-0036](SPEC-0036-persistencia-enriquecida-de-partidas.md) | Persistência enriquecida de partidas | full | feature | implemented | 2026-09-29 | SPEC-0035 | SPEC-0031, SPEC-0045 | — |
 | [SPEC-0037](SPEC-0037-identidade-anonima-do-jogador.md) | Identidade anônima do jogador | full | feature | in-progress | 2026-09-29 | SPEC-0035 | SPEC-0036 | — |
-| [SPEC-0038](SPEC-0038-historico-avancado.md) | Histórico avançado | full | feature | approved | 2026-09-29 | SPEC-0035 | SPEC-0032, SPEC-0036, SPEC-0037 | — |
+| [SPEC-0038](SPEC-0038-historico-avancado.md) | Histórico avançado | full | feature | in-progress | 2026-09-29 | SPEC-0035 | SPEC-0032, SPEC-0036, SPEC-0037 | — |
 | [SPEC-0039](SPEC-0039-ranking-avancado.md) | Ranking avançado | full | feature | approved | 2026-09-29 | SPEC-0035 | SPEC-0033, SPEC-0037, SPEC-0038 | — |
 | [SPEC-0040](SPEC-0040-serie-melhor-de-5-md5.md) | Série melhor de 5 (MD5) | full | feature | approved | 2026-09-29 | SPEC-0035 | SPEC-0031, SPEC-0036 | — |
 | [SPEC-0041](SPEC-0041-abandonar-partida-e-pedir-revanche.md) | Abandonar partida e pedir revanche | full | feature | approved | 2026-09-29 | SPEC-0035 | SPEC-0044, SPEC-0045 | — |

@@ -9,7 +9,7 @@ created: 2026-09-29
 parent: SPEC-0035
 depends_on: [SPEC-0032, SPEC-0036, SPEC-0037]
 consumes_contract: []
-contract_version: 2
+contract_version: 3
 touches: [src/TicTacToe/TicTacToe.Modules.Gameplay/GameResultService.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/HistoryModels.cs, src/TicTacToe/TicTacToe.Modules.Gameplay/HistoryAnalysis.cs, src/TicTacToe/TicTacToe.Web/Components/Pages/History.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/History.razor.css, src/TicTacToe/TicTacToe.Web/Components/Ui/StatTile.razor, src/TicTacToe/TicTacToe.Web/Components/Ui/Pager.razor, tests/TicTacToe.Tests/HistoryAnalysisTests.cs, tests/TicTacToe.Tests/HistoryQueryTests.cs, tests/TicTacToe.Tests/HistoryAdvancedUiTests.cs, tests/TicTacToe.Tests/HistoryCyberArenaTests.cs]
 adrs: [ADR-0009]
 external: []
@@ -81,7 +81,8 @@ record HistoryQuery(Guid? PlayerId, HistoryScope Scope, HistoryFilter Filter, st
 
 record HistoryItem(Guid Id, string PlayerXName, string PlayerOName, HistoryOutcome? Outcome /*Win|Loss|Draw; nulo no escopo global*/,
                    bool WalkOver, string Reason, int? DurationSeconds, GameMode? Mode, DateTime PlayedAtUtc,
-                   bool? IAmX /*nulo no escopo global*/, string? WinnerSide /*"X"|"O"|nulo; Emenda v2*/)
+                   bool? IAmX /*nulo no escopo global*/, string? WinnerSide /*"X"|"O"|nulo; Emenda v2*/,
+                   string? WinnerName /*nome do vencedor ou nulo; Emenda v3*/)
 
 record HistoryPage(IReadOnlyList<HistoryItem> Items, int TotalItems, int Page, int PageCount, HistoryCounts Counts)
 record HistoryCounts(int All, int Wins, int Losses, int Draws, int WalkOvers)
@@ -109,7 +110,7 @@ Regras (HistoryAnalysis, funções puras)
 | Motivo do fim | Linha (linhas, colunas, diagonais), empate, W.O., abandono, desconexão, nulo | Texto conforme o contrato | UT-02 |
 | Duração | 22 s, 72 s, nulo | "22s", "1m 12s", "—" | UT-03 |
 | Resumo | Base com 14 V, 3 D, 1 E | Total 18, 77,8%, sequência, recorde e tempo por lance corretos | UT-04 |
-| Filtros e contagens | Cada filtro | Lista restrita; contagens sobre todo o escopo | IT-01 |
+| Filtros e contagens | Cada filtro | Lista restrita; contagens sobre o escopo e a busca por adversário, nunca sobre o filtro nem a página. No escopo Todos só valem Todas, Empates e W.O. (Vitórias/Derrotas tratados como Todas e contagem 0) | IT-01 |
 | Busca | Parte do nome do adversário | Só partidas contra nomes que contêm o texto | IT-01 |
 | Ordenação | Recentes, menor duração, por resultado | Ordem conforme o contrato | IT-01 |
 | Paginação | 25 partidas, 10 por página | 3 páginas; navegação anterior/próxima; limites | IT-01 |
@@ -251,3 +252,4 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | Versão do contrato | Data | Mudança | Motivo | Specs impactadas | Aprovado por |
 |---|---|---|---|---|---|
 | 2 | 2026-09-29 | `HistoryItem` ganha `WinnerSide` (string?), `Outcome` e `IAmX` passam a anuláveis; `touches` inclui `HistoryCyberArenaTests.cs` | O escopo global precisa exibir o vencedor (como na SPEC-0032) sem depender do nome; os testes da SPEC-0032 precisam registrar a identidade e ajustar o escopo padrão | SPEC-0032 (testes); sem consumidores do contrato | thomas (autorização permanente, 2026-09-29) |
+| 3 | 2026-09-29 | `HistoryItem` ganha `WinnerName`; contagens passam a respeitar a busca (não o filtro); filtros de resultado pessoal não se aplicam ao escopo Todos | Partidas antigas com homônimos precisam do nome do vencedor para o chip; abas com contagem incoerente com a lista confundem | sem consumidores do contrato | thomas (autorização permanente, 2026-09-29) |
