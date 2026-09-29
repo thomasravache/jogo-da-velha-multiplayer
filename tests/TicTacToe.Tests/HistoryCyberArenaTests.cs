@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using TicTacToe.Modules.Gameplay;
 using TicTacToe.Web.Components.Pages;
 using TicTacToe.Web.Components.Ui;
+using TicTacToe.Web.Services.PlayerIdentity;
 using Xunit;
 
 namespace TicTacToe.Tests;
@@ -36,9 +37,20 @@ public class HistoryCyberArenaTests
     private static BunitContext NewContext(DbContextOptions<GameplayDbContext> options)
     {
         var ctx = new BunitContext();
+        ctx.Services.AddSingleton<IPlayerStorage>(new InMemoryPlayerStorage());
+        ctx.Services.AddSingleton<PlayerIdentityService>();
         ctx.Services.AddTransient(_ => new GameplayDbContext(options));
         ctx.Services.AddTransient(sp => new GameResultService(sp.GetRequiredService<GameplayDbContext>(), NullLogger<GameResultService>.Instance));
         return ctx;
+    }
+
+    // A página abre no escopo pessoal (SPEC-0038); estes testes cobrem o escopo global da SPEC-0032.
+    private static IRenderedComponent<History> RenderAll(BunitContext ctx)
+    {
+        var cut = RenderAll(ctx);
+        cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll("[role='radiogroup'][aria-label='Escopo']")));
+        cut.FindAll("[role='radiogroup'][aria-label='Escopo'] [role='radio']").Single(r => r.TextContent.Trim() == "Todos").Click();
+        return cut;
     }
 
     [Fact(DisplayName = "SPEC-0032:CH-01 — GetRecentAsync(10) devolve as 10 mais recentes em ordem decrescente")]
@@ -80,7 +92,7 @@ public class HistoryCyberArenaTests
         await Seed(options, Match("Thomas", "Ana", "Ana", now), Match("Bia", "Caio", null, now.AddMinutes(-5)));
         await using var ctx = NewContext(options);
 
-        var cut = ctx.Render<History>();
+        var cut = RenderAll(ctx);
         cut.WaitForAssertion(() => Assert.Equal(2, cut.FindAll("tbody tr").Count));
         var rows = cut.FindAll("tbody tr");
 
@@ -99,7 +111,7 @@ public class HistoryCyberArenaTests
         await Seed(options, Match("Thomas", "Thomas", "Thomas", DateTime.UtcNow));
         await using var ctx = NewContext(options);
 
-        var cut = ctx.Render<History>();
+        var cut = RenderAll(ctx);
         cut.WaitForAssertion(() => Assert.Single(cut.FindAll("tbody tr")));
 
         Assert.Contains("Vitória de Thomas", cut.Find("tbody tr").TextContent);
@@ -115,7 +127,7 @@ public class HistoryCyberArenaTests
         Assert.Contains("Carregando", source);
 
         await using var ctx = NewContext(NewOptions());
-        var cut = ctx.Render<History>();
+        var cut = RenderAll(ctx);
         cut.WaitForAssertion(() => Assert.Contains("Nenhuma partida registrada ainda", cut.Markup));
 
         var cta = cut.FindAll("a").Single(a => a.TextContent.Contains("Jogar agora"));
@@ -131,8 +143,8 @@ public class HistoryCyberArenaTests
         await Seed(options, Enumerable.Range(0, 3).Select(i => Match($"X{i}", $"O{i}", $"X{i}", now.AddMinutes(-i))).ToArray());
         await using var ctx = NewContext(options);
 
-        var cut = ctx.Render<History>();
-        cut.WaitForAssertion(() => Assert.Contains("Últimas 3 partidas", cut.Markup));
+        var cut = RenderAll(ctx);
+        cut.WaitForAssertion(() => Assert.Contains("3 partidas", cut.Markup));
 
         var action = cut.FindAll("a").Single(a => a.TextContent.Contains("Novo duelo"));
         Assert.Equal("/", action.GetAttribute("href"));
@@ -149,7 +161,7 @@ public class HistoryCyberArenaTests
         var options = NewOptions();
         await Seed(options, Match("A", "B", "A", DateTime.UtcNow));
         await using var ctx = NewContext(options);
-        var cut = ctx.Render<History>();
+        var cut = RenderAll(ctx);
         cut.WaitForAssertion(() => Assert.Single(cut.FindAll("tbody tr")));
         Assert.DoesNotContain("mud-", cut.Markup);
     }
@@ -163,7 +175,7 @@ public class HistoryCyberArenaTests
         await Seed(options, Enumerable.Range(0, 11).Select(i => Match($"X{i}", $"O{i}", $"X{i}", now.AddMinutes(-i))).ToArray());
         await using var ctx = NewContext(options);
 
-        var cut = ctx.Render<History>();
+        var cut = RenderAll(ctx);
         cut.WaitForAssertion(() => Assert.Equal(10, cut.FindAll("tbody tr").Count));
 
         Assert.Contains("X0", cut.FindAll("tbody tr")[0].TextContent);
@@ -179,7 +191,7 @@ public class HistoryCyberArenaTests
         await Seed(options, Match("Thomas", "Ana", "Thomas", now), Match("Bia", "Caio", null, now.AddDays(-1)));
         await using var ctx = NewContext(options);
 
-        var cut = ctx.Render<History>();
+        var cut = RenderAll(ctx);
         cut.WaitForAssertion(() => Assert.Equal(2, cut.FindAll("tbody tr").Count));
 
         var first = cut.FindAll("tbody tr")[0].TextContent;
@@ -207,16 +219,16 @@ public class HistoryCyberArenaTests
     {
         var empty = NewOptions();
         await using var ctxEmpty = NewContext(empty);
-        var none = ctxEmpty.Render<History>();
+        var none = RenderAll(ctxEmpty);
         none.WaitForAssertion(() => Assert.Contains("Nenhuma partida registrada ainda", none.Markup));
-        Assert.DoesNotContain("Últimas 0", none.Markup);
+        Assert.DoesNotContain("0 partidas", none.Markup);
 
         var one = NewOptions();
         await Seed(one, Match("A", "B", "A", DateTime.UtcNow));
         await using var ctxOne = NewContext(one);
-        var single = ctxOne.Render<History>();
+        var single = RenderAll(ctxOne);
         single.WaitForAssertion(() => Assert.Single(single.FindAll("tbody tr")));
-        Assert.Contains("Última partida", single.Markup);
-        Assert.DoesNotContain("Últimas 1 partidas", single.Markup);
+        Assert.Contains("1 partida", single.Markup);
+        Assert.DoesNotContain("1 partidas", single.Markup);
     }
 }
