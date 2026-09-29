@@ -122,6 +122,9 @@ else
     [Parameter] public AiDifficulty SelectedDifficulty { get; set; } = AiDifficulty.Hard;
     [Parameter] public EventCallback<AiDifficulty> DifficultyChanged { get; set; }
 
+    [Parameter] public SeriesFormat SelectedFormat { get; set; } = SeriesFormat.Single;
+    [Parameter] public EventCallback<SeriesFormat> FormatChanged { get; set; }
+
     [Parameter] public string InputRoomCode { get; set; } = "";
     [Parameter] public EventCallback<string> InputRoomCodeChanged { get; set; }
 

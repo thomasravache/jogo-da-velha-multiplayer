@@ -4,7 +4,7 @@ title: Série melhor de 5: interface no lobby e na arena
 tier: full
 type: feature
 user_facing: true
-status: approved
+status: in-progress
 created: 2026-09-29
 parent: SPEC-0035
 depends_on: [SPEC-0030, SPEC-0040]

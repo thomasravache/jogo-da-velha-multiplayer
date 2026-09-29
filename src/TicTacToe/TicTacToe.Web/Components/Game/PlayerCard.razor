@@ -19,6 +19,9 @@
     [Parameter] public int Score { get; set; }
     [Parameter] public bool IsMe { get; set; }
     [Parameter] public bool IsActive { get; set; }
+    [Parameter] public int SeriesWins { get; set; }
+    [Parameter] public int SeriesTarget { get; set; }
+    [Parameter] public bool MatchPoint { get; set; }
     [Parameter] public string? Class { get; set; }
 
     private CardAccent Accent => !IsActive ? CardAccent.None : Player == Player.X ? CardAccent.X : CardAccent.O;
