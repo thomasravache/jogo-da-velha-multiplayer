@@ -4,13 +4,19 @@
 
 ## Saúde
 
-- Validação (G0): **76 erro(s), 13 aviso(s)** — rode `spec_graph.py validate`
-- Specs: implemented 15
+- Validação (G0): **77 erro(s), 14 aviso(s)** — rode `spec_graph.py validate`
+- Specs: approved 1, implemented 15
 - Impedimentos: **0 aberto(s)**, 0 resolvido(s)
 
 ## Plano de Execução
 
-Nenhuma spec aberta.
+**Em andamento:** —  
+**Paradas por impedimento:** —  
+**Próximo lote:** SPEC-0019
+
+| Onda | Spec | Título | Tier/Tam. | Status | Prontidão | Observação |
+|---|---|---|---|---|---|---|
+| 1 | SPEC-0019 | Seleção de Dificuldade do Robô na UI | full/S | approved | ✅ pronta |  |
 
 ## Épicos
 
@@ -18,7 +24,25 @@ Nenhuma spec aberta.
 |---|---|---|---|
 | SPEC-0001 | Fundação do Projeto | implemented | 3/3 implementadas |
 | SPEC-0005 | Jogo da Velha | implemented | 3/3 implementadas |
-| SPEC-0013 | Evolução do Jogo da Velha | implemented | 5/5 implementadas |
+| SPEC-0013 | Evolução do Jogo da Velha | implemented | 5/6 implementadas |
+
+## Grafo de Dependências
+
+Seta contínua: depende da implementação. Seta tracejada: consome contrato.
+
+```mermaid
+flowchart LR
+  subgraph E0013["SPEC-0013 · Evolução do Jogo da Velha"]
+    S0015["SPEC-0015<br/>Modo Solo vs IA Minimax"]:::implemented
+    S0019["SPEC-0019<br/>Seleção de Dificuldade do Robô na UI"]:::approved
+  end
+  S0015 --> S0019
+  classDef proposed fill:#fef3c7,stroke:#d97706,color:#111
+  classDef approved fill:#dbeafe,stroke:#2563eb,color:#111
+  classDef inprogress fill:#ede9fe,stroke:#7c3aed,color:#111
+  classDef implemented fill:#dcfce7,stroke:#16a34a,color:#111
+  classDef deprecated fill:#f3f4f6,stroke:#9ca3af,color:#6b7280
+```
 
 ## Todas as Specs
 
@@ -42,6 +66,7 @@ Nenhuma spec aberta.
 | [SPEC-0016](SPEC-0016-salas-privadas-com-codigo.md) | Salas Privadas com Código | full | feature | implemented | 2026-09-29 | SPEC-0013 | SPEC-0014 | — |
 | [SPEC-0017](SPEC-0017-leaderboard-e-estatisticas.md) | Leaderboard e Estatísticas | full | feature | implemented | 2026-09-29 | SPEC-0013 | SPEC-0010 | — |
 | [SPEC-0018](SPEC-0018-sincronizacao-reativa-por-eventos.md) | Sincronização Reativa por Eventos | full | feature | implemented | 2026-09-29 | SPEC-0013 | SPEC-0016 | — |
+| [SPEC-0019](SPEC-0019-selecao-de-dificuldade-do-robo-na-ui.md) | Seleção de Dificuldade do Robô na UI | full | feature | approved | 2026-09-29 | SPEC-0013 | SPEC-0015 | — |
 
 ## ADRs
 
