@@ -3,7 +3,7 @@ id: SPEC-0035
 title: Evolução funcional a partir do Stitch (Fase 2)
 tier: epic
 type: feature
-status: approved
+status: implemented
 created: 2026-09-29
 depends_on: []
 adrs: [ADR-0009]
@@ -121,14 +121,14 @@ As dependências refletem arquivos e migrações compartilhados (`GameSession`, 
 - **Crescimento de escopo (ELO, presença, chat)** — matriz de cobertura fecha o escopo; itens de backlog só entram por nova spec.
 
 ## 7. Critérios de Aceite do Épico
-- [ ] A partida é persistida com duração, motivo do fim, lado e linha vencedora, modo e identidade dos jogadores — SPEC-0036:IT-01
-- [ ] O jogador é reconhecido entre visitas (apelido lembrado e "VOCÊ") — SPEC-0037:E2E-01
-- [ ] O histórico filtra, busca, ordena e pagina, e mostra o resumo pessoal — SPEC-0038:E2E-01
-- [ ] O ranking mostra derrotas, empates, aproveitamento, sequência, paginação e a posição do jogador — SPEC-0039:E2E-01
-- [ ] A série melhor de 5 é escolhida no lobby e acompanhada na arena — SPEC-0044:E2E-01
-- [ ] Cada partida terminada é gravada uma única vez, mesmo com dois jogadores observando — SPEC-0045:IT-02
-- [ ] O jogador pode abandonar e pedir revanche, e o oponente aceita ou recusa — SPEC-0041:E2E-01
-- [ ] A desconexão do oponente resulta em vitória por W.O. após a janela de tolerância — SPEC-0042:E2E-01
+- [x] A partida é persistida com duração, motivo do fim, lado e linha vencedora, modo e identidade dos jogadores — SPEC-0036:IT-01
+- [x] O jogador é reconhecido entre visitas (apelido lembrado e "VOCÊ") — SPEC-0037:E2E-01
+- [x] O histórico filtra, busca, ordena e pagina, e mostra o resumo pessoal — SPEC-0038:E2E-01
+- [x] O ranking mostra derrotas, empates, aproveitamento, sequência, paginação e a posição do jogador — SPEC-0039:E2E-01
+- [x] A série melhor de 5 é escolhida no lobby e acompanhada na arena — SPEC-0044:E2E-01
+- [x] Cada partida terminada é gravada uma única vez, mesmo com dois jogadores observando — SPEC-0045:IT-02
+- [x] O jogador pode abandonar e pedir revanche, e o oponente aceita ou recusa — SPEC-0041:E2E-01
+- [x] A desconexão do oponente resulta em vitória por W.O. após a janela de tolerância — SPEC-0042:E2E-01
 
 ## 8. Questões em Aberto
 - [x] Partidas **contra o robô** devem continuar entrando no histórico e no ranking? Hoje entram (o robô aparece como jogador nos dois). O Stitch diz que o modo solo não afeta o histórico da temporada. Recomendado: solo continua no **histórico pessoal** (com o modo "Solo" registrado) e **sai do ranking global**. — Solo fica no histórico pessoal (modo Solo registrado) e sai do ranking global. (thomas, 2026-09-29)
@@ -143,7 +143,31 @@ Uma aprovação humana cobre o épico e as specs filhas apresentadas junto com e
 |---|---|---|---|---|---|---|---|---|
 
 ## 11. Relatório de Entrega
-<!-- Preenchido ao fechar o épico: o que foi entregue, como (ondas e deploys com versão/data), resultado dos critérios de aceite com os testes que os provam, métricas pós-release, pendências como novas specs. `spec_graph.py report SPEC-0035` ajuda a montar. -->
+### O que foi entregue
+Funcionalidades de produto que o redesenho Cyber Arena exigiu além da camada visual: partidas persistidas com detalhes (duração, motivo, lado e linha vencedora, modo, identidade), identidade anônima do jogador no navegador, histórico pessoal e explorável, ranking por jogador, série melhor de 5 (regras, pareamento por formato, persistência por rodada e interface), abandono com confirmação, revanche com aceite e W.O. por desconexão. Inclui a correção da gravação duplicada do resultado (SPEC-0045).
+
+### Como foi feito
+Nove specs em sequência (0045, 0036, 0037, 0038, 0039, 0040, 0044, 0041, 0042), cada uma em branch própria, TDD (Red antes do Green), review independente por subagente e PR com CI verde (Build, Format & Test e sdd) antes do merge. Regras ficaram no domínio (GameSession, HistoryAnalysis, LeaderboardAnalysis, GameResultService) e a interface só apresenta. Migrations aditivas (AddMatchDetails, AddPlayerIdentity, AddSeriesInfo). G6 não se aplica (sem ambiente remoto): a entrega é o merge na `main`.
+
+### Resultado dos critérios de aceite
+| Critério | Prova | Resultado |
+|---|---|---|
+| Partida persistida com detalhes e identidade | SPEC-0036:IT-01 | PASS (CI dos PRs) |
+| Jogador reconhecido entre visitas | SPEC-0037:E2E-01 | PASS |
+| Histórico filtra, busca, ordena, pagina e resume | SPEC-0038:E2E-01 | PASS |
+| Ranking completo com a posição do jogador | SPEC-0039:E2E-01 | PASS |
+| Série escolhida no lobby e acompanhada na arena | SPEC-0044:E2E-01 | PASS |
+| Resultado gravado uma única vez | SPEC-0045:IT-02 | PASS |
+| Abandonar e pedir revanche com aceite | SPEC-0041:E2E-01 | PASS |
+| W.O. por desconexão após a tolerância | SPEC-0042:E2E-01 | PASS |
+
+Suíte final: 322 testes, todos verdes no CI.
+
+### Pendências
+- Nenhuma tela foi aberta em navegador (o ambiente local exige contêiner de SQL Server): revisão visual (H2 de cada spec), Lighthouse e verificação manual de F5/aba fechada seguem pendentes.
+- Migrations escritas ou geradas sem aplicação em SQL Server real; a tradução das consultas do histórico é validada só em EF InMemory (curingas `[` e `\` do LIKE não exercitados).
+- Dívidas registradas nos Relatórios de cada spec: Restart público sem consentimento, sessões que vazam em `Games` quando todos os circuitos somem, `bestOf` sem validação, service locator opcional em `Home`, teste de sequência anti-resposta velha no ranking e fuso do servidor em datas.
+- Fora de escopo por decisão (backlog): ELO/divisões/temporada, presença geral, chat.
 
 ## 12. Emendas
 <!-- Mudança em spec aprovada: uma linha por emenda, aprovada pelo humano. -->
