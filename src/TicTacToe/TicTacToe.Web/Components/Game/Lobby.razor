@@ -113,6 +113,8 @@ else
     private RoomTab _tab = RoomTab.Create;
     private CopyState _copy = CopyState.None;
 
+    [Parameter] public string? ReturningPlayerName { get; set; }
+
     [Parameter] public string PlayerName { get; set; } = "";
     [Parameter] public EventCallback<string> PlayerNameChanged { get; set; }
 

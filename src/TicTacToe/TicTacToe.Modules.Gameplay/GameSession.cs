@@ -118,6 +118,10 @@ public class GameSession : IDisposable
         }
     }
 
+    public void SetPlayerId(Player player, Guid? id) => throw new NotImplementedException();
+
+    public Guid? GetPlayerId(Player player) => throw new NotImplementedException();
+
     public void SetPlayerName(Player player, string name) =>
         _playerNames[player] = name;
 

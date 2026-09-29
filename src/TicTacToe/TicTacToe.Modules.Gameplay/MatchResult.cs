@@ -22,4 +22,8 @@ public class MatchResult
     public string? WinningLine { get; set; }  // "0,4,8"
     public string? FinalBoard { get; set; }   // 9 caracteres: X, O ou -
     public GameMode? Mode { get; set; }
+
+    // Identidade anônima dos jogadores (SPEC-0037): nula em partidas antigas e para o robô.
+    public Guid? PlayerXId { get; set; }
+    public Guid? PlayerOId { get; set; }
 }

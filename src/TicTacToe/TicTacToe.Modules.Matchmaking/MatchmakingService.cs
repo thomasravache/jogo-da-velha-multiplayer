@@ -16,7 +16,7 @@ public class MatchmakingService
 
     public event Action<string, Guid>? OnPlayerMatched;
 
-    public Guid? JoinQueue(string connectionId, string playerName = "")
+    public Guid? JoinQueue(string connectionId, string playerName = "", Guid? playerId = null)
     {
         _playerNames[connectionId] = string.IsNullOrWhiteSpace(playerName) ? connectionId : playerName;
         _waitingPlayers.Enqueue(connectionId);
@@ -42,6 +42,8 @@ public class MatchmakingService
     /// <summary>Verdadeiro se a partida veio de uma sala privada (e não da fila pública).</summary>
     public bool IsPrivateMatch(Guid matchId) => _privateMatches.ContainsKey(matchId);
 
+    public (Guid? X, Guid? O)? GetMatchPlayerIds(Guid matchId) => throw new NotImplementedException();
+
     public string? GetPlayerName(string connectionId) =>
         _playerNames.TryGetValue(connectionId, out var name) ? name : null;
 
@@ -61,7 +63,7 @@ public class MatchmakingService
 
     private readonly ConcurrentDictionary<string, string> _privateRooms = new();
 
-    public string CreatePrivateRoom(string connectionId, string playerName)
+    public string CreatePrivateRoom(string connectionId, string playerName, Guid? playerId = null)
     {
         _playerNames[connectionId] = string.IsNullOrWhiteSpace(playerName) ? connectionId : playerName;
         string code = "SALA-" + Guid.NewGuid().ToString("N")[..4].ToUpperInvariant();
@@ -69,7 +71,7 @@ public class MatchmakingService
         return code;
     }
 
-    public Guid? JoinPrivateRoom(string roomCode, string connectionId, string playerName)
+    public Guid? JoinPrivateRoom(string roomCode, string connectionId, string playerName, Guid? playerId = null)
     {
         if (string.IsNullOrWhiteSpace(roomCode)) return null;
         string normalized = roomCode.Trim().ToUpperInvariant();
