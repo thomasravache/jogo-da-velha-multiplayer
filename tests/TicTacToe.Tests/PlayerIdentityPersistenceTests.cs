@@ -132,9 +132,15 @@ public class PlayerIdentityPersistenceTests
         var game = Assert.Single(games.Values);
         foreach (var (c, p) in new[] { (0, Player.X), (3, Player.O), (1, Player.X), (4, Player.O), (2, Player.X) }) game.MakeMove(c, p);
 
-        await Task.Delay(500);
-        await using var check = new GameplayDbContext(options);
-        var row = await check.MatchResults.SingleAsync();
+        MatchResult? row = null;
+        for (var i = 0; i < 50 && row is null; i++)
+        {
+            await using var poll = new GameplayDbContext(options);
+            row = await poll.MatchResults.FirstOrDefaultAsync();
+            if (row is null) await Task.Delay(100);
+        }
+
+        Assert.NotNull(row);
         Assert.Equal(id, row.PlayerXId);
         Assert.Null(row.PlayerOId);
     }

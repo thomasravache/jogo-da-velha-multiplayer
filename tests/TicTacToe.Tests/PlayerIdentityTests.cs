@@ -24,14 +24,18 @@ internal sealed class InMemoryPlayerStorage : IPlayerStorage
 
     public bool ThrowOnAccess { get; set; }
 
+    public Exception? ThrowException { get; set; }
+
     public ValueTask<string?> GetAsync(string key)
     {
+        if (ThrowException is not null) throw ThrowException;
         if (ThrowOnAccess) throw new InvalidOperationException("storage indisponível");
         return ValueTask.FromResult(Data.TryGetValue(key, out var v) ? v : null);
     }
 
     public ValueTask SetAsync(string key, string value)
     {
+        if (ThrowException is not null) throw ThrowException;
         if (ThrowOnAccess) throw new InvalidOperationException("storage indisponível");
         Data[key] = value;
         return ValueTask.CompletedTask;
@@ -168,5 +172,58 @@ public class PlayerIdentityTests
         };
 
         Assert.All(markups, m => Assert.DoesNotContain(id.ToString(), m, StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact(DisplayName = "SPEC-0037:UT-02b — Cancelamento e timeout do armazenamento também não lançam")]
+    [Trait("Category", "SPEC-0037:UT-02")]
+    public async Task LoadAsync_ShouldSwallowCancellation()
+    {
+        foreach (Exception failure in new Exception[] { new OperationCanceledException(), new TaskCanceledException(), new TimeoutException() })
+        {
+            var storage = new InMemoryPlayerStorage { ThrowException = failure };
+            var service = new PlayerIdentityService(storage);
+
+            var profile = await service.LoadAsync();
+            await service.SaveNicknameAsync("Thomas");
+
+            Assert.NotEqual(Guid.Empty, profile.PlayerId);
+        }
+    }
+
+    [Fact(DisplayName = "SPEC-0037:UT-02c — Valores adulterados: Guid vazio, tipos errados e apelido acima de 20")]
+    [Trait("Category", "SPEC-0037:UT-02")]
+    public async Task LoadAsync_ShouldRejectTamperedValues()
+    {
+        var empty = new InMemoryPlayerStorage();
+        empty.Data["xo.player"] = "{\"id\":\"00000000-0000-0000-0000-000000000000\"}";
+        Assert.NotEqual(Guid.Empty, (await new PlayerIdentityService(empty).LoadAsync()).PlayerId);
+
+        var numeric = new InMemoryPlayerStorage();
+        numeric.Data["xo.player"] = "{\"id\":123,\"nick\":456}";
+        var fromNumeric = await new PlayerIdentityService(numeric).LoadAsync();
+        Assert.NotEqual(Guid.Empty, fromNumeric.PlayerId);
+        Assert.Null(fromNumeric.Nickname);
+
+        var id = Guid.NewGuid();
+        var longNick = new InMemoryPlayerStorage();
+        longNick.Data["xo.player"] = Json(id, new string('z', 40));
+        var loaded = await new PlayerIdentityService(longNick).LoadAsync();
+        Assert.Equal(id, loaded.PlayerId);
+        Assert.Equal(20, loaded.Nickname!.Length);
+    }
+
+    [Fact(DisplayName = "SPEC-0037:UT-01b — Cargas concorrentes devolvem o mesmo PlayerId")]
+    [Trait("Category", "SPEC-0037:UT-01")]
+    public async Task LoadAsync_ShouldBeSafeUnderConcurrency()
+    {
+        var service = new PlayerIdentityService(new InMemoryPlayerStorage());
+
+        var profiles = await Task.WhenAll(Enumerable.Range(0, 20).Select(i => Task.Run(async () =>
+        {
+            if (i % 2 == 0) await service.SaveNicknameAsync("Ana");
+            return (await service.LoadAsync()).PlayerId;
+        })));
+
+        Assert.Single(profiles.Distinct());
     }
 }
