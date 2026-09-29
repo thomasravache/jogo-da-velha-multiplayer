@@ -95,6 +95,19 @@ public class HistoryQueryTests
         return await HistoryData.Service(db).GetHistoryAsync(query);
     }
 
+    [Fact(DisplayName = "SPEC-0038:CH-01 — GetRecentAsync(10) continua devolvendo as 10 mais recentes em ordem decrescente")]
+    [Trait("Category", "SPEC-0038:CH-01")]
+    public async Task GetRecentAsync_ShouldStillReturnTenNewestDescending()
+    {
+        var options = HistoryData.NewOptions();
+        await HistoryData.Seed(options, HistoryData.TwentyFive(Now));
+        await using var db = new GameplayDbContext(options);
+
+        var recent = await HistoryData.Service(db).GetRecentAsync(10);
+
+        Assert.Equal(HistoryData.Ids(0, 1, 2, 3, 4, 5, 6, 7, 8, 9), recent.Select(m => m.Id).ToArray());
+    }
+
     [Fact(DisplayName = "SPEC-0038:IT-01 — Sem filtro: 25 partidas em 3 páginas, mais recentes primeiro, com contagens")]
     [Trait("Category", "SPEC-0038:IT-01")]
     public async Task Default_ShouldReturnFirstPageWithCounts()
