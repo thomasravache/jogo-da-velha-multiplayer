@@ -15,9 +15,13 @@ public static class LeaderboardAnalysis
 
         foreach (var g in games.Where(Counts))
         {
+            var keyX = Key(g.PlayerXId, g.PlayerXName);
+            var keyO = Key(g.PlayerOId, g.PlayerOName);
+            if (keyX == keyO) continue; // mesma chave nos dois lados: não dá para atribuir resultado
+
             var (x, o) = Results(g);
-            Add(perPlayer, Key(g.PlayerXId, g.PlayerXName), x, g.PlayerXName, g.PlayedAtUtc);
-            Add(perPlayer, Key(g.PlayerOId, g.PlayerOName), o, g.PlayerOName, g.PlayedAtUtc);
+            Add(perPlayer, keyX, x, g.PlayerXName, g.PlayedAtUtc);
+            Add(perPlayer, keyO, o, g.PlayerOName, g.PlayedAtUtc);
         }
 
         var stats = perPlayer
