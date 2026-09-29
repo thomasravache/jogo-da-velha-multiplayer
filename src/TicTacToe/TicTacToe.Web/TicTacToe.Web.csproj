@@ -10,6 +10,7 @@
     <ProjectReference Include="..\TicTacToe.ServiceDefaults\TicTacToe.ServiceDefaults.csproj" />
     <ProjectReference Include="..\TicTacToe.Modules.Gameplay\TicTacToe.Modules.Gameplay.csproj" />
     <ProjectReference Include="..\TicTacToe.Modules.Matchmaking\TicTacToe.Modules.Matchmaking.csproj" />
+    <ProjectReference Include="..\TicTacToe.Modules.Chess\TicTacToe.Modules.Chess.csproj" />
   </ItemGroup>
 
   <ItemGroup>

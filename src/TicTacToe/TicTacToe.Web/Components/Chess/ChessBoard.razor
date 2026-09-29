@@ -1,0 +1,12 @@
+@code {
+    [Parameter] public Position Position { get; set; } = default!;
+    [Parameter] public PieceColor Orientation { get; set; } = PieceColor.White;
+    [Parameter] public Square? Selected { get; set; }
+    [Parameter] public IReadOnlyList<Square> Destinations { get; set; } = [];
+    [Parameter] public Move? LastMove { get; set; }
+    [Parameter] public Square? CheckSquare { get; set; }
+    [Parameter] public bool Interactive { get; set; } = true;
+    [Parameter] public EventCallback<Square> OnSquareActivated { get; set; }
+    [Parameter] public EventCallback<(Square From, Square To)> OnDragMove { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+}

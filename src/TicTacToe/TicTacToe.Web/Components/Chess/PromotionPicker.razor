@@ -1,0 +1,5 @@
+@code {
+    [Parameter] public PieceColor Color { get; set; }
+    [Parameter] public EventCallback<PieceType> OnChosen { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+}

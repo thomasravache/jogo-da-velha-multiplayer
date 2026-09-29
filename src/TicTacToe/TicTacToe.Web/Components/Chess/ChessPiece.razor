@@ -1,0 +1,8 @@
+@code {
+    [Parameter] public PieceColor Color { get; set; }
+    [Parameter] public PieceType Type { get; set; }
+    [Parameter] public int Size { get; set; } = 40;
+    [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? Attributes { get; set; }
+
+    public static string Title(PieceColor color, PieceType type) => throw new NotImplementedException();
+}
