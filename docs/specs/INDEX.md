@@ -5,18 +5,18 @@
 ## Saúde
 
 - Validação (G0): **0 erro(s), 0 aviso(s)**
-- Specs: approved 1, implemented 38
+- Specs: in-progress 1, implemented 38
 - Impedimentos: **0 aberto(s)**, 0 resolvido(s)
 
 ## Plano de Execução
 
-**Em andamento:** —  
+**Em andamento:** SPEC-0042  
 **Paradas por impedimento:** —  
-**Próximo lote:** SPEC-0042
+**Próximo lote:** —
 
 | Onda | Spec | Título | Tier/Tam. | Status | Prontidão | Observação |
 |---|---|---|---|---|---|---|
-| 1 | SPEC-0042 | W.O. por desconexão do oponente | full/M | approved | ✅ pronta |  |
+| 1 | SPEC-0042 | W.O. por desconexão do oponente | full/M | in-progress | 🔄 em andamento |  |
 
 ## Épicos
 
@@ -37,7 +37,7 @@ Seta contínua: depende da implementação. Seta tracejada: consome contrato.
 flowchart LR
   subgraph E0035["SPEC-0035 · Evolução funcional a partir do Stitch (Fase 2)"]
     S0041["SPEC-0041<br/>Abandonar partida e pedir revanche"]:::implemented
-    S0042["SPEC-0042<br/>W.O. por desconexão do oponente"]:::approved
+    S0042["SPEC-0042<br/>W.O. por desconexão do oponente"]:::inprogress
   end
   S0041 --> S0042
   classDef proposed fill:#fef3c7,stroke:#d97706,color:#111
@@ -92,7 +92,7 @@ flowchart LR
 | [SPEC-0039](SPEC-0039-ranking-avancado.md) | Ranking avançado | full | feature | implemented | 2026-09-29 | SPEC-0035 | SPEC-0033, SPEC-0037, SPEC-0038 | — |
 | [SPEC-0040](SPEC-0040-serie-melhor-de-5-md5.md) | Série melhor de 5 (MD5) | full | feature | implemented | 2026-09-29 | SPEC-0035 | SPEC-0031, SPEC-0036 | — |
 | [SPEC-0041](SPEC-0041-abandonar-partida-e-pedir-revanche.md) | Abandonar partida e pedir revanche | full | feature | implemented | 2026-09-29 | SPEC-0035 | SPEC-0044, SPEC-0045 | — |
-| [SPEC-0042](SPEC-0042-w-o-por-desconexao-do-oponente.md) | W.O. por desconexão do oponente | full | feature | approved | 2026-09-29 | SPEC-0035 | SPEC-0041 | — |
+| [SPEC-0042](SPEC-0042-w-o-por-desconexao-do-oponente.md) | W.O. por desconexão do oponente | full | feature | in-progress | 2026-09-29 | SPEC-0035 | SPEC-0041 | — |
 | [SPEC-0043](SPEC-0043-shell-e-primitivos-de-ui-cyber-arena.md) | Shell e primitivos de UI Cyber Arena | full | feature | implemented | 2026-09-29 | SPEC-0028 | SPEC-0029 | — |
 | [SPEC-0044](SPEC-0044-serie-melhor-de-5-interface-no-lobby-e-na-arena.md) | Série melhor de 5: interface no lobby e na arena | full | feature | implemented | 2026-09-29 | SPEC-0035 | SPEC-0030, SPEC-0040 | — |
 | [SPEC-0045](SPEC-0045-gravacao-unica-do-resultado-da-partida.md) | Gravação única do resultado da partida | full | fix | implemented | 2026-09-29 | SPEC-0035 | — | — |

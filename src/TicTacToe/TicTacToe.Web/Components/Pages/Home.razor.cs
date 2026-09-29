@@ -9,12 +9,20 @@ using TicTacToe.Modules.Matchmaking;
 using TicTacToe.Web.Components.Game;
 using TicTacToe.Web.Components.Ui;
 using TicTacToe.Web.Services.PlayerIdentity;
+using TicTacToe.Web.Services.Presence;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace TicTacToe.Web.Components.Pages;
 
 public partial class Home : IDisposable
 {
     [Inject] private ShellState Shell { get; set; } = default!;
+    [Inject] private IServiceProvider Services { get; set; } = default!;
+    [Inject] private ILogger<Home> Logger { get; set; } = default!;
+
+    // Serviços opcionais: presença (circuito) e relógio injetável.
+    private MatchPresenceContext? Presence => Services.GetService<MatchPresenceContext>();
+    private TimeProvider? Clock => Services.GetService<TimeProvider>();
 
     private PlayerProfile? _profile;
     private string? ReturningName;
@@ -137,7 +145,7 @@ public partial class Home : IDisposable
         if (MatchId != null && !Games.ContainsKey(MatchId.Value))
         {
             var format = Matchmaking.GetMatchBestOf(MatchId.Value) == 5 ? SeriesFormat.BestOf5 : SeriesFormat.Single;
-            var game = new GameSession(format: format) { Mode = Matchmaking.IsPrivateMatch(MatchId.Value) ? GameMode.Private : GameMode.Online };
+            var game = new GameSession(timeProvider: Clock, format: format) { Mode = Matchmaking.IsPrivateMatch(MatchId.Value) ? GameMode.Private : GameMode.Online };
             Games.TryAdd(MatchId.Value, game);
         }
 
@@ -165,6 +173,8 @@ public partial class Home : IDisposable
                 existingGame.SetPlayerName(Player.X, names.Value.PlayerXName);
                 existingGame.SetPlayerName(Player.O, names.Value.PlayerOName);
             }
+
+            Presence?.Attach(existingGame, MyPlayer);
         }
     }
 
@@ -184,7 +194,12 @@ public partial class Home : IDisposable
                 catch { }
             }
 
-            await GameResultService.SaveOnceAsync(g);
+            var saved = await GameResultService.SaveOnceAsync(g);
+            if (saved && g.EndReason == EndReason.Disconnect && Logger.IsEnabled(LogLevel.Information))
+            {
+                var winner = g.Winner;
+                Logger.LogInformation("Partida {GameId} encerrada por W.O. de desconexão (vencedor: {Winner}).", g.Id, winner);
+            }
         }
         await InvokeAsync(StateHasChanged);
     }
@@ -198,7 +213,7 @@ public partial class Home : IDisposable
         MatchId = Guid.NewGuid();
         MyPlayer = Player.X;
 
-        var game = new GameSession(format: SelectedBestOf == 5 ? SeriesFormat.BestOf5 : SeriesFormat.Single) { Mode = GameMode.Solo };
+        var game = new GameSession(timeProvider: Clock, format: SelectedBestOf == 5 ? SeriesFormat.BestOf5 : SeriesFormat.Single) { Mode = GameMode.Solo };
         game.SetPlayerName(Player.X, PlayerName.Trim());
         game.SetPlayerId(Player.X, _profile?.PlayerId);
         game.SetPlayerName(Player.O, AiPlayer.GetBotName(SelectedDifficulty));
@@ -294,6 +309,7 @@ public partial class Home : IDisposable
         if (MatchId is { } id && Games.TryGetValue(id, out var game))
         {
             game.OnStateChanged -= OnGameStateChanged;
+            Presence?.Detach();
             if ((IsSoloGame || (game.HasLeft(Player.X) && game.HasLeft(Player.O))) && Games.TryRemove(id, out _))
             {
                 game.Dispose();
@@ -329,7 +345,13 @@ public partial class Home : IDisposable
         if (MatchId != null && Games.TryGetValue(MatchId.Value, out var g))
         {
             g.OnStateChanged -= OnGameStateChanged;
+            if (!IsSoloGame)
+            {
+                g.SetConnection(MyPlayer, false); // sair da tela conta como queda: W.O. após a tolerância
+            }
         }
+
+        Presence?.Detach();
         GC.SuppressFinalize(this);
     }
 }

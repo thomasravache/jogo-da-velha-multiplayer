@@ -18,6 +18,7 @@ public enum SeriesFormat { Single = 0, BestOf5 = 1 }
 public class GameSession : IDisposable
 {
     public const int DefaultTurnTimeSeconds = 15;
+    public const int DisconnectGraceSeconds = 15;
 
     public Guid Id { get; } = Guid.NewGuid();
 
@@ -195,6 +196,65 @@ public class GameSession : IDisposable
         RematchRequestedBy = null;
     }
 
+    // Presença (SPEC-0042): cada jogador humano pode estar desconectado; passada a tolerância, ele perde por W.O.
+    private readonly Dictionary<Player, DateTimeOffset> _disconnectedAt = [];
+
+    /// <summary>Informa queda (false) ou retorno (true) do jogador; ignorado em solo e com a rodada encerrada.</summary>
+    public void SetConnection(Player player, bool connected)
+    {
+        lock (_lock)
+        {
+            if (player == Player.None || _mode == GameMode.Solo || RoundEnded) return;
+
+            var changed = connected ? _disconnectedAt.Remove(player) : _disconnectedAt.TryAdd(player, _time.GetUtcNow());
+            if (!changed) return;
+        }
+
+        OnStateChanged?.Invoke();
+    }
+
+    /// <summary>Segundos que faltam para o W.O. do jogador desconectado; nulo se ele está conectado.</summary>
+    public int? DisconnectSecondsLeft(Player player)
+    {
+        lock (_lock)
+        {
+            if (RoundEnded || !_disconnectedAt.TryGetValue(player, out var since)) return null;
+            var elapsed = (int)Math.Floor((_time.GetUtcNow() - since).TotalSeconds);
+            return Math.Max(0, DisconnectGraceSeconds - elapsed);
+        }
+    }
+
+    /// <summary>Único caminho de desistência: o outro lado vence com o motivo dado; falso se a rodada já terminou.</summary>
+    public bool Forfeit(Player loser, EndReason reason)
+    {
+        lock (_lock)
+        {
+            if (loser == Player.None || RoundEnded) return false;
+            ForfeitCore(loser, reason);
+        }
+
+        OnStateChanged?.Invoke();
+        return true;
+    }
+
+    // Chamado com o lock adquirido e a rodada em andamento.
+    private void ForfeitCore(Player loser, EndReason reason)
+    {
+        var winner = Other(loser);
+        _left.Add(loser);
+        _disconnectedAt.Clear();
+        Winner = winner;
+        _endedAt = _time.GetUtcNow();
+        _endReason = reason;
+        _scores[winner] = GetScore(winner) + 1;
+        RegisterRoundWon(winner);
+        if (_format == SeriesFormat.BestOf5)
+        {
+            SeriesOver = true;
+            _seriesWinner = winner;
+        }
+    }
+
     public LeaveResult Leave(Player player)
     {
         LeaveResult result;
@@ -214,18 +274,7 @@ public class GameSession : IDisposable
             }
             else
             {
-                var opponent = Other(player);
-                Winner = opponent;
-                _endedAt = _time.GetUtcNow();
-                _endReason = Gameplay.EndReason.Abandon;
-                _scores[opponent] = GetScore(opponent) + 1;
-                RegisterRoundWon(opponent);
-                if (_format == SeriesFormat.BestOf5)
-                {
-                    SeriesOver = true;
-                    _seriesWinner = opponent;
-                }
-
+                ForfeitCore(player, Gameplay.EndReason.Abandon);
                 result = LeaveResult.Forfeited;
             }
         }
@@ -328,6 +377,18 @@ public class GameSession : IDisposable
                 changed = true;
             }
 
+            if (!RoundEnded && _disconnectedAt.Count > 0)
+            {
+                var now = _time.GetUtcNow();
+                var expired = _disconnectedAt.Where(kv => now - kv.Value >= TimeSpan.FromSeconds(DisconnectGraceSeconds))
+                    .OrderBy(kv => kv.Value).Select(kv => (Player?)kv.Key).FirstOrDefault();
+                if (expired is { } loser)
+                {
+                    ForfeitCore(loser, Gameplay.EndReason.Disconnect);
+                    changed = true;
+                }
+            }
+
             if (Winner != Player.None || IsDraw || RemainingSeconds <= 0 || _left.Count > 0)
             {
                 skipTick = true;
@@ -404,6 +465,7 @@ public class GameSession : IDisposable
         CurrentTurn = _format == SeriesFormat.BestOf5 ? _roundStarter : Player.X;
         RemainingSeconds = DefaultTurnTimeSeconds;
         ClearRematch();
+        _disconnectedAt.Clear();
     }
 
     // Chamado com o lock adquirido, após somar o ponto da rodada.
