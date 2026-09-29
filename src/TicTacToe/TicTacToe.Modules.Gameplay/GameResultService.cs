@@ -21,7 +21,14 @@ public class GameResultService(GameplayDbContext db, ILogger<GameResultService> 
                 PlayerOName = game.GetPlayerName(Player.O),
                 WinnerName = game.Winner != Player.None
                     ? game.GetPlayerName(game.Winner)
-                    : null
+                    : null,
+                DurationSeconds = game.Duration is { } duration ? (int)Math.Round(duration.TotalSeconds) : null,
+                MoveCount = game.MoveCount,
+                EndReason = game.EndReason,
+                WinnerSide = game.Winner == Player.None ? null : game.Winner.ToString(),
+                WinningLine = game.WinningLine is { } line ? string.Join(',', line) : null,
+                FinalBoard = game.FinalBoard,
+                Mode = game.Mode,
             };
 
             db.MatchResults.Add(result);

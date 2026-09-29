@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 
 namespace TicTacToe.Modules.Gameplay;
@@ -27,11 +28,67 @@ public class GameSession : IDisposable
 
     public event Action? OnStateChanged;
 
-    public GameSession(bool enableBackgroundTimer = true)
+    public GameSession(bool enableBackgroundTimer = true, TimeProvider? timeProvider = null)
     {
+        _time = timeProvider ?? TimeProvider.System;
+        _startedAt = _time.GetUtcNow();
         if (enableBackgroundTimer)
         {
             _timer = new Timer(_ => Tick(), null, 1000, 1000);
+        }
+    }
+
+    private readonly TimeProvider _time;
+    private GameMode _mode = GameMode.Online;
+    private DateTimeOffset _startedAt;
+    private DateTimeOffset? _endedAt;
+    private int _moveCount;
+    private EndReason? _endReason;
+
+    /// <summary>Modo em que a partida foi criada (online, sala privada ou solo).</summary>
+    public GameMode Mode
+    {
+        get { lock (_lock) { return _mode; } }
+        set { lock (_lock) { _mode = value; } }
+    }
+
+    /// <summary>Instante (UTC) em que a rodada começou: criação ou último <see cref="Restart"/>.</summary>
+    public DateTimeOffset StartedAtUtc
+    {
+        get { lock (_lock) { return _startedAt; } }
+    }
+
+    /// <summary>Instante (UTC) do fim da rodada (vitória, empate ou estouro do tempo); nulo em andamento.</summary>
+    public DateTimeOffset? EndedAtUtc
+    {
+        get { lock (_lock) { return _endedAt; } }
+    }
+
+    public TimeSpan? Duration
+    {
+        get { lock (_lock) { return _endedAt - _startedAt; } }
+    }
+
+    /// <summary>Jogadas válidas da rodada atual.</summary>
+    public int MoveCount
+    {
+        get { lock (_lock) { return _moveCount; } }
+    }
+
+    public EndReason? EndReason
+    {
+        get { lock (_lock) { return _endReason; } }
+    }
+
+    /// <summary>Nove caracteres (casas 0..8): X, O ou -.</summary>
+    public string FinalBoard
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return string.Concat(Board.Select(p => p == Player.X ? 'X' : p == Player.O ? 'O' : '-'));
+            }
         }
     }
 
@@ -84,6 +141,8 @@ public class GameSession : IDisposable
             if (RemainingSeconds <= 0)
             {
                 IsTimedOut = true;
+                _endedAt = _time.GetUtcNow();
+                _endReason = Gameplay.EndReason.Timeout;
                 Winner = CurrentTurn == Player.X ? Player.O : Player.X;
                 _scores[Winner] = GetScore(Winner) + 1;
             }
@@ -99,6 +158,10 @@ public class GameSession : IDisposable
             Array.Clear(Board, 0, Board.Length);
             _resultRecorded = false;
             _winningLine = null;
+            _startedAt = _time.GetUtcNow();
+            _endedAt = null;
+            _endReason = null;
+            _moveCount = 0;
             Winner = Player.None;
             IsTimedOut = false;
             CurrentTurn = Player.X;
@@ -115,6 +178,7 @@ public class GameSession : IDisposable
                 return false;
 
             Board[index] = player;
+            _moveCount++;
 
             var line = FindWinningLine(player);
             if (line is not null)
@@ -122,11 +186,19 @@ public class GameSession : IDisposable
                 Winner = player;
                 _winningLine = Array.AsReadOnly((int[])line.Clone());
                 _scores[player] = GetScore(player) + 1;
+                _endedAt = _time.GetUtcNow();
+                _endReason = Gameplay.EndReason.Line;
             }
             else
             {
                 CurrentTurn = player == Player.X ? Player.O : Player.X;
                 RemainingSeconds = DefaultTurnTimeSeconds;
+
+                if (Array.TrueForAll(Board, p => p != Player.None))
+                {
+                    _endedAt = _time.GetUtcNow();
+                    _endReason = Gameplay.EndReason.Draw;
+                }
             }
         }
         OnStateChanged?.Invoke();

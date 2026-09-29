@@ -99,7 +99,7 @@ public partial class Home : IDisposable
     {
         if (MatchId != null && !Games.ContainsKey(MatchId.Value))
         {
-            var game = new GameSession();
+            var game = new GameSession { Mode = Matchmaking.IsPrivateMatch(MatchId.Value) ? GameMode.Private : GameMode.Online };
             Games.TryAdd(MatchId.Value, game);
         }
 
@@ -150,7 +150,7 @@ public partial class Home : IDisposable
         MatchId = Guid.NewGuid();
         MyPlayer = Player.X;
 
-        var game = new GameSession();
+        var game = new GameSession { Mode = GameMode.Solo };
         game.SetPlayerName(Player.X, PlayerName.Trim());
         game.SetPlayerName(Player.O, AiPlayer.GetBotName(SelectedDifficulty));
         game.OnStateChanged += OnGameStateChanged;

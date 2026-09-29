@@ -37,6 +37,11 @@ public class MatchmakingService
         return null;
     }
 
+    private readonly ConcurrentDictionary<Guid, bool> _privateMatches = new();
+
+    /// <summary>Verdadeiro se a partida veio de uma sala privada (e não da fila pública).</summary>
+    public bool IsPrivateMatch(Guid matchId) => _privateMatches.ContainsKey(matchId);
+
     public string? GetPlayerName(string connectionId) =>
         _playerNames.TryGetValue(connectionId, out var name) ? name : null;
 
@@ -76,6 +81,7 @@ public class MatchmakingService
             ActiveMatches[hostConnectionId] = matchId;
             ActiveMatches[connectionId] = matchId;
             _matchPlayers[matchId] = (hostConnectionId, connectionId);
+            _privateMatches[matchId] = true;
             OnPlayerMatched?.Invoke(hostConnectionId, matchId);
             OnPlayerMatched?.Invoke(connectionId, matchId);
             return matchId;
