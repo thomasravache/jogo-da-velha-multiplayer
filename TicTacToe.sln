@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicTacToe.Modules.Gameplay"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicTacToe.Modules.Matchmaking", "src\TicTacToe\TicTacToe.Modules.Matchmaking\TicTacToe.Modules.Matchmaking.csproj", "{496F2565-0C1D-4539-8A6D-26A440F30649}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicTacToe.Modules.Chess", "src\TicTacToe\TicTacToe.Modules.Chess\TicTacToe.Modules.Chess.csproj", "{735042B4-6425-4E3F-9341-996263410B1E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -103,6 +105,18 @@ Global
 		{496F2565-0C1D-4539-8A6D-26A440F30649}.Release|x64.Build.0 = Release|Any CPU
 		{496F2565-0C1D-4539-8A6D-26A440F30649}.Release|x86.ActiveCfg = Release|Any CPU
 		{496F2565-0C1D-4539-8A6D-26A440F30649}.Release|x86.Build.0 = Release|Any CPU
+		{735042B4-6425-4E3F-9341-996263410B1E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{735042B4-6425-4E3F-9341-996263410B1E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{735042B4-6425-4E3F-9341-996263410B1E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{735042B4-6425-4E3F-9341-996263410B1E}.Debug|x64.Build.0 = Debug|Any CPU
+		{735042B4-6425-4E3F-9341-996263410B1E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{735042B4-6425-4E3F-9341-996263410B1E}.Debug|x86.Build.0 = Debug|Any CPU
+		{735042B4-6425-4E3F-9341-996263410B1E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{735042B4-6425-4E3F-9341-996263410B1E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{735042B4-6425-4E3F-9341-996263410B1E}.Release|x64.ActiveCfg = Release|Any CPU
+		{735042B4-6425-4E3F-9341-996263410B1E}.Release|x64.Build.0 = Release|Any CPU
+		{735042B4-6425-4E3F-9341-996263410B1E}.Release|x86.ActiveCfg = Release|Any CPU
+		{735042B4-6425-4E3F-9341-996263410B1E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -115,5 +129,6 @@ Global
 		{10BE24BA-B165-4017-81D5-82859DB0299A} = {CA0EEC5B-A02B-8EA4-F285-7B2DDBA897CF}
 		{1E866C78-175D-413E-9E62-55FDA8156437} = {CA0EEC5B-A02B-8EA4-F285-7B2DDBA897CF}
 		{496F2565-0C1D-4539-8A6D-26A440F30649} = {CA0EEC5B-A02B-8EA4-F285-7B2DDBA897CF}
+		{735042B4-6425-4E3F-9341-996263410B1E} = {CA0EEC5B-A02B-8EA4-F285-7B2DDBA897CF}
 	EndGlobalSection
 EndGlobal
