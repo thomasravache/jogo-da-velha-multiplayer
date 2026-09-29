@@ -74,7 +74,7 @@ public class TailwindDesignSystemTests
 
         Assert.Contains("@source", css);
         Assert.Contains("Components", css);
-        Assert.DoesNotContain("preflight", css, StringComparison.OrdinalIgnoreCase);
+        // Preflight foi habilitado pela SPEC-0034 (fim da coexistência com o MudBlazor); UT-04 da SPEC-0034 o cobre.
         Assert.DoesNotContain("@import \"tailwindcss\"", css);
     }
 
@@ -116,7 +116,7 @@ public class TailwindDesignSystemTests
         Assert.True(new FileInfo(path).Length <= 60 * 1024, "CSS gerado deve pesar no máximo 60 KB");
     }
 
-    [Fact(DisplayName = "SPEC-0029:IT-02 — App.razor referencia o CSS novo e mantém MudBlazor")]
+    [Fact(DisplayName = "SPEC-0029:IT-02 — App.razor referencia o CSS novo depois de app.css")]
     [Trait("Category", "SPEC-0029:IT-02")]
     public void AppRazor_ShouldReferenceCyberArenaCss_AndKeepMudBlazor()
     {
@@ -125,8 +125,7 @@ public class TailwindDesignSystemTests
         var appCss = app.IndexOf("app.css", StringComparison.Ordinal);
         var cyber = app.IndexOf("css/cyber-arena.css", StringComparison.Ordinal);
         Assert.True(cyber > appCss && appCss >= 0, "cyber-arena.css deve vir depois de app.css");
-        Assert.Contains("MudBlazor.min.css", app);
-        Assert.Contains("MudBlazor.min.js", app);
+        // A coexistência com o MudBlazor terminou na SPEC-0034; UT-05 da SPEC-0034 garante a ausência.
     }
 
     [Fact(DisplayName = "SPEC-0029:IT-03 — CI faz cache do binário por versão e confere drift")]
