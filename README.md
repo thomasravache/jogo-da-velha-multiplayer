@@ -20,6 +20,20 @@ Um jogo da velha multiplayer em tempo real construído com **.NET 10**, **Blazor
 
 ---
 
+## 🎨 Design system (Tailwind CSS standalone)
+
+O visual "Cyber Arena" usa o **Tailwind CSS v4 standalone** (binário único, sem Node/npm; ADR-0008). Os tokens (cores, fontes, raios, espaçamento) vivem em `src/TicTacToe/TicTacToe.Web/Styles/cyber-arena.input.css` e o CSS gerado é **versionado** em `wwwroot/css/cyber-arena.css`, então `dotnet build` e os testes não precisam do binário. Só quem altera classes ou tokens precisa dele:
+
+```bash
+tools/tailwind/install.sh          # baixa a versão de tools/tailwind/version.txt e verifica o sha256
+tools/tailwind/build.sh            # regenera wwwroot/css/cyber-arena.css (commite o resultado)
+tools/tailwind/build.sh --check    # falha se o arquivo versionado estiver desatualizado (usado no CI)
+```
+
+Os scripts são POSIX (macOS, Linux ou WSL/Git Bash no Windows). As fontes **Outfit** e **Space Grotesk** (licença SIL OFL 1.1, via Google Fonts; textos em `wwwroot/fonts/OFL-*.txt`) são auto-hospedadas em `wwwroot/fonts`. A referência visual do Stitch fica em `docs/design/stitch/`.
+
+---
+
 ## 🎮 Funcionalidades
 
 - **Matchmaking Instantâneo:** Jogadores entram na fila com seu apelido e são pareados automaticamente em tempo real via eventos em memória.

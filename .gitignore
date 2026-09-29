@@ -482,3 +482,6 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Tailwind standalone (binário baixado por tools/tailwind/install.sh)
+tools/tailwind/bin/
