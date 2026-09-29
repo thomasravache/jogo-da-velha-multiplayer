@@ -32,6 +32,35 @@ public class GameplayTests
         Assert.Equal(Player.X, game.Winner);
         Assert.False(game.MakeMove(5, Player.O)); // O cannot move after game ends
     }
+
+    [Fact(DisplayName = "SPEC-0012:UT-01 — Restart limpa tabuleiro e winner, mantendo nomes dos jogadores")]
+    [Trait("Category", "SPEC-0012:UT-01")]
+    public void Restart_ShouldResetBoardAndWinner_AndPreservePlayerNames()
+    {
+        // Arrange
+        var game = new GameSession();
+        game.SetPlayerName(Player.X, "Thomas");
+        game.SetPlayerName(Player.O, "Ana");
+        
+        game.MakeMove(0, Player.X);
+        game.MakeMove(3, Player.O);
+        game.MakeMove(1, Player.X);
+        game.MakeMove(4, Player.O);
+        game.MakeMove(2, Player.X); // X wins
+
+        Assert.Equal(Player.X, game.Winner);
+
+        // Act
+        game.Restart();
+
+        // Assert
+        Assert.Equal(Player.None, game.Winner);
+        Assert.False(game.IsDraw);
+        Assert.Equal(Player.X, game.CurrentTurn);
+        Assert.All(game.Board, cell => Assert.Equal(Player.None, cell));
+        Assert.Equal("Thomas", game.GetPlayerName(Player.X));
+        Assert.Equal("Ana", game.GetPlayerName(Player.O));
+    }
 }
 
 public class MatchmakingTests

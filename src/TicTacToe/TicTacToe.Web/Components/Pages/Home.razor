@@ -99,6 +99,15 @@
                 </div>
             }
         </div>
+
+        @if (game.Winner != Player.None || game.IsDraw)
+        {
+            <div class="actions">
+                <button class="btn-rematch" @onclick="RestartGame">
+                    Jogar Novamente 🔄
+                </button>
+            </div>
+        }
     }
 </div>
 
@@ -141,6 +150,11 @@
     .cell.playable:hover { background: var(--surface2); transform: scale(1.04); }
     .cell.x { color: var(--x-color); }
     .cell.o { color: var(--o-color); }
+
+    /* Actions */
+    .actions { margin-top: 24px; }
+    .btn-rematch { padding: 12px 28px; font-size: 1.1rem; cursor: pointer; background: linear-gradient(135deg, #2ecc71, #27ae60); color: white; border: none; border-radius: 8px; font-weight: bold; transition: opacity .2s, transform .1s; }
+    .btn-rematch:hover { transform: translateY(-2px); opacity: .9; }
 </style>
 
 @code {
@@ -227,6 +241,14 @@
                     await GameResultService.SaveResultAsync(game);
                 }
             }
+        }
+    }
+
+    private void RestartGame()
+    {
+        if (MatchId != null && Games.TryGetValue(MatchId.Value, out var game))
+        {
+            game.Restart();
         }
     }
 

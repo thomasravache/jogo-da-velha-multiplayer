@@ -21,6 +21,13 @@ public class GameSession
     public Player Winner { get; private set; } = Player.None;
     public bool IsDraw => Winner == Player.None && Array.TrueForAll(Board, p => p != Player.None);
 
+    public void Restart()
+    {
+        Array.Clear(Board, 0, Board.Length);
+        Winner = Player.None;
+        CurrentTurn = Player.X;
+    }
+
     public bool MakeMove(int index, Player player)
     {
         if (Winner != Player.None || index < 0 || index > 8 || Board[index] != Player.None || CurrentTurn != player)
