@@ -9,6 +9,7 @@ Cada entrada cita a spec de origem (`SPEC-NNNN`); gere-as com `spec_graph.py rep
 ## [Unreleased]
 
 ### Added
+- Lobby no visual Cyber Arena com cartões de modo, dificuldade e sala privada (SPEC-0030)
 - Shell Cyber Arena responsivo e primitivos de UI (SPEC-0043)
 - Pipeline do Tailwind CSS standalone com tokens Cyber Arena e fontes locais (SPEC-0029)
 - Timer de turno e timeout por W.O. (SPEC-0027)

@@ -5,30 +5,29 @@
 ## Saúde
 
 - Validação (G0): **0 erro(s), 0 aviso(s)**
-- Specs: approved 12, in-progress 1, implemented 26
+- Specs: approved 12, implemented 27
 - Impedimentos: **0 aberto(s)**, 0 resolvido(s)
 
 ## Plano de Execução
 
-**Em andamento:** SPEC-0030  
+**Em andamento:** —  
 **Paradas por impedimento:** —  
-**Próximo lote:** SPEC-0032, SPEC-0033
+**Próximo lote:** SPEC-0031, SPEC-0032, SPEC-0033
 
 | Onda | Spec | Título | Tier/Tam. | Status | Prontidão | Observação |
 |---|---|---|---|---|---|---|
-| 1 | SPEC-0030 | Lobby Cyber Arena | full/M | in-progress | 🔄 em andamento |  |
+| 1 | SPEC-0031 | Arena da partida Cyber Arena | full/M | approved | ✅ pronta |  |
 | 1 | SPEC-0032 | Histórico de partidas Cyber Arena | full/S | approved | ✅ pronta |  |
 | 1 | SPEC-0033 | Ranking Cyber Arena | full/S | approved | ✅ pronta |  |
-| 2 | SPEC-0031 | Arena da partida Cyber Arena | full/M | approved | ✅ pronta | saiu da onda 1: arquivos em comum com SPEC-0030 |
-| 3 | SPEC-0034 | Remoção do MudBlazor e do Bootstrap | full/M | approved | ⛔ aguarda implementação de SPEC-0030; aguarda implementação de SPEC-0031; aguarda implementação de SPEC-0032; aguarda implementação de SPEC-0033 |  |
-| 3 | SPEC-0036 | Persistência enriquecida de partidas | full/M | approved | ⛔ aguarda implementação de SPEC-0031 |  |
-| 4 | SPEC-0037 | Identidade anônima do jogador | full/M | approved | ⛔ aguarda implementação de SPEC-0036 |  |
-| 5 | SPEC-0038 | Histórico avançado | full/M | approved | ⛔ aguarda implementação de SPEC-0032; aguarda implementação de SPEC-0036; aguarda implementação de SPEC-0037 |  |
-| 6 | SPEC-0039 | Ranking avançado | full/M | approved | ⛔ aguarda implementação de SPEC-0033; aguarda implementação de SPEC-0037; aguarda implementação de SPEC-0038 |  |
-| 7 | SPEC-0040 | Série melhor de 5 (MD5) | full/M | approved | ⛔ aguarda implementação de SPEC-0031; aguarda implementação de SPEC-0036 | saiu da onda 4: arquivos em comum com SPEC-0037; saiu da onda 5: arquivos em comum com SPEC-0038; saiu da onda 6: arquivos em comum com SPEC-0039 |
-| 8 | SPEC-0044 | Série melhor de 5: interface no lobby e na arena | full/M | approved | ⛔ aguarda implementação de SPEC-0030; aguarda implementação de SPEC-0040 |  |
-| 9 | SPEC-0041 | Abandonar partida e pedir revanche | full/M | approved | ⛔ aguarda implementação de SPEC-0044 |  |
-| 10 | SPEC-0042 | W.O. por desconexão do oponente | full/M | approved | ⛔ aguarda implementação de SPEC-0041 |  |
+| 2 | SPEC-0034 | Remoção do MudBlazor e do Bootstrap | full/M | approved | ⛔ aguarda implementação de SPEC-0031; aguarda implementação de SPEC-0032; aguarda implementação de SPEC-0033 |  |
+| 2 | SPEC-0036 | Persistência enriquecida de partidas | full/M | approved | ⛔ aguarda implementação de SPEC-0031 |  |
+| 3 | SPEC-0037 | Identidade anônima do jogador | full/M | approved | ⛔ aguarda implementação de SPEC-0036 |  |
+| 4 | SPEC-0038 | Histórico avançado | full/M | approved | ⛔ aguarda implementação de SPEC-0032; aguarda implementação de SPEC-0036; aguarda implementação de SPEC-0037 |  |
+| 5 | SPEC-0039 | Ranking avançado | full/M | approved | ⛔ aguarda implementação de SPEC-0033; aguarda implementação de SPEC-0037; aguarda implementação de SPEC-0038 |  |
+| 6 | SPEC-0040 | Série melhor de 5 (MD5) | full/M | approved | ⛔ aguarda implementação de SPEC-0031; aguarda implementação de SPEC-0036 | saiu da onda 3: arquivos em comum com SPEC-0037; saiu da onda 4: arquivos em comum com SPEC-0038; saiu da onda 5: arquivos em comum com SPEC-0039 |
+| 7 | SPEC-0044 | Série melhor de 5: interface no lobby e na arena | full/M | approved | ⛔ aguarda implementação de SPEC-0040 |  |
+| 8 | SPEC-0041 | Abandonar partida e pedir revanche | full/M | approved | ⛔ aguarda implementação de SPEC-0044 |  |
+| 9 | SPEC-0042 | W.O. por desconexão do oponente | full/M | approved | ⛔ aguarda implementação de SPEC-0041 |  |
 
 ## Épicos
 
@@ -38,7 +37,7 @@
 | SPEC-0005 | Jogo da Velha | implemented | 3/3 implementadas |
 | SPEC-0013 | Evolução do Jogo da Velha | implemented | 6/6 implementadas |
 | SPEC-0021 | Engenharia de Qualidade e Refatoração Arquitetural | implemented | 4/4 implementadas |
-| SPEC-0028 | Redesign Cyber Arena — migração da UI para Tailwind (Fase 1 visual) | approved | 2/7 implementadas |
+| SPEC-0028 | Redesign Cyber Arena — migração da UI para Tailwind (Fase 1 visual) | approved | 3/7 implementadas |
 | SPEC-0035 | Evolução funcional a partir do Stitch (Fase 2) | approved | 1/9 implementadas |
 
 ## Grafo de Dependências
@@ -48,7 +47,7 @@ Seta contínua: depende da implementação. Seta tracejada: consome contrato.
 ```mermaid
 flowchart LR
   subgraph E0028["SPEC-0028 · Redesign Cyber Arena — migração da UI para Tailwind (Fase 1 visual)"]
-    S0030["SPEC-0030<br/>Lobby Cyber Arena"]:::inprogress
+    S0030["SPEC-0030<br/>Lobby Cyber Arena"]:::implemented
     S0031["SPEC-0031<br/>Arena da partida Cyber Arena"]:::approved
     S0032["SPEC-0032<br/>Histórico de partidas Cyber Arena"]:::approved
     S0033["SPEC-0033<br/>Ranking Cyber Arena"]:::approved
@@ -130,7 +129,7 @@ flowchart LR
 | [SPEC-0027](SPEC-0027-timer-de-turno-e-timeout-por-w-o.md) | Timer de turno e timeout por W.O. | full | feature | implemented | 2026-09-29 | — | — | — |
 | [SPEC-0028](SPEC-0028-redesign-cyber-arena-migracao-da-ui-para-tailwind-fase-1-vis.md) | Redesign Cyber Arena — migração da UI para Tailwind (Fase 1 visual) | epic | migration | approved | 2026-09-29 | — | — | — |
 | [SPEC-0029](SPEC-0029-pipeline-tailwind-tokens-e-fontes-cyber-arena.md) | Pipeline Tailwind, tokens e fontes Cyber Arena | full | migration | implemented | 2026-09-29 | SPEC-0028 | — | — |
-| [SPEC-0030](SPEC-0030-lobby-cyber-arena.md) | Lobby Cyber Arena | full | feature | in-progress | 2026-09-29 | SPEC-0028 | SPEC-0043 | — |
+| [SPEC-0030](SPEC-0030-lobby-cyber-arena.md) | Lobby Cyber Arena | full | feature | implemented | 2026-09-29 | SPEC-0028 | SPEC-0043 | — |
 | [SPEC-0031](SPEC-0031-arena-da-partida-cyber-arena.md) | Arena da partida Cyber Arena | full | feature | approved | 2026-09-29 | SPEC-0028 | SPEC-0043 | — |
 | [SPEC-0032](SPEC-0032-historico-de-partidas-cyber-arena.md) | Histórico de partidas Cyber Arena | full | feature | approved | 2026-09-29 | SPEC-0028 | SPEC-0043 | — |
 | [SPEC-0033](SPEC-0033-ranking-cyber-arena.md) | Ranking Cyber Arena | full | feature | approved | 2026-09-29 | SPEC-0028 | SPEC-0043 | — |
