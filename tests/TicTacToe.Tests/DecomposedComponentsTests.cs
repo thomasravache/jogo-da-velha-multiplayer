@@ -48,8 +48,8 @@ public class DecomposedComponentsTests
         var markup = cut.Markup;
         Assert.Contains("Alice", markup);
         Assert.Contains("Bob", markup);
-        Assert.Contains("players-bar", markup);
-        Assert.Contains("status", markup);
+        Assert.Contains("data-player=\"X\"", markup);
+        Assert.Contains("aria-live=\"polite\"", markup);
     }
 
     [Fact(DisplayName = "SPEC-0024:IT-01 — GameBoard emite OnCellClick ao clicar em célula jogável")]
@@ -66,7 +66,7 @@ public class DecomposedComponentsTests
             .Add(p => p.MyPlayer, Player.X)
             .Add(p => p.OnCellClick, (int idx) => clickedIndex = idx));
 
-        var cell = cut.Find(".cell.playable");
+        var cell = cut.Find("[data-cell][data-playable='true']");
         cell.Click();
 
         Assert.True(clickedIndex >= 0, "Deveria ter disparado OnCellClick");

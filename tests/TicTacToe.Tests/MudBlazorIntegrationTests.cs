@@ -82,7 +82,7 @@ public class MudBlazorIntegrationTests
             .Add(p => p.MyPlayer, Player.X)
             .Add(p => p.OnCellClick, (int idx) => clickedIndex = idx));
 
-        var cell = cut.Find(".cell.playable");
+        var cell = cut.Find("[data-cell][data-playable='true']");
         cell.Click();
 
         Assert.True(clickedIndex >= 0);

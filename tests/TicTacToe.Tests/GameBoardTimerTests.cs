@@ -24,7 +24,7 @@ public class GameBoardTimerTests
 
         var markup = cut.Markup;
         Assert.Contains("15s", markup);
-        Assert.Contains("mud-progress-linear", markup);
+        Assert.Contains("role=\"progressbar\"", markup);
     }
 
     [Fact(DisplayName = "SPEC-0027:E2E-01 — GameBoard exibe mensagem de W.O. quando partida encerra por timeout")]
