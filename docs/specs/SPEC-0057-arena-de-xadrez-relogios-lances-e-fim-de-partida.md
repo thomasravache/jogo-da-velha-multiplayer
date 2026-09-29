@@ -4,12 +4,12 @@ title: "Arena de xadrez: relógios, lances e fim de partida"
 tier: full
 type: feature
 user_facing: true
-status: approved
+status: in-progress
 created: 2026-09-29
 parent: SPEC-0046
 depends_on: [SPEC-0052, SPEC-0055]
 consumes_contract: []
-contract_version: 1
+contract_version: 2
 touches: [src/TicTacToe/TicTacToe.Web/Components/Chess/ChessArena.razor, src/TicTacToe/TicTacToe.Web/Components/Chess/ChessPlayerCard.razor, src/TicTacToe/TicTacToe.Web/Components/Chess/ChessMoveList.razor, src/TicTacToe/TicTacToe.Web/Components/Chess/CapturedPieces.razor, src/TicTacToe/TicTacToe.Web/Components/Chess/ChessEndCard.razor, src/TicTacToe/TicTacToe.Web/wwwroot/css/cyber-arena.css, tests/TicTacToe.Tests/ChessArenaTests.cs, tests/TicTacToe.Tests/ChessMoveListTests.cs, tests/TicTacToe.Tests/ChessEndCardTests.cs]
 adrs: [ADR-0008]
 external: []
@@ -32,7 +32,7 @@ Entrega a **arena de xadrez**: o componente `ChessArena` que apresenta uma `Ches
 - `ChessMoveList`: lances em duas colunas numeradas, último destacado, rolagem; faixa horizontal no mobile.
 - Avisos em região `aria-live`: "Sua vez", "Vez de {nome}…", "Xeque!".
 - `ChessEndCard`: resultado e motivo (xeque-mate, afogamento, material insuficiente, 50 lances, repetição, tempo, abandono, desconexão), lances e duração.
-- Relógio na tela atualizado a cada segundo pelo evento da sessão; a arena só lê o `Snapshot` imutável (nunca o `ChessGame` mutável).
+- Relógio na tela atualizado a cada segundo por um timer da própria arena (a sessão só dispara evento quando o estado muda); a arena só lê o `Snapshot` imutável (nunca o `ChessGame` mutável).
 
 **Não-objetivos (fora do escopo):**
 - Botões e fluxos de abandono, revanche, presença e W.O. por desconexão (SPEC-0060).
@@ -176,10 +176,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | Gate | Status | Evidência | Data |
 |---|---|---|---|
 | G0 Spec | PASS | `spec_graph.py validate` limpo (0 erro, 0 aviso); checklist de julgamento do G0 feito pelo Architect | 2026-09-29 |
-| G1 Red | PENDING | | |
-| G2 Green | PENDING | | |
-| G3 Arquitetura | PENDING | | |
-| G4 Review | PENDING | | |
+| G1 Red | PASS | verify SPEC-0057: Red antes do Green (722f773), 12/12 testes do plano rastreados; 34 de 36 falharam contra o scaffold | 2026-09-29 |
+| G2 Green | PASS | dotnet test 718 verdes (1 pulado: perft pesado); format e tailwind --check limpos; verify PASS | 2026-09-29 |
+| G3 Arquitetura | N/A | fronteira de módulos coberta por ChessModuleBoundaryTests (SPEC-0049) | 2026-09-29 |
+| G4 Review | PASS | Review independente (subagente): PASS com 2 maiores (timer sem TimeProvider injetável e sem teste; spec desatualizada) corrigidos com teste e Emenda v2; menores tratados (região viva anuncia o resultado, role=list, aria-current no li, Low só com relógio correndo, cartão final por perspectiva). Dívidas: faixa de lances mobile oculta lances antigos (max-lg), timer segue renderizando com circuito desconectado, ordem do DOM difere da visual no desktop, revisão visual e Lighthouse no H2 | 2026-09-29 |
 | G5 Integração & CI | PENDING | | |
 | H2 Integração aprovada | PENDING | | |
 | G6 Deploy | PENDING | | |
@@ -229,3 +229,4 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 <!-- Mudança em spec aprovada: uma linha por emenda. Mudou o contrato? Incremente `contract_version` e rode `spec_graph.py impacted SPEC-0057`. -->
 | Versão do contrato | Data | Mudança | Motivo | Specs impactadas | Aprovado por |
 |---|---|---|---|---|---|
+| 2 | 2026-09-29 | O relógio na tela é atualizado por um timer de 1 s da própria `ChessArena` (com `TimeProvider` opcional do DI), não pelo evento da sessão; o título do resultado entra na região viva; `ChessEndCard` ganha `ViewerWon` | A sessão só dispara `OnStateChanged` quando algo muda, então nenhum evento chegaria a cada segundo; achados da review G4 | sem consumidores do contrato (a SPEC-0060 reaproveita a arena) | thomas (autorização permanente, 2026-09-29) |

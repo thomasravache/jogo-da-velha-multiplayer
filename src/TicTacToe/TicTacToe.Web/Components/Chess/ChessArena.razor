@@ -1,0 +1,313 @@
+@implements IDisposable
+@using Microsoft.Extensions.DependencyInjection
+@inject IServiceProvider Services
+
+@if (_snap is not null)
+{
+    var me = _color;
+    var opponent = Opposite(me);
+    <div data-chess-arena class="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)_minmax(0,18rem)]">
+        <ChessPlayerCard Name="@NameOf(opponent)" Color="opponent" IsMe="false" IsActive="@IsActive(opponent)"
+                         Remaining="@RemainingOf(opponent)" Captured="@CapturedBy(opponent)"
+                         Class="order-1 lg:col-start-3 lg:row-start-1" />
+
+        <div class="order-2 flex flex-col gap-2 lg:col-start-1 lg:row-start-2">
+            <p class="font-numeric text-label-badge uppercase text-ink-muted">@_snap.Control.Name · Lance @_snap.Position.FullmoveNumber</p>
+            <div data-arena-notices role="status" aria-live="polite" aria-atomic="false" class="flex min-h-14 flex-col gap-1 rounded-card border border-stroke bg-surface/80 p-3">
+                <p data-notice="turn" class="text-title-sm">@TurnText()</p>
+                @if (InCheck && !Over)
+                {
+                    <p data-notice="check" class="text-body-md text-primary">Xeque!</p>
+                }
+                @if (LowTimeName() is { } low)
+                {
+                    <p data-notice="low-time" class="text-body-md text-warning">Pouco tempo, @low!</p>
+                }
+                @if (_message is not null)
+                {
+                    <p data-notice="error" class="text-body-md text-warning">@_message</p>
+                }
+            </div>
+        </div>
+
+        <div class="order-3 flex flex-col gap-2 lg:col-start-2 lg:row-span-3 lg:row-start-1">
+            <div class="relative">
+                <ChessBoard Position="_snap.Position" Orientation="me" Selected="_selected" Destinations="Destinations"
+                            LastMove="LastMove" CheckSquare="CheckSquare" Interactive="Interactive && _pending is null"
+                            OnSquareActivated="OnSquare" OnDragMove="OnDrag" OnCancel="OnCancel" />
+                @if (_pending is not null)
+                {
+                    <div class="absolute inset-0 grid place-items-center bg-canvas/70 p-4">
+                        <PromotionPicker Color="me" OnChosen="OnPromotionChosen" OnCancel="OnPromotionCancelled" />
+                    </div>
+                }
+            </div>
+            <p class="text-center text-body-md text-ink-muted">Mover por clique, arrastar ou teclado (setas e Enter).</p>
+        </div>
+
+        <ChessPlayerCard Name="@NameOf(me)" Color="me" IsMe="true" IsActive="@IsActive(me)"
+                         Remaining="@RemainingOf(me)" Captured="@CapturedBy(me)"
+                         Class="order-4 lg:col-start-1 lg:row-start-1" />
+
+        <div class="order-5 flex min-w-0 flex-col gap-2 rounded-card border border-stroke bg-surface/80 p-3 lg:col-start-3 lg:row-start-2">
+            <h2 class="font-numeric text-label-badge uppercase text-ink-muted">Lances da partida</h2>
+            <ChessMoveList Moves="_snap.Moves" />
+        </div>
+
+        @if (_snap.Result is { } result)
+        {
+            <div class="order-6 lg:col-start-3 lg:row-start-3">
+                <ChessEndCard Result="result" WinnerName="@WinnerName(result)" MoveCount="_snap.Moves.Count" Duration="@Elapsed()" ViewerWon="@ViewerWon(result)" />
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private static readonly TimeSpan LowTime = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan Second = TimeSpan.FromSeconds(1);
+
+    private ChessSnapshot? _snap;
+    private PieceColor _color;
+    private IReadOnlyList<Move> _legal = [];
+    private ChessSession? _subscribed;
+    private ITimer? _timer;
+    private Square? _selected;
+    private (Square From, Square To)? _pending;
+    private string? _message;
+    private bool _disposed;
+
+    [Parameter] public ChessSession Session { get; set; } = default!;
+    [Parameter] public int MySeat { get; set; }
+
+    /// <summary>Usado pelo ciclo de vida da partida (SPEC-0060).</summary>
+    [Parameter] public EventCallback OnBackToLobby { get; set; }
+
+    private TimeProvider Time { get; set; } = TimeProvider.System;
+
+    private bool Over => _snap?.Result is not null;
+
+    private bool Interactive => _snap is { Result: null } snap && snap.SideToMove == _color;
+
+    private bool InCheck => _snap is not null && _snap.Position.IsInCheck(_snap.SideToMove);
+
+    private IReadOnlyList<Square> Destinations =>
+        _selected is { } from ? [.. _legal.Where(m => m.From == from).Select(m => m.To).Distinct()] : [];
+
+    private Move? LastMove => _snap is { Moves.Count: > 0 } snap ? snap.Moves[^1].Move : null;
+
+    private Square? CheckSquare
+    {
+        get
+        {
+            if (!InCheck || _snap is null)
+            {
+                return null;
+            }
+
+            for (var i = 0; i < 64; i++)
+            {
+                if (_snap.Position.PieceAt(new Square(i)) is { Type: PieceType.King } king && king.Color == _snap.SideToMove)
+                {
+                    return new Square(i);
+                }
+            }
+
+            return null;
+        }
+    }
+
+    protected override void OnInitialized() => Time = Services.GetService<TimeProvider>() ?? TimeProvider.System;
+
+    protected override void OnParametersSet()
+    {
+        if (!ReferenceEquals(_subscribed, Session))
+        {
+            if (_subscribed is not null)
+            {
+                _subscribed.OnStateChanged -= OnSessionChanged;
+            }
+
+            _subscribed = Session;
+            Session.OnStateChanged += OnSessionChanged;
+        }
+
+        Refresh();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        // A sessão só avisa quando o estado muda; os relógios na tela precisam de um pulso por segundo.
+        if (firstRender && !_disposed)
+        {
+            _timer = Time.CreateTimer(_ => _ = InvokeAsync(OnTick), null, Second, Second);
+        }
+    }
+
+    public void Dispose()
+    {
+        _disposed = true;
+        _timer?.Dispose();
+        if (_subscribed is not null)
+        {
+            _subscribed.OnStateChanged -= OnSessionChanged;
+            _subscribed = null;
+        }
+    }
+
+    private void OnSessionChanged() => _ = InvokeAsync(() => Update(clearMessage: true));
+
+    private void OnTick()
+    {
+        if (_snap is { ClockRunning: not null })
+        {
+            Update(clearMessage: false);
+        }
+    }
+
+    private void Update(bool clearMessage)
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        if (clearMessage)
+        {
+            _message = null;
+        }
+
+        Refresh();
+        StateHasChanged();
+    }
+
+    // A cor do assento é relida a cada estado (muda na revanche); só o Snapshot imutável é lido.
+    private void Refresh()
+    {
+        _color = Session.ColorOf(MySeat);
+        _snap = Session.Snapshot();
+        _legal = Interactive ? _snap.Position.LegalMoves() : [];
+        if (!Interactive || (_selected is { } from && !_legal.Any(m => m.From == from)))
+        {
+            _selected = null;
+            _pending = null;
+        }
+    }
+
+    private void OnSquare(Square square)
+    {
+        if (!Interactive || _pending is not null || _snap is null)
+        {
+            return;
+        }
+
+        _message = null;
+        if (_selected is { } from && Destinations.Contains(square))
+        {
+            Commit(from, square);
+        }
+        else if (_snap.Position.PieceAt(square) is { } piece && piece.Color == _color && square != _selected)
+        {
+            _selected = square;
+        }
+        else
+        {
+            _selected = null;
+        }
+    }
+
+    private void OnDrag((Square From, Square To) drag)
+    {
+        if (!Interactive || _pending is not null)
+        {
+            return;
+        }
+
+        _message = null;
+        if (_legal.Any(m => m.From == drag.From && m.To == drag.To))
+        {
+            Commit(drag.From, drag.To);
+        }
+        else
+        {
+            _selected = null;
+        }
+    }
+
+    private void OnCancel() => _selected = null;
+
+    private void Commit(Square from, Square to)
+    {
+        if (_legal.Any(m => m.From == from && m.To == to && m.Promotion is not null))
+        {
+            _selected = from;
+            _pending = (from, to);
+            return;
+        }
+
+        Play(from, to, null);
+    }
+
+    private void OnPromotionChosen(PieceType type)
+    {
+        if (_pending is { } pending)
+        {
+            Play(pending.From, pending.To, type);
+        }
+    }
+
+    // Cancelar fecha o seletor e mantém a peça selecionada; nada é jogado.
+    private void OnPromotionCancelled() => _pending = null;
+
+    private void Play(Square from, Square to, PieceType? promotion)
+    {
+        var accepted = Session.TryMove(_color, from, to, promotion, out _);
+        _selected = null;
+        _pending = null;
+        _message = accepted ? null : "Lance recusado.";
+        Refresh();
+    }
+
+    private static PieceColor Opposite(PieceColor color) =>
+        color == PieceColor.White ? PieceColor.Black : PieceColor.White;
+
+    private string NameOf(PieceColor color) => color == PieceColor.White ? _snap!.WhiteName : _snap!.BlackName;
+
+    private TimeSpan RemainingOf(PieceColor color) => color == PieceColor.White ? _snap!.WhiteRemaining : _snap!.BlackRemaining;
+
+    private IReadOnlyList<PieceType> CapturedBy(PieceColor color) =>
+        color == PieceColor.White ? _snap!.CapturedByWhite : _snap!.CapturedByBlack;
+
+    private bool IsActive(PieceColor color) => !Over && _snap!.SideToMove == color;
+
+    private string TurnText()
+    {
+        if (Over)
+        {
+            return ChessEndCard.TitleFor(_snap!.Result!, WinnerName(_snap.Result!));
+        }
+
+        return _snap!.SideToMove == _color
+            ? $"Sua vez, {NameOf(_color)}!"
+            : $"Vez de {NameOf(_snap.SideToMove)}…";
+    }
+
+    private string? LowTimeName() =>
+        _snap is { ClockRunning: { } running, Result: null } && RemainingOf(running) < LowTime ? NameOf(running) : null;
+
+    private string? WinnerName(ChessResult result) => result.Outcome switch
+    {
+        ChessOutcome.WhiteWins => _snap!.WhiteName,
+        ChessOutcome.BlackWins => _snap!.BlackName,
+        _ => null,
+    };
+
+    private bool? ViewerWon(ChessResult result) => result.Outcome switch
+    {
+        ChessOutcome.WhiteWins => _color == PieceColor.White,
+        ChessOutcome.BlackWins => _color == PieceColor.Black,
+        _ => null,
+    };
+
+    private TimeSpan Elapsed() => (_snap!.EndedAtUtc ?? Time.GetUtcNow()) - _snap.StartedAtUtc;
+}

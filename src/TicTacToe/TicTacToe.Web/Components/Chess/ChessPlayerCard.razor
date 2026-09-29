@@ -1,0 +1,44 @@
+@using TicTacToe.Web.Components.Ui
+
+<div data-player-card="@(Color == PieceColor.White ? "white" : "black")" data-active="@(IsActive ? "true" : "false")" class="@Css">
+    <div class="flex min-w-0 flex-wrap items-center gap-2">
+        <span class="min-w-0 break-words text-title-sm">@Name</span>
+        @if (IsMe)
+        {
+            <StatusChip Tone="ChipTone.Gold">Você</StatusChip>
+        }
+    </div>
+    <p class="text-body-md text-ink-muted">@(Color == PieceColor.White ? "Brancas" : "Pretas")</p>
+    <span data-clock role="timer" aria-label="@($"Tempo de {Name}: {Text}")" data-low="@(Low ? "true" : null)" class="@ClockCss">@Text</span>
+    <CapturedPieces Pieces="Captured" Color="@(Color == PieceColor.White ? PieceColor.Black : PieceColor.White)" />
+</div>
+
+@code {
+    private static readonly TimeSpan LowTime = TimeSpan.FromSeconds(10);
+
+    [Parameter] public string Name { get; set; } = "";
+    [Parameter] public PieceColor Color { get; set; }
+    [Parameter] public bool IsMe { get; set; }
+    [Parameter] public bool IsActive { get; set; }
+    [Parameter] public TimeSpan Remaining { get; set; }
+    [Parameter] public IReadOnlyList<PieceType> Captured { get; set; } = [];
+    [Parameter] public string? Class { get; set; }
+
+    // O alerta só vale enquanto o relógio deste lado corre (IsActive); em 00:00 após a bandeira não pulsa.
+    private bool Low => IsActive && Remaining < LowTime;
+
+    private string Text => Format(Remaining);
+
+    private string Css => "flex min-w-0 flex-col gap-1 rounded-card border bg-surface/80 p-4 transition-opacity " + Class + " "
+        + (IsActive ? "border-secondary/60 shadow-[0_0_20px_rgb(0_210_211/0.35)]" : "border-stroke opacity-80");
+
+    private string ClockCss => "font-numeric text-headline-lg tabular-nums "
+        + (Low ? "text-primary animate-pulse motion-reduce:animate-none" : IsActive ? "text-secondary" : "text-ink");
+
+    /// <summary>mm:ss (minutos podem passar de 59); trunca para baixo, então 9,9 s aparece como 00:09.</summary>
+    public static string Format(TimeSpan time)
+    {
+        var total = (int)Math.Max(0, Math.Floor(time.TotalSeconds));
+        return string.Create(System.Globalization.CultureInfo.InvariantCulture, $"{total / 60:00}:{total % 60:00}");
+    }
+}
