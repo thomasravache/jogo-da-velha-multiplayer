@@ -18,6 +18,7 @@ public enum SeriesFormat { Single = 0, BestOf5 = 1 }
 public class GameSession : IDisposable
 {
     public const int DefaultTurnTimeSeconds = 15;
+    public const int DisconnectGraceSeconds = 15;
 
     public Guid Id { get; } = Guid.NewGuid();
 
@@ -193,6 +194,22 @@ public class GameSession : IDisposable
     {
         RematchState = RematchState.None;
         RematchRequestedBy = null;
+    }
+
+    // Presença (SPEC-0042). Scaffold: ainda sem regras.
+    public void SetConnection(Player player, bool connected)
+    {
+        lock (_lock) { _ = (player, connected); }
+    }
+
+    public int? DisconnectSecondsLeft(Player player)
+    {
+        lock (_lock) { _ = player; return null; }
+    }
+
+    public bool Forfeit(Player loser, EndReason reason)
+    {
+        lock (_lock) { _ = (loser, reason); return false; }
     }
 
     public LeaveResult Leave(Player player)
