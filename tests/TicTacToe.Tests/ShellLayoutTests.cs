@@ -115,7 +115,7 @@ public class ShellLayoutTests
         });
     }
 
-    [Fact(DisplayName = "SPEC-0043:IT-01 — Lobby atual (MudBlazor) renderiza dentro do novo shell")]
+    [Fact(DisplayName = "SPEC-0043:IT-01 — Lobby renderiza dentro do novo shell")]
     [Trait("Category", "SPEC-0043:IT-01")]
     public async Task LegacyMudLobby_ShouldRenderInsideNewShell()
     {

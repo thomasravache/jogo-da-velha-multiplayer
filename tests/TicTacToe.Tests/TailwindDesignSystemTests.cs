@@ -62,7 +62,7 @@ public class TailwindDesignSystemTests
         "--animate-win-pulse",
     ];
 
-    [Fact(DisplayName = "SPEC-0029:UT-02 — CSS de entrada define todos os tokens em @theme, sem preflight")]
+    [Fact(DisplayName = "SPEC-0029:UT-02 — CSS de entrada define todos os tokens em @theme")]
     [Trait("Category", "SPEC-0029:UT-02")]
     public void InputCss_ShouldDefineAllTokens_WithoutPreflight()
     {
@@ -118,7 +118,7 @@ public class TailwindDesignSystemTests
 
     [Fact(DisplayName = "SPEC-0029:IT-02 — App.razor referencia o CSS novo depois de app.css")]
     [Trait("Category", "SPEC-0029:IT-02")]
-    public void AppRazor_ShouldReferenceCyberArenaCss_AndKeepMudBlazor()
+    public void AppRazor_ShouldReferenceCyberArenaCssAfterAppCss()
     {
         var app = Read(Web("Components/App.razor"));
 
@@ -202,10 +202,12 @@ public class TailwindDesignSystemTests
     [Trait("Category", "SPEC-0034:UT-02")]
     public void WebSources_ShouldNotMentionLegacyLibraries()
     {
-        var pattern = new Regex(@"MudBlazor|\bMud[A-Z]\w*|mud-|bootstrap", RegexOptions.IgnoreCase);
+        var insensitive = new Regex(@"MudBlazor|mud-|bootstrap", RegexOptions.IgnoreCase);
+        var componentPrefix = new Regex(@"\bMud[A-Z]\w*"); // sensível a maiúsculas: não pega palavras como "mudar"
         var offenders = WebSourceFiles(".razor", ".cs", ".css", ".js")
-            .Where(f => !f.EndsWith("cyber-arena.css", StringComparison.Ordinal) || pattern.IsMatch(File.ReadAllText(f)))
-            .Where(f => pattern.IsMatch(File.ReadAllText(f)))
+            .Select(f => (File: f, Text: File.ReadAllText(f)))
+            .Where(x => insensitive.IsMatch(x.Text) || componentPrefix.IsMatch(x.Text))
+            .Select(x => x.File)
             .Select(f => Path.GetRelativePath(RootDir, f))
             .ToList();
 
@@ -286,7 +288,7 @@ public class TailwindDesignSystemTests
         var options = NewDb();
         await using var ctx = NewContextWithoutMud(options);
 
-        foreach (var (name, body) in new (string, Type)[] { ("lobby", typeof(Lobby)), ("history", typeof(History)), ("leaderboard", typeof(Leaderboard)) })
+        foreach (var (expected, body) in new (string, Type)[] { ("Procurar oponente", typeof(Lobby)), ("Histórico de Partidas", typeof(History)), ("Classificação Global", typeof(Leaderboard)) })
         {
             var layout = ctx.Render<MainLayout>(p => p.Add(l => l.Body, (RenderFragment)(b =>
             {
@@ -295,8 +297,9 @@ public class TailwindDesignSystemTests
             })));
 
             Assert.NotEmpty(layout.FindAll("header"));
+            Assert.Equal(2, layout.FindAll("nav").Count);
             Assert.DoesNotContain("mud-", layout.Markup);
-            Assert.True(layout.Markup.Length > 1000, $"{name} deveria renderizar conteúdo");
+            Assert.Contains(expected, layout.Markup);
         }
     }
 }
