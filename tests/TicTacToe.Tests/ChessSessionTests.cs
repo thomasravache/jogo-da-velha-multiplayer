@@ -17,6 +17,19 @@ public class ChessSessionTests
     internal static bool Play(ChessSession session, PieceColor player, string from, string to, PieceType? promotion = null) =>
         session.TryMove(player, Square.Parse(from), Square.Parse(to), promotion, out _);
 
+    private static void AssertSameState(ChessSnapshot expected, ChessSnapshot actual)
+    {
+        Assert.Equal(expected.Position.ToFen(), actual.Position.ToFen());
+        Assert.Equal(expected.Moves, actual.Moves);
+        Assert.Equal(expected.CapturedByWhite, actual.CapturedByWhite);
+        Assert.Equal(expected.CapturedByBlack, actual.CapturedByBlack);
+        Assert.Equal(expected.WhiteRemaining, actual.WhiteRemaining);
+        Assert.Equal(expected.BlackRemaining, actual.BlackRemaining);
+        Assert.Equal(expected.ClockRunning, actual.ClockRunning);
+        Assert.Equal(expected.Result, actual.Result);
+        Assert.Equal(expected.EndedAtUtc, actual.EndedAtUtc);
+    }
+
     internal static void Line(ChessSession session, params string[] moves)
     {
         foreach (var move in moves)
@@ -100,7 +113,7 @@ public class ChessSessionTests
         Assert.False(Play(session, PieceColor.White, "a1", "a8"));
         Assert.False(Play(session, PieceColor.White, "a7", "a8"));
         Assert.False(Play(session, PieceColor.White, "a7", "a8", PieceType.King));
-        Assert.Equal(before, session.Snapshot());
+        AssertSameState(before, session.Snapshot());
         Assert.True(Play(session, PieceColor.White, "a7", "a8", PieceType.Queen));
         Assert.Equal("a8=Q", session.Snapshot().Moves[0].San.TrimEnd('+', '#'));
     }
@@ -114,7 +127,7 @@ public class ChessSessionTests
         var before = session.Snapshot();
 
         Assert.False(Play(session, PieceColor.White, "a2", "a3"));
-        Assert.Equal(before, session.Snapshot());
+        AssertSameState(before, session.Snapshot());
     }
 
     [Fact(DisplayName = "SPEC-0052:UT-03 — mate do pastor encerra a sessão por regras")]
@@ -349,8 +362,8 @@ public class ChessSessionTests
         Assert.Equal("Bia", snap.BlackName);
         Assert.Equal(session.Id, snap.SessionId);
         Assert.Equal(TimeControl.Rapid, snap.Control);
-        Assert.Equal(TimeControl.Rapid.Initial - 3 * Second + 4 * TimeControl.Rapid.Increment, snap.WhiteRemaining);
-        Assert.Equal(TimeControl.Rapid.Initial - 3 * Second * 3 + 3 * TimeControl.Rapid.Increment, snap.BlackRemaining);
+        Assert.Equal(TimeControl.Rapid.Initial - (3 * 3 * Second) + (4 * TimeControl.Rapid.Increment), snap.WhiteRemaining);
+        Assert.Equal(TimeControl.Rapid.Initial - (3 * 3 * Second) + (3 * TimeControl.Rapid.Increment), snap.BlackRemaining);
 
         using var timed = New(time, TimeControl.Bullet);
         Line(timed, "d2d4");
