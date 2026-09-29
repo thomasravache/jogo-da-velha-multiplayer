@@ -4,6 +4,7 @@ using MudBlazor.Services;
 using TicTacToe.Modules.Gameplay;
 using TicTacToe.Modules.Matchmaking;
 using TicTacToe.Web.Components;
+using TicTacToe.Web.Components.Ui;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +14,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddMudServices();
+builder.Services.AddScoped<ShellState>();
 builder.Services.AddOutputCache();
 
 // Módulo Matchmaking

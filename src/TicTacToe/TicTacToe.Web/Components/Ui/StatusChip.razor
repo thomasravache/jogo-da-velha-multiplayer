@@ -1,5 +1,25 @@
+<span class="@Css">
+    @if (Dot)
+    {
+        <span class="@DotCss" aria-hidden="true"></span>
+    }
+    @ChildContent
+</span>
+
 @code {
     [Parameter] public ChipTone Tone { get; set; } = ChipTone.Neutral;
     [Parameter] public bool Dot { get; set; }
     [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private string Css => "inline-flex min-h-7 items-center gap-1.5 rounded-pill px-3 font-numeric text-label-badge uppercase " + Tone switch
+    {
+        ChipTone.Online => "bg-success/15 text-success",
+        ChipTone.Waiting => "bg-secondary/15 text-secondary",
+        ChipTone.Gold => "bg-linear-to-br from-gold to-warning text-canvas",
+        ChipTone.Danger => "bg-primary/15 text-primary",
+        ChipTone.Warning => "bg-warning/15 text-warning",
+        _ => "bg-surface-high text-ink-muted",
+    };
+
+    private string DotCss => "size-2 rounded-full bg-current" + (Tone == ChipTone.Waiting ? " animate-pulse" : "");
 }

@@ -9,11 +9,12 @@ public sealed class ShellState
 
     public event Action? Changed;
 
-    public void Set(bool immersive, string? title = null) => throw new NotImplementedException();
-
-    public void Reset()
+    public void Set(bool immersive, string? title = null)
     {
+        Immersive = immersive;
+        Title = title;
         Changed?.Invoke();
-        throw new NotImplementedException();
     }
+
+    public void Reset() => Set(false, null);
 }
