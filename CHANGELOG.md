@@ -9,6 +9,7 @@ Cada entrada cita a spec de origem (`SPEC-NNNN`); gere-as com `spec_graph.py rep
 ## [Unreleased]
 
 ### Added
+- W.O. por desconexão do oponente com tolerância de 15 s e aviso na arena (SPEC-0042)
 - Abandonar partida com confirmação, voltar ao lobby e revanche com aceite do oponente (SPEC-0041)
 - Interface da série melhor de 5: formato no lobby, rodada, marcadores, match point e avisos na arena (SPEC-0044)
 - Série melhor de 5 no domínio: regras, pareamento por formato e persistência por rodada (SPEC-0040)

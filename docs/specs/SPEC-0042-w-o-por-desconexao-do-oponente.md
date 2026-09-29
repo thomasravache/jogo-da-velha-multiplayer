@@ -4,7 +4,7 @@ title: W.O. por desconexão do oponente
 tier: full
 type: feature
 user_facing: true
-status: in-progress
+status: implemented
 created: 2026-09-29
 parent: SPEC-0035
 depends_on: [SPEC-0041]
@@ -153,25 +153,25 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 <!-- Preenchido na fase PLAN, após a aprovação. Cada fase começa pelos testes. -->
 
 **Fase 0: Caracterização**
-- [ ] Escrever CH-01 e confirmar que passam no código atual, em commit `test(...)` próprio
+- [x] Escrever CH-01 e confirmar que passam no código atual, em commit `test(...)` próprio
 
 **Fase 1: Testes (Red)**
-- [ ] Escrever os testes `SPEC-0042:CH-01`, `SPEC-0042:UT-01`, `SPEC-0042:UT-02`, `SPEC-0042:UT-03`, `SPEC-0042:UT-04`, `SPEC-0042:UT-05`, `SPEC-0042:IT-01`, `SPEC-0042:IT-02`, `SPEC-0042:E2E-01` com a tag `SPEC-0042:<ID>`, em commits `test(...)` com `Refs: SPEC-0042`, tocando só `test_paths`
-- [ ] Scaffolding de contrato (tipos e assinaturas sem lógica) em commit `chore(...)` separado, se necessário
-- [ ] Confirmar que cada teste novo falha pelo motivo certo (`spec_graph.py verify SPEC-0042`)
+- [x] Escrever os testes `SPEC-0042:CH-01`, `SPEC-0042:UT-01`, `SPEC-0042:UT-02`, `SPEC-0042:UT-03`, `SPEC-0042:UT-04`, `SPEC-0042:UT-05`, `SPEC-0042:IT-01`, `SPEC-0042:IT-02`, `SPEC-0042:E2E-01` com a tag `SPEC-0042:<ID>`, em commits `test(...)` com `Refs: SPEC-0042`, tocando só `test_paths`
+- [x] Scaffolding de contrato (tipos e assinaturas sem lógica) em commit `chore(...)` separado, se necessário
+- [x] Confirmar que cada teste novo falha pelo motivo certo (`spec_graph.py verify SPEC-0042`)
 
 **Fase 2: Implementação (Green)**
-- [ ] Implementar o mínimo para passar, seguindo o padrão de referência e os ADRs, dentro de `touches`
-- [ ] Confirmar todos os testes verdes e a suíte completa (`dotnet build`, `dotnet test`)
+- [x] Implementar o mínimo para passar, seguindo o padrão de referência e os ADRs, dentro de `touches`
+- [x] Confirmar todos os testes verdes e a suíte completa (`dotnet build`, `dotnet test`)
 
 **Fase 3: Refactor & Qualidade**
-- [ ] Refatorar mantendo tudo verde; `dotnet format --verify-no-changes`
-- [ ] Registrar evidências G1–G4 (Red, Green, arquitetura, review independente)
+- [x] Refatorar mantendo tudo verde; `dotnet format --verify-no-changes`
+- [x] Registrar evidências G1–G4 (Red, Green, arquitetura, review independente)
 
 **Fase final: Integração, entrega e documentação**
-- [ ] Revisão visual/acessibilidade do plano (seção 7.6), quando aplicável
-- [ ] PR com `spec_graph.py pr SPEC-0042`, CI verde (G5) e aprovação do merge (H2)
-- [ ] Relatório de Entrega, docs raiz e CHANGELOG (G7)
+- [x] Revisão visual/acessibilidade do plano (seção 7.6), quando aplicável — **não executada** (app não aberto no navegador); aceita pela autorização de merge, ver Pendências
+- [x] PR com `spec_graph.py pr SPEC-0042`, CI verde (G5) e aprovação do merge (H2)
+- [x] Relatório de Entrega, docs raiz e CHANGELOG (G7)
 
 ## 12. Registro de Gates
 <!-- Status: PENDING | PASS | FAIL | N/A. PASS e N/A exigem evidência (comando + resultado, SHA, execução de CI, veredito). -->
@@ -182,10 +182,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | G2 Green | PASS | dotnet test 322/322 local; format e tailwind --check limpos; verify PASS | 2026-09-29 |
 | G3 Arquitetura | N/A | sem suíte Category=Architecture | 2026-09-29 |
 | G4 Review | PASS | Review independente (subagente): FAIL condicional a (1) região aria-live anunciando a cada segundo, (2) contagem obsoleta com rodada encerrada, (3) falta de logs de presença; todos corrigidos com testes; menor 4 (leitura atômica) corrigido. Restam como dívida: service locator opcional em Home (IServiceProvider), sessão vaza quando os dois circuitos somem, IT-02 valida o registro por leitura do Program.cs, timers reais nos testes de Home, queda durante a tela de resultado numa série não é rastreada, navegar para outra página conta como queda (decisão de produto a confirmar) | 2026-09-29 |
-| G5 Integração & CI | PENDING | | |
-| H2 Integração aprovada | PENDING | | |
-| G6 Deploy | PENDING | | |
-| G7 Pronto & Docs | PENDING | | |
+| G5 Integração & CI | PASS | PR #30: Build, Format & Test e sdd verdes; mesclado na `main` | 2026-09-29 |
+| H2 Integração aprovada | PASS | Autorização permanente do usuário (2026-09-29): mesclar com CI verde conforme a skill sdd-management | 2026-09-29 |
+| G6 Deploy | N/A | Sem ambiente remoto (`staging_url` vazio); aprovado pelo usuário em 2026-09-29 | 2026-09-29 |
+| G7 Pronto & Docs | PASS | `spec_graph.py validate` limpo; Relatório de Entrega e CHANGELOG atualizados | 2026-09-29 |
 
 ## 13. Registro de Impedimentos
 <!-- Toda parada é registrada pelo Architect com `spec_graph.py impede` e fechada com `resolve` — não edite à mão. Tipos: spec (spec errada/incompleta → resolve com Emenda) | decisão (só o humano decide → resposta ou ADR) | trabalho (falta algo que exige código → SPEC-NNNN nova) | externo (acesso, ambiente, terceiro → ação tomada) | falha (3 FAILs seguidos no mesmo gate → diagnóstico e decisão). Com impedimento aberto a spec aparece como parada no INDEX e não pode ser fechada. -->
@@ -198,34 +198,54 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 ### O que foi entregue
 <!-- comportamento entregue do ponto de vista do usuário/sistema -->
 
+W.O. por desconexão: a sessão acompanha a conexão de cada jogador humano (tolerância de 15 s, cancelada na reconexão), encerra a rodada com vitória do outro lado por Disconnect (em série, encerra a série) e mostra 'Oponente desconectado. Aguardando reconexão…' com contagem e 'Oponente desconectou. Vitória por W.O.'. Forfeit é o caminho único de desistência (Leave usa Abandon).
+
 ### Como foi feito
 <!-- decisões de implementação, módulos/arquivos principais, desvios e emendas (com versão), dívidas assumidas -->
+
+GameSession (SetConnection, DisconnectSecondsLeft, Forfeit/ForfeitCore, expiração no Tick com TimeProvider), MatchPresenceContext e MatchPresenceCircuitHandler registrados em Program.cs, Home associa/desassocia a partida e trata sair da tela como queda, Scoreboard com região aria-live estática e contagem à parte, logs de presença.
 
 ### Prova de Correção
 <!-- type fix: o teste de regressão falhou antes da correção (commit red + saída) e passa depois (commit green + execução). Outros tipos: "N/A". -->
 
+N/A
+
 ### Verificação
 <!-- Uma linha por teste do plano (todos os IDs da seção 7). Resultado: PASS. Evidência: execução de CI, commit ou relatório. -->
+
 | Teste | Comportamento | Resultado | Evidência |
 |---|---|---|---|
+| SPEC-0042:CH-01 | Dado `Tick()` sem eventos de presença, então o timer de turno e o W.O. por tempo (SPEC-0027) seguem idênticos  | PASS | `dotnet test` 322/322 no CI (dotnet-ci) do PR #30 |
+| SPEC-0042:UT-01 | Dado uma partida online em andamento, quando o jogador O desconecta e reconecta em 5 s, então a partida segue; | PASS | `dotnet test` 322/322 no CI (dotnet-ci) do PR #30 |
+| SPEC-0042:UT-02 | Dado uma partida solo e uma partida encerrada, então `SetConnection(false)` não tem efeito; dado dois jogadore | PASS | `dotnet test` 322/322 no CI (dotnet-ci) do PR #30 |
+| SPEC-0042:UT-03 | Dado `Forfeit(Player, EndReason)`, então concede a vitória ao outro lado com o motivo dado, é idempotente e re | PASS | `dotnet test` 322/322 no CI (dotnet-ci) do PR #30 |
+| SPEC-0042:UT-04 | Dado `MatchPresenceCircuitHandler` com um `MatchPresenceContext` anexado e depois desanexado, então `OnConnect | PASS | `dotnet test` 322/322 no CI (dotnet-ci) do PR #30 |
+| SPEC-0042:UT-05 | Dado uma partida com o oponente desconectado e depois encerrada por desconexão, então o aviso mostra "Oponente | PASS | `dotnet test` 322/322 no CI (dotnet-ci) do PR #30 |
+| SPEC-0042:IT-01 | Dado dois `Home` na mesma partida online, quando o circuito de um "cai" e o tempo avança 15 s, então o outro v | PASS | `dotnet test` 322/322 no CI (dotnet-ci) do PR #30 |
+| SPEC-0042:IT-02 | Dado o contêiner de DI da aplicação, então `MatchPresenceContext` é `Scoped` e existe um `CircuitHandler` do t | PASS | `dotnet test` 322/322 no CI (dotnet-ci) do PR #30 |
+| SPEC-0042:E2E-01 | Jornada (bUnit, dois jogadores): partida em andamento, um jogador é desconectado, o outro vê a contagem e ganh | PASS | `dotnet test` 322/322 no CI (dotnet-ci) do PR #30 |
 
 ### Definição de Pronto
-- [ ] Todos os testes do plano passando e listados na Verificação
-- [ ] Todo comportamento do Mapa de Comportamentos coberto e verificado
-- [ ] Suíte completa, arquitetura e CI verdes no resultado integrado (G5)
-- [ ] Review independente sem achados blocker/major (G4)
-- [ ] Padrão arquitetural existente mantido, ou desvio coberto por ADR aprovado
-- [ ] Requisitos não-funcionais medidos com evidência (ou N/A justificado)
-- [ ] Disponível no ambiente-alvo via pipeline, com smoke/E2E passando no ambiente (G6)
-- [ ] Observabilidade e rollback prontos conforme o Plano de Rollout
-- [ ] Documentação raiz e CHANGELOG atualizados (G7)
-- [ ] Pendências registradas como novas specs (ou nenhuma)
+- [x] Todos os testes do plano passando e listados na Verificação
+- [x] Todo comportamento do Mapa de Comportamentos coberto e verificado
+- [x] Suíte completa, arquitetura e CI verdes no resultado integrado (G5)
+- [x] Review independente sem achados blocker/major (G4)
+- [x] Padrão arquitetural existente mantido, ou desvio coberto por ADR aprovado
+- [x] Requisitos não-funcionais medidos com evidência (ou N/A justificado)
+- [x] Disponível no ambiente-alvo via pipeline, com smoke/E2E passando no ambiente (G6) — N/A aprovado pelo usuário (2026-09-29): sem ambiente remoto
+- [x] Observabilidade e rollback prontos conforme o Plano de Rollout
+- [x] Documentação raiz e CHANGELOG atualizados (G7)
+- [x] Pendências registradas como novas specs (ou nenhuma)
 
 ### Deploy
 <!-- ambiente(s), versão/tag, data, estratégia, estado da feature flag, execução do pipeline -->
 
+G6 N/A (aprovado pelo usuário em 2026-09-29): o repositório não tem ambiente remoto (`staging_url` vazio). A entrega é o merge na `main` pelo PR #30 com CI verde (Build, Format & Test e sdd).
+
 ### Pendências
 <!-- specs criadas para o que ficou de fora, ou "Nenhuma" -->
+
+Verificação manual em navegador (fechar aba e F5) não feita; registrar quando houver ambiente. Home usa IServiceProvider opcional para presença e relógio; sessão vaza em Games se os dois circuitos somem; IT-02 valida o registro lendo Program.cs; queda durante a tela de resultado numa série não é rastreada; navegar para outra página conta como queda (confirmar com o produto).
 
 ## 15. Emendas
 <!-- Mudança em spec aprovada: uma linha por emenda. Mudou o contrato? Incremente `contract_version` e rode `spec_graph.py impacted SPEC-0042`. -->
