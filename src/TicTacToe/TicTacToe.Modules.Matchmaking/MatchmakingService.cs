@@ -5,7 +5,8 @@ namespace TicTacToe.Modules.Matchmaking;
 
 public class MatchmakingService
 {
-    private readonly ConcurrentQueue<string> _waitingPlayers = new();
+    private readonly ConcurrentDictionary<int, ConcurrentQueue<string>> _queues = new();
+    private readonly ConcurrentDictionary<string, int> _roomBestOf = new();
     private readonly ConcurrentDictionary<string, string> _playerNames = new();
     private readonly ConcurrentDictionary<string, Guid> _playerIds = new();
 
@@ -19,19 +20,20 @@ public class MatchmakingService
 
     public Guid? JoinQueue(string connectionId, string playerName = "", Guid? playerId = null, int bestOf = 1)
     {
-        _ = bestOf;
         RememberId(connectionId, playerId);
         _playerNames[connectionId] = string.IsNullOrWhiteSpace(playerName) ? connectionId : playerName;
-        _waitingPlayers.Enqueue(connectionId);
+        var queue = _queues.GetOrAdd(bestOf, _ => new ConcurrentQueue<string>());
+        queue.Enqueue(connectionId);
 
-        if (_waitingPlayers.Count >= 2)
+        if (queue.Count >= 2)
         {
-            if (_waitingPlayers.TryDequeue(out var player1) && _waitingPlayers.TryDequeue(out var player2))
+            if (queue.TryDequeue(out var player1) && queue.TryDequeue(out var player2))
             {
                 var matchId = Guid.NewGuid();
                 ActiveMatches[player1] = matchId;
                 ActiveMatches[player2] = matchId;
                 _matchPlayers[matchId] = (player1, player2);
+                _matchBestOf[matchId] = bestOf;
                 OnPlayerMatched?.Invoke(player1, matchId);
                 OnPlayerMatched?.Invoke(player2, matchId);
                 return matchId;
@@ -94,9 +96,9 @@ public class MatchmakingService
     {
         RememberId(connectionId, playerId);
         _playerNames[connectionId] = string.IsNullOrWhiteSpace(playerName) ? connectionId : playerName;
-        _ = bestOf;
         string code = "SALA-" + Guid.NewGuid().ToString("N")[..4].ToUpperInvariant();
         _privateRooms[code] = connectionId;
+        _roomBestOf[code] = bestOf;
         return code;
     }
 
@@ -114,6 +116,7 @@ public class MatchmakingService
             ActiveMatches[connectionId] = matchId;
             _matchPlayers[matchId] = (hostConnectionId, connectionId);
             _privateMatches[matchId] = true;
+            _matchBestOf[matchId] = _roomBestOf.TryRemove(normalized, out var bestOf) ? bestOf : 1;
             OnPlayerMatched?.Invoke(hostConnectionId, matchId);
             OnPlayerMatched?.Invoke(connectionId, matchId);
             return matchId;

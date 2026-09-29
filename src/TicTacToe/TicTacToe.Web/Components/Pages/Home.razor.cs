@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
@@ -28,12 +29,17 @@ public partial class Home : IDisposable
     private bool IsSoloGame;
     private AiDifficulty SelectedDifficulty = AiDifficulty.Hard;
 
+    // Formato da partida: 1 = única, 5 = melhor de 5 (o seletor na interface chega com a SPEC-0044).
+    private int SelectedBestOf = 1;
+    private static readonly BotTurnRunner BotRunner = new(TimeProvider.System);
+    private readonly CancellationTokenSource _botCts = new();
+
     private void CreateRoom()
     {
         if (string.IsNullOrWhiteSpace(PlayerName)) return;
         RoomErrorMessage = null;
         RememberNickname();
-        CreatedRoomCode = Matchmaking.CreatePrivateRoom(ConnectionId, PlayerName.Trim(), _profile?.PlayerId);
+        CreatedRoomCode = Matchmaking.CreatePrivateRoom(ConnectionId, PlayerName.Trim(), _profile?.PlayerId, SelectedBestOf);
     }
 
     private void JoinRoom()
@@ -60,7 +66,7 @@ public partial class Home : IDisposable
 
         IsWaiting = true;
         RememberNickname();
-        MatchId = Matchmaking.JoinQueue(ConnectionId, PlayerName.Trim(), _profile?.PlayerId);
+        MatchId = Matchmaking.JoinQueue(ConnectionId, PlayerName.Trim(), _profile?.PlayerId, SelectedBestOf);
 
         if (MatchId != null)
         {
@@ -125,7 +131,8 @@ public partial class Home : IDisposable
     {
         if (MatchId != null && !Games.ContainsKey(MatchId.Value))
         {
-            var game = new GameSession { Mode = Matchmaking.IsPrivateMatch(MatchId.Value) ? GameMode.Private : GameMode.Online };
+            var format = Matchmaking.GetMatchBestOf(MatchId.Value) == 5 ? SeriesFormat.BestOf5 : SeriesFormat.Single;
+            var game = new GameSession(format: format) { Mode = Matchmaking.IsPrivateMatch(MatchId.Value) ? GameMode.Private : GameMode.Online };
             Games.TryAdd(MatchId.Value, game);
         }
 
@@ -184,7 +191,7 @@ public partial class Home : IDisposable
         MatchId = Guid.NewGuid();
         MyPlayer = Player.X;
 
-        var game = new GameSession { Mode = GameMode.Solo };
+        var game = new GameSession(format: SelectedBestOf == 5 ? SeriesFormat.BestOf5 : SeriesFormat.Single) { Mode = GameMode.Solo };
         game.SetPlayerName(Player.X, PlayerName.Trim());
         game.SetPlayerId(Player.X, _profile?.PlayerId);
         game.SetPlayerName(Player.O, AiPlayer.GetBotName(SelectedDifficulty));
@@ -207,24 +214,33 @@ public partial class Home : IDisposable
                     }
                     else if (IsSoloGame && game.CurrentTurn == Player.O)
                     {
-                        _ = Task.Run(async () =>
-                        {
-                            await Task.Delay(250);
-                            int aiMove = AiPlayer.GetBestMove(game, Player.O, SelectedDifficulty);
-                            if (aiMove != -1)
-                            {
-                                game.MakeMove(aiMove, Player.O);
-                                if (game.Winner != Player.None || game.IsDraw)
-                                {
-                                    await GameResultService.SaveOnceAsync(game);
-                                }
-                                await InvokeAsync(StateHasChanged);
-                            }
-                        });
+                        RunBot(game);
                     }
                 }
             }
         }
+    }
+
+    // O robô joga depois de um atraso, também ao abrir uma rodada da série; cancelado ao sair da página.
+    private void RunBot(GameSession game)
+    {
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await BotRunner.RunAsync(game, Player.O, SelectedDifficulty, TimeSpan.FromMilliseconds(250), _botCts.Token);
+                if (game.Winner != Player.None || game.IsDraw)
+                {
+                    await GameResultService.SaveOnceAsync(game);
+                }
+
+                await InvokeAsync(StateHasChanged);
+            }
+            catch (OperationCanceledException)
+            {
+                // Página descartada durante o atraso: nada a fazer.
+            }
+        });
     }
 
     private void RestartGame()
@@ -233,11 +249,17 @@ public partial class Home : IDisposable
         {
             _confettiFired = false;
             game.Restart();
+            if (IsSoloGame && game.CurrentTurn == Player.O && game.Winner == Player.None)
+            {
+                RunBot(game);
+            }
         }
     }
 
     public void Dispose()
     {
+        _botCts.Cancel();
+        _botCts.Dispose();
         Shell.Reset();
         Matchmaking.OnPlayerMatched -= OnMatchedReceived;
         if (MatchId != null && Games.TryGetValue(MatchId.Value, out var g))

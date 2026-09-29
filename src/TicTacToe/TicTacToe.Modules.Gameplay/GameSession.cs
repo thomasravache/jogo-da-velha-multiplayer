@@ -195,6 +195,7 @@ public class GameSession : IDisposable
                 _endReason = Gameplay.EndReason.Timeout;
                 Winner = CurrentTurn == Player.X ? Player.O : Player.X;
                 _scores[Winner] = GetScore(Winner) + 1;
+                RegisterRoundWon(Winner);
             }
         }
 
@@ -205,19 +206,57 @@ public class GameSession : IDisposable
     {
         lock (_lock)
         {
-            Array.Clear(Board, 0, Board.Length);
-            _resultRecorded = false;
-            _winningLine = null;
-            _startedAt = _time.GetUtcNow();
-            _endedAt = null;
-            _endReason = null;
-            _moveCount = 0;
-            Winner = Player.None;
-            IsTimedOut = false;
-            CurrentTurn = Player.X;
-            RemainingSeconds = DefaultTurnTimeSeconds;
+            if (_format == SeriesFormat.BestOf5)
+            {
+                if (SeriesOver)
+                {
+                    // Série encerrada: nova série com placar zerado, novo id e X abrindo.
+                    _scores.Clear();
+                    RoundsDecided = 0;
+                    SeriesOver = false;
+                    _seriesWinner = Player.None;
+                    _seriesId = Guid.NewGuid();
+                }
+                else if (Winner == Player.None && !IsDraw)
+                {
+                    return; // rodada em andamento: nada a fazer
+                }
+
+                _roundStarter = RoundsDecided % 2 == 0 ? Player.X : Player.O;
+            }
+
+            ResetRound();
         }
         OnStateChanged?.Invoke();
+    }
+
+    // Chamado com o lock adquirido: reinicia o tabuleiro da rodada.
+    private void ResetRound()
+    {
+        Array.Clear(Board, 0, Board.Length);
+        _resultRecorded = false;
+        _winningLine = null;
+        _startedAt = _time.GetUtcNow();
+        _endedAt = null;
+        _endReason = null;
+        _moveCount = 0;
+        Winner = Player.None;
+        IsTimedOut = false;
+        CurrentTurn = _format == SeriesFormat.BestOf5 ? _roundStarter : Player.X;
+        RemainingSeconds = DefaultTurnTimeSeconds;
+    }
+
+    // Chamado com o lock adquirido, após somar o ponto da rodada.
+    private void RegisterRoundWon(Player winner)
+    {
+        if (_format != SeriesFormat.BestOf5) return;
+
+        RoundsDecided++;
+        if (GetScore(winner) >= SeriesTarget)
+        {
+            SeriesOver = true;
+            _seriesWinner = winner;
+        }
     }
 
     public bool MakeMove(int index, Player player)
@@ -238,6 +277,7 @@ public class GameSession : IDisposable
                 _scores[player] = GetScore(player) + 1;
                 _endedAt = _time.GetUtcNow();
                 _endReason = Gameplay.EndReason.Line;
+                RegisterRoundWon(player);
             }
             else
             {

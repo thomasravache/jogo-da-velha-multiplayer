@@ -32,6 +32,9 @@ public class GameResultService(GameplayDbContext db, ILogger<GameResultService> 
                 Mode = game.Mode,
                 PlayerXId = game.GetPlayerId(Player.X),
                 PlayerOId = game.GetPlayerId(Player.O),
+                SeriesId = game.SeriesId,
+                RoundNumber = game.Format == SeriesFormat.BestOf5 ? (game.Winner == Player.None ? game.RoundNumber : game.RoundNumber - 1) : null,
+                BestOf = game.Format == SeriesFormat.BestOf5 ? 5 : null,
             };
 
             db.MatchResults.Add(result);
