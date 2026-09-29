@@ -261,6 +261,36 @@ public class ChessBoardTests
         Assert.Equal(2, activated.Count);
     }
 
+    [Fact(DisplayName = "SPEC-0055:UT-05 — Enter, keyup e depois clique de mouse na mesma casa ativa de novo")]
+    [Trait("Category", "SPEC-0055:UT-05")]
+    public void Board_EnterKeyUpThenClick_ShouldActivateAgain()
+    {
+        using var ctx = NewContext();
+        var activated = new List<Square>();
+        var cut = RenderBoard(ctx, extra: p => p.Add(c => c.OnSquareActivated, EventCallback.Factory.Create<Square>(this, s => activated.Add(s))));
+
+        Sq(cut, "e2").KeyDown(new KeyboardEventArgs { Key = "Enter" });
+        Sq(cut, "e2").KeyUp(new KeyboardEventArgs { Key = "Enter" });
+        Sq(cut, "e2").Click();
+
+        Assert.Equal(2, activated.Count);
+    }
+
+    [Fact(DisplayName = "SPEC-0055:UT-05 — Ativar outra casa por teclado zera a marca da anterior")]
+    [Trait("Category", "SPEC-0055:UT-05")]
+    public void Board_ActivatingAnotherSquare_ShouldClearKeyMark()
+    {
+        using var ctx = NewContext();
+        var activated = new List<Square>();
+        var cut = RenderBoard(ctx, extra: p => p.Add(c => c.OnSquareActivated, EventCallback.Factory.Create<Square>(this, s => activated.Add(s))));
+
+        Sq(cut, "e2").KeyDown(new KeyboardEventArgs { Key = " " });
+        Sq(cut, "e4").KeyDown(new KeyboardEventArgs { Key = "Enter" });
+        Sq(cut, "e2").Click();
+
+        Assert.Equal(3, activated.Count);
+    }
+
     // ---------- UT-06 ----------
 
     [Fact(DisplayName = "SPEC-0055:UT-06 — Arrastar e soltar em outra casa aciona OnDragMove; soltar fora ou na mesma casa é ignorado")]
@@ -350,6 +380,31 @@ public class ChessBoardTests
         var index = new[] { PieceType.Queen, PieceType.Rook, PieceType.Bishop, PieceType.Knight }.ToList().IndexOf(expected);
         cut.FindAll("button")[index].Click();
         Assert.Equal([expected, expected], chosen);
+    }
+
+    [Theory(DisplayName = "SPEC-0055:UT-07 — Atalhos com Ctrl, Meta, Alt ou tecla repetida são ignorados")]
+    [Trait("Category", "SPEC-0055:UT-07")]
+    [InlineData(true, false, false, false)]
+    [InlineData(false, true, false, false)]
+    [InlineData(false, false, true, false)]
+    [InlineData(false, false, false, true)]
+    public void Picker_ModifiedOrRepeatedKeys_ShouldBeIgnored(bool ctrl, bool meta, bool alt, bool repeat)
+    {
+        using var ctx = NewContext();
+        var chosen = new List<PieceType>();
+        var cancels = 0;
+        var cut = ctx.Render<PromotionPicker>(p => p
+            .Add(c => c.Color, PieceColor.White)
+            .Add(c => c.OnChosen, EventCallback.Factory.Create<PieceType>(this, t => chosen.Add(t)))
+            .Add(c => c.OnCancel, EventCallback.Factory.Create(this, () => cancels++)));
+
+        foreach (var key in new[] { "r", "Q", "Escape" })
+        {
+            cut.Find("[role=dialog]").KeyDown(new KeyboardEventArgs { Key = key, CtrlKey = ctrl, MetaKey = meta, AltKey = alt, Repeat = repeat });
+        }
+
+        Assert.Empty(chosen);
+        Assert.Equal(0, cancels);
     }
 
     [Fact(DisplayName = "SPEC-0055:UT-07 — Esc cancela sem escolher; outras teclas são ignoradas")]
