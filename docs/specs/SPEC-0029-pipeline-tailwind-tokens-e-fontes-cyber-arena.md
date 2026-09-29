@@ -4,7 +4,7 @@ title: Pipeline Tailwind, tokens e fontes Cyber Arena
 tier: full
 type: migration
 user_facing: false
-status: in-progress
+status: implemented
 created: 2026-09-29
 parent: SPEC-0028
 depends_on: []
@@ -181,25 +181,25 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 <!-- Preenchido na fase PLAN, após a aprovação. Cada fase começa pelos testes. -->
 
 **Fase 0: Caracterização**
-- [ ] N/A — sem testes de caracterização neste plano (área já coberta ou nova)
+- [x] N/A — sem testes de caracterização neste plano (área já coberta ou nova)
 
 **Fase 1: Testes (Red)**
-- [ ] Escrever os testes `SPEC-0029:UT-01`, `SPEC-0029:UT-02`, `SPEC-0029:UT-03`, `SPEC-0029:IT-01`, `SPEC-0029:IT-02`, `SPEC-0029:IT-03` com a tag `SPEC-0029:<ID>`, em commits `test(...)` com `Refs: SPEC-0029`, tocando só `test_paths`
-- [ ] Scaffolding de contrato (tipos e assinaturas sem lógica) em commit `chore(...)` separado, se necessário
-- [ ] Confirmar que cada teste novo falha pelo motivo certo (`spec_graph.py verify SPEC-0029`)
+- [x] Escrever os testes `SPEC-0029:UT-01`, `SPEC-0029:UT-02`, `SPEC-0029:UT-03`, `SPEC-0029:IT-01`, `SPEC-0029:IT-02`, `SPEC-0029:IT-03` com a tag `SPEC-0029:<ID>`, em commits `test(...)` com `Refs: SPEC-0029`, tocando só `test_paths`
+- [x] Scaffolding de contrato (tipos e assinaturas sem lógica) em commit `chore(...)` separado, se necessário
+- [x] Confirmar que cada teste novo falha pelo motivo certo (`spec_graph.py verify SPEC-0029`)
 
 **Fase 2: Implementação (Green)**
-- [ ] Implementar o mínimo para passar, seguindo o padrão de referência e os ADRs, dentro de `touches`
-- [ ] Confirmar todos os testes verdes e a suíte completa (`dotnet build`, `dotnet test`)
+- [x] Implementar o mínimo para passar, seguindo o padrão de referência e os ADRs, dentro de `touches`
+- [x] Confirmar todos os testes verdes e a suíte completa (`dotnet build`, `dotnet test`)
 
 **Fase 3: Refactor & Qualidade**
-- [ ] Refatorar mantendo tudo verde; `dotnet format --verify-no-changes`
-- [ ] Registrar evidências G1–G4 (Red, Green, arquitetura, review independente)
+- [x] Refatorar mantendo tudo verde; `dotnet format --verify-no-changes`
+- [x] Registrar evidências G1–G4 (Red, Green, arquitetura, review independente)
 
 **Fase final: Integração, entrega e documentação**
-- [ ] Revisão visual/acessibilidade do plano (seção 7.6), quando aplicável
-- [ ] PR com `spec_graph.py pr SPEC-0029`, CI verde (G5) e aprovação do merge (H2)
-- [ ] Relatório de Entrega, docs raiz e CHANGELOG (G7)
+- [x] Revisão visual/acessibilidade do plano (seção 7.6), quando aplicável — N/A (sem UI)
+- [x] PR com `spec_graph.py pr SPEC-0029`, CI verde (G5) e aprovação do merge (H2)
+- [x] Relatório de Entrega, docs raiz e CHANGELOG (G7)
 
 ## 12. Registro de Gates
 <!-- Status: PENDING | PASS | FAIL | N/A. PASS e N/A exigem evidência (comando + resultado, SHA, execução de CI, veredito). -->
@@ -212,8 +212,8 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | G4 Review | PASS | Reviewer independente APPROVED em a56db55 (0 blocker, 0 major, 5 minor; 2 corrigidos em f0026fe) | 2026-09-29 |
 | G5 Integração & CI | PASS | PR #5: Build, Format & Test e sdd verdes; mesclado em 120370f | 2026-09-29 |
 | H2 Integração aprovada | PASS | Autorização do merge do PR #5 pelo usuário em 2026-09-29 | 2026-09-29 |
-| G6 Deploy | PENDING | | |
-| G7 Pronto & Docs | PENDING | | |
+| G6 Deploy | N/A | Sem ambiente remoto (`staging_url` vazio); aprovado pelo usuário em 2026-09-29 | 2026-09-29 |
+| G7 Pronto & Docs | PASS | `spec_graph.py validate` limpo; Relatório de Entrega, README/CHANGELOG atualizados | 2026-09-29 |
 
 ## 13. Registro de Impedimentos
 <!-- Toda parada é registrada pelo Architect com `spec_graph.py impede` e fechada com `resolve` — não edite à mão. Tipos: spec (spec errada/incompleta → resolve com Emenda) | decisão (só o humano decide → resposta ou ADR) | trabalho (falta algo que exige código → SPEC-NNNN nova) | externo (acesso, ambiente, terceiro → ação tomada) | falha (3 FAILs seguidos no mesmo gate → diagnóstico e decisão). Com impedimento aberto a spec aparece como parada no INDEX e não pode ser fechada. -->
@@ -226,34 +226,51 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 ### O que foi entregue
 <!-- comportamento entregue do ponto de vista do usuário/sistema -->
 
+Pipeline do Tailwind CSS v4.3.3 standalone (sem Node): versão pinada, instalação com sha256 verificado, CSS gerado versionado (4 KB) com verificação de drift no CI, tokens Cyber Arena em `@theme` e fontes Outfit e Space Grotesk auto-hospedadas com as licenças OFL. Nenhuma tela mudou.
+
 ### Como foi feito
 <!-- decisões de implementação, módulos/arquivos principais, desvios e emendas (com versão), dívidas assumidas -->
+
+`tools/tailwind/{version.txt,install.sh,build.sh}`, `Styles/cyber-arena.input.css` (`source(none)` + `@source` explícito, sem preflight), `wwwroot/css/cyber-arena.css`, `wwwroot/fonts`, link em `App.razor`, passos de cache/instalação/`--check` em `dotnet.yml` e seção no README. O primeiro CSS saiu com 67 KB porque o Tailwind varria o repositório inteiro; `source(none)` reduziu para 4 KB. Correções da review G4: licenças OFL e erros do Tailwind visíveis no `--check`.
 
 ### Prova de Correção
 <!-- type fix: o teste de regressão falhou antes da correção (commit red + saída) e passa depois (commit green + execução). Outros tipos: "N/A". -->
 
+N/A
+
 ### Verificação
 <!-- Uma linha por teste do plano (todos os IDs da seção 7). Resultado: PASS. Evidência: execução de CI, commit ou relatório. -->
+
 | Teste | Comportamento | Resultado | Evidência |
 |---|---|---|---|
+| SPEC-0029:UT-01 | Dado `tools/tailwind/version.txt` e `install.sh`, então a versão é semver, o script referencia `sha256sums.txt | PASS | `dotnet test` 74/74 no CI (dotnet-ci) do PR #5 |
+| SPEC-0029:UT-02 | Dado `Styles/cyber-arena.input.css`, então `@theme` define cada token do contrato (cores, fontes, raios, espaç | PASS | `dotnet test` 74/74 no CI (dotnet-ci) do PR #5 |
+| SPEC-0029:UT-03 | Dado o CSS de entrada, então cada `@font-face` aponta para um arquivo woff2 existente em `wwwroot/fonts`, usa  | PASS | `dotnet test` 74/74 no CI (dotnet-ci) do PR #5 |
+| SPEC-0029:IT-01 | Dado o arquivo versionado `wwwroot/css/cyber-arena.css`, então contém `--color-primary: #ff4757`, `--font-disp | PASS | `dotnet test` 74/74 no CI (dotnet-ci) do PR #5 |
+| SPEC-0029:IT-02 | Dado `App.razor`, então referencia `css/cyber-arena.css` depois de `app.css` e continua referenciando `MudBlaz | PASS | `dotnet test` 74/74 no CI (dotnet-ci) do PR #5 |
+| SPEC-0029:IT-03 | Dado `.github/workflows/dotnet.yml`, então contém passo de cache do binário chaveado pela versão de `version.t | PASS | `dotnet test` 74/74 no CI (dotnet-ci) do PR #5 |
 
 ### Definição de Pronto
-- [ ] Todos os testes do plano passando e listados na Verificação
-- [ ] Todo comportamento do Mapa de Comportamentos coberto e verificado
-- [ ] Suíte completa, arquitetura e CI verdes no resultado integrado (G5)
-- [ ] Review independente sem achados blocker/major (G4)
-- [ ] Padrão arquitetural existente mantido, ou desvio coberto por ADR aprovado
-- [ ] Requisitos não-funcionais medidos com evidência (ou N/A justificado)
-- [ ] Disponível no ambiente-alvo via pipeline, com smoke/E2E passando no ambiente (G6)
-- [ ] Observabilidade e rollback prontos conforme o Plano de Rollout
-- [ ] Documentação raiz e CHANGELOG atualizados (G7)
-- [ ] Pendências registradas como novas specs (ou nenhuma)
+- [x] Todos os testes do plano passando e listados na Verificação
+- [x] Todo comportamento do Mapa de Comportamentos coberto e verificado
+- [x] Suíte completa, arquitetura e CI verdes no resultado integrado (G5)
+- [x] Review independente sem achados blocker/major (G4)
+- [x] Padrão arquitetural existente mantido, ou desvio coberto por ADR aprovado
+- [x] Requisitos não-funcionais medidos com evidência (ou N/A justificado)
+- [x] Disponível no ambiente-alvo via pipeline, com smoke/E2E passando no ambiente (G6) — N/A aprovado pelo usuário (2026-09-29): sem ambiente remoto
+- [x] Observabilidade e rollback prontos conforme o Plano de Rollout
+- [x] Documentação raiz e CHANGELOG atualizados (G7)
+- [x] Pendências registradas como novas specs (ou nenhuma)
 
 ### Deploy
 <!-- ambiente(s), versão/tag, data, estratégia, estado da feature flag, execução do pipeline -->
 
+G6 N/A (aprovado pelo usuário em 2026-09-29): o repositório não tem ambiente remoto (`staging_url` vazio). A entrega é o merge na `main` pelo PR #5 com CI verde (Build, Format & Test e sdd).
+
 ### Pendências
 <!-- specs criadas para o que ficou de fora, ou "Nenhuma" -->
+
+Nenhuma. Minors da review G4 sem correção: UT-01 fraco (`chmod` após `sha256`), utilitários coincidentes do `@source`, hash não pinado no repositório.
 
 ## 15. Emendas
 <!-- Mudança em spec aprovada: uma linha por emenda. Mudou o contrato? Incremente `contract_version` e rode `spec_graph.py impacted SPEC-0029`. -->
