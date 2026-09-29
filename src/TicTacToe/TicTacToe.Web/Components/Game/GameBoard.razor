@@ -1,7 +1,34 @@
+@using MudBlazor
 @using TicTacToe.Modules.Gameplay
 
 @if (Game != null)
 {
+    <div class="timer-container mb-3 d-flex flex-column align-center w-100">
+        @if (Game.Winner != Player.None && Game.IsTimedOut)
+        {
+            <MudAlert Severity="Severity.Warning" Variant="Variant.Filled" Dense="true" Class="mb-2">
+                Tempo esgotado! Vitória por W.O. para @Game.GetPlayerName(Game.Winner)! ⏱️
+            </MudAlert>
+        }
+        else if (Game.Winner == Player.None && !Game.IsDraw)
+        {
+            <div class="d-flex align-center justify-space-between w-100 px-2 mb-1" style="max-width: 320px;">
+                <MudText Typo="Typo.caption" Color="Color.Secondary">Tempo de jogada</MudText>
+                <MudChip T="string"
+                         Size="Size.Small"
+                         Variant="Variant.Filled"
+                         Color="@GetTimerColor()"
+                         Icon="@Icons.Material.Filled.Timer">
+                    @($"{Game.RemainingSeconds}s")
+                </MudChip>
+            </div>
+            <MudProgressLinear Color="@GetTimerColor()"
+                               Value="@((double)Game.RemainingSeconds / GameSession.DefaultTurnTimeSeconds * 100)"
+                               Class="rounded-pill my-1"
+                               Style="max-width: 320px;" />
+        }
+    </div>
+
     <div class="board">
         @for (int i = 0; i < 9; i++)
         {
@@ -20,6 +47,14 @@
     [Parameter] public GameSession Game { get; set; } = default!;
     [Parameter] public Player MyPlayer { get; set; }
     [Parameter] public EventCallback<int> OnCellClick { get; set; }
+
+    private Color GetTimerColor()
+    {
+        if (Game == null) return Color.Default;
+        if (Game.RemainingSeconds > 7) return Color.Success;
+        if (Game.RemainingSeconds > 3) return Color.Warning;
+        return Color.Error;
+    }
 
     private async Task HandleCellClick(int index)
     {

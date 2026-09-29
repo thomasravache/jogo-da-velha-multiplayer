@@ -54,12 +54,13 @@ public class DecomposedComponentsTests
 
     [Fact(DisplayName = "SPEC-0024:IT-01 — GameBoard emite OnCellClick ao clicar em célula jogável")]
     [Trait("Category", "SPEC-0024:IT-01")]
-    public void GameBoard_ShouldTriggerOnCellClick_WhenClicked()
+    public async Task GameBoard_ShouldTriggerOnCellClick_WhenClicked()
     {
-        var game = new GameSession();
+        using var game = new GameSession();
         int clickedIndex = -1;
 
-        using var ctx = new BunitContext();
+        await using var ctx = new BunitContext();
+        ctx.Services.AddMudServices();
         var cut = ctx.Render<GameBoard>(parameters => parameters
             .Add(p => p.Game, game)
             .Add(p => p.MyPlayer, Player.X)

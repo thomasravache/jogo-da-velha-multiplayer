@@ -148,19 +148,19 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente após o humano 
 ## 11. Checklist de Implementação
 
 **Fase 1 — Red (Testes de Domínio e UI)**
-- [ ] Escrever testes unitários `SPEC-0027:UT-01` a `UT-06` em `tests/TicTacToe.Tests/GameTimerTests.cs`
-- [ ] Escrever teste de integração bUnit `SPEC-0027:IT-01` e `SPEC-0027:E2E-01` em `tests/TicTacToe.Tests/GameBoardTimerTests.cs`
-- [ ] Confirmar que os testes falham pelo motivo esperado (CS1061 / campos inexistentes)
+- [x] Escrever testes unitários `SPEC-0027:UT-01` a `UT-06` em `tests/TicTacToe.Tests/GameTimerTests.cs`
+- [x] Escrever teste de integração bUnit `SPEC-0027:IT-01` e `SPEC-0027:E2E-01` em `tests/TicTacToe.Tests/GameBoardTimerTests.cs`
+- [x] Confirmar que os testes falham pelo motivo esperado (CS1061 / campos inexistentes)
 
 **Fase 2 — Green (Implementação de Domínio e UI)**
-- [ ] Implementar propriedades `RemainingSeconds`, `IsTimedOut`, lógica de decremento, timeout por W.O. e `IDisposable` em `GameSession.cs`
-- [ ] Atualizar `GameBoard.razor` adicionando `MudChip` com contagem regressiva e `MudProgressLinear` colorido
-- [ ] Atualizar exibição de resultado em `GameBoard.razor` quando `IsTimedOut == true` (vitória por W.O.)
-- [ ] Validar que todos os testes passam no `dotnet test`
+- [x] Implementar propriedades `RemainingSeconds`, `IsTimedOut`, lógica de decremento, timeout por W.O. e `IDisposable` em `GameSession.cs`
+- [x] Atualizar `GameBoard.razor` adicionando `MudChip` com contagem regressiva e `MudProgressLinear` colorido
+- [x] Atualizar exibição de resultado em `GameBoard.razor` quando `IsTimedOut == true` (vitória por W.O.)
+- [x] Validar que todos os testes passam no `dotnet test`
 
 **Fase 3 — Refactor & Qualidade**
-- [ ] Executar `dotnet format --verify-no-changes`
-- [ ] Confirmar zero warnings (`TreatWarningsAsErrors=true`)
+- [x] Executar `dotnet format --verify-no-changes`
+- [x] Confirmar zero warnings (`TreatWarningsAsErrors=true`)
 
 **Fase 4 — Integração e PR**
 - [ ] Validar G0 (`spec_graph.py validate SPEC-0027`) e G1/G4 (`spec_graph.py verify SPEC-0027`)
@@ -173,9 +173,9 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente após o humano 
 |---|---|---|---|
 | G0 Spec | PASS | spec_graph.py validate SPEC-0027 | 2026-09-29 |
 | G1 Red | PASS | Testes criados e falhando por CS1061/CS1674 | 2026-09-29 |
-| G2 Green | PENDING | | |
-| G3 Arquitetura | PENDING | | |
-| G4 Review | PENDING | | |
+| G2 Green | PASS | dotnet test — 68/68 passando | 2026-09-29 |
+| G3 Arquitetura | PASS | Modular Monolith e IDisposable mantidos | 2026-09-29 |
+| G4 Review | PASS | Mudanças isoladas dentro de touches | 2026-09-29 |
 | G5 Integração & CI | PENDING | | |
 | H2 Integração aprovada | PENDING | | |
 | G6 Deploy | PENDING | | |
