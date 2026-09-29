@@ -213,16 +213,16 @@ public class ChessArenaTests
         var cut = Render(ctx, session);
 
         ChessSessionTests.Line(session, "e2e4");
-        time.Advance(291 * Second);
-        ChessSessionTests.Line(session, "e7e5");
         time.Advance(48 * Second);
+        ChessSessionTests.Line(session, "e7e5");
+        time.Advance(291 * Second);
         Refresh(cut);
 
-        Assert.Equal("04:12", Clock(cut, "white"));
-        Assert.Equal("00:09", Clock(cut, "black"));
-        Assert.Equal("true", Card(cut, "black").QuerySelector("[data-clock]")!.GetAttribute("data-low"));
-        Assert.NotEqual("true", Card(cut, "white").QuerySelector("[data-clock]")!.GetAttribute("data-low"));
-        Assert.Equal("timer", Card(cut, "white").QuerySelector("[data-clock]")!.GetAttribute("role"));
+        Assert.Equal("04:12", Clock(cut, "black"));
+        Assert.Equal("00:09", Clock(cut, "white"));
+        Assert.Equal("true", Card(cut, "white").QuerySelector("[data-clock]")!.GetAttribute("data-low"));
+        Assert.NotEqual("true", Card(cut, "black").QuerySelector("[data-clock]")!.GetAttribute("data-low"));
+        Assert.Equal("timer", Card(cut, "black").QuerySelector("[data-clock]")!.GetAttribute("role"));
         Assert.Equal("true", Card(cut, "white").GetAttribute("data-active"));
         Assert.NotEqual("true", Card(cut, "black").GetAttribute("data-active"));
     }
