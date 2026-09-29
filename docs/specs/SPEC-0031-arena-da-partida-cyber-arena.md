@@ -118,7 +118,7 @@ Layout: >= lg  [PlayerCard X] [tabuleiro + timer + status] [PlayerCard O]      <
 ### 7.1 Testes de Caracterização
 - **CH-01** — Dado `GameSession`, então `MakeMove` mantém as regras atuais (turno alternado, vitória por jogada, `Restart`) — fixa o comportamento antes de extrair as linhas de vitória.
 
-**Testes existentes afetados:** `DecomposedComponentsTests` (afirma `players-bar`, `status`, `.cell.playable` e o conteúdo de `Home.razor.css` com `.game-container`/`.board`), `GameBoardTimerTests` (afirma `mud-progress-linear`) e `MudBlazorIntegrationTests` `SPEC-0026:IT-02` (GameBoard). São atualizados para os novos seletores/primitivos; mudanças justificadas pela troca de biblioteca e pela remoção do CSS legado (ADR-0008).
+**Testes existentes afetados:** `DecomposedComponentsTests` (afirma `players-bar`, `status`, `.cell.playable` e o conteúdo de `Home.razor.css` com `.game-container`/`.board`), `GameBoardTimerTests` (afirma `mud-progress-linear`) e `MudBlazorIntegrationTests` (teste do GameBoard da SPEC-0026). São atualizados para os novos seletores/primitivos; mudanças justificadas pela troca de biblioteca e pela remoção do CSS legado (ADR-0008).
 
 ### 7.2 Testes Unitários
 - **UT-01** — Dado `Scoreboard` com "Alice" (X, placar 2) e "Bob" (O, placar 1) e `MyPlayer=X`, então há dois `PlayerCard` com nome, símbolo e placar, e a tag "Você" só no card de Alice.
