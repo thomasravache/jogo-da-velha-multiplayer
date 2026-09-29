@@ -1,0 +1,6 @@
+@code {
+    [Parameter] public IReadOnlyList<PieceType> Pieces { get; set; } = [];
+
+    /// <summary>Cor das peças exibidas (a oposta à de quem capturou).</summary>
+    [Parameter] public PieceColor Color { get; set; }
+}

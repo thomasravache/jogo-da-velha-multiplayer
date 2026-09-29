@@ -1,0 +1,8 @@
+@code {
+    [Parameter] public string Name { get; set; } = "";
+    [Parameter] public PieceColor Color { get; set; }
+    [Parameter] public bool IsMe { get; set; }
+    [Parameter] public bool IsActive { get; set; }
+    [Parameter] public TimeSpan Remaining { get; set; }
+    [Parameter] public IReadOnlyList<PieceType> Captured { get; set; } = [];
+}

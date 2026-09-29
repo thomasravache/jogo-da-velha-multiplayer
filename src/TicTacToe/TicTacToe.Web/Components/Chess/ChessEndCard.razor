@@ -1,0 +1,8 @@
+@code {
+    [Parameter] public ChessResult Result { get; set; } = default!;
+    [Parameter] public string? WinnerName { get; set; }
+
+    /// <summary>Meios-lances jogados.</summary>
+    [Parameter] public int MoveCount { get; set; }
+    [Parameter] public TimeSpan Duration { get; set; }
+}

@@ -1,0 +1,5 @@
+@code {
+    [Parameter] public ChessSession Session { get; set; } = default!;
+    [Parameter] public int MySeat { get; set; }
+    [Parameter] public EventCallback OnBackToLobby { get; set; }
+}
