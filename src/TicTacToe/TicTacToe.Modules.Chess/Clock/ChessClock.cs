@@ -11,19 +11,36 @@ public sealed class ChessClock(TimeControl control, TimeProvider time)
     private DateTimeOffset _startedAt;
     private bool _stopped;
 
-    public PieceColor? Running { get; private set; }
+    private PieceColor? _running;
+    private PieceColor? _flagged;
 
-    public PieceColor? Flagged { get; private set; }
+    public PieceColor? Running
+    {
+        get
+        {
+            Tick();
+            return _running;
+        }
+    }
+
+    public PieceColor? Flagged
+    {
+        get
+        {
+            Tick();
+            return _flagged;
+        }
+    }
 
     public void Press(PieceColor mover)
     {
         Tick();
-        if (_stopped || Flagged is not null)
+        if (_stopped || _flagged is not null)
         {
             return;
         }
 
-        if (Running is null)
+        if (_running is null)
         {
             if (mover != PieceColor.White)
             {
@@ -35,7 +52,7 @@ public sealed class ChessClock(TimeControl control, TimeProvider time)
             return;
         }
 
-        if (Running != mover)
+        if (_running != mover)
         {
             return;
         }
@@ -47,19 +64,19 @@ public sealed class ChessClock(TimeControl control, TimeProvider time)
     public void Stop()
     {
         Tick();
-        if (Running is { } running)
+        if (_running is { } running)
         {
             Set(running, Remaining(running));
         }
 
-        Running = null;
+        _running = null;
         _stopped = true;
     }
 
     public TimeSpan Remaining(PieceColor color)
     {
         var stored = Get(color);
-        if (Running != color)
+        if (_running != color)
         {
             return stored;
         }
@@ -70,14 +87,14 @@ public sealed class ChessClock(TimeControl control, TimeProvider time)
 
     public void Tick()
     {
-        if (Running is not { } running || Remaining(running) > TimeSpan.Zero)
+        if (_running is not { } running || Remaining(running) > TimeSpan.Zero)
         {
             return;
         }
 
         Set(running, TimeSpan.Zero);
-        Flagged = running;
-        Running = null;
+        _flagged = running;
+        _running = null;
     }
 
     private static PieceColor Opponent(PieceColor color) =>
@@ -99,7 +116,7 @@ public sealed class ChessClock(TimeControl control, TimeProvider time)
 
     private void Start(PieceColor color)
     {
-        Running = color;
+        _running = color;
         _startedAt = time.GetUtcNow();
     }
 }
