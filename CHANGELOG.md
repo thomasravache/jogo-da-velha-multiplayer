@@ -9,6 +9,8 @@ Cada entrada cita a spec de origem (`SPEC-NNNN`); gere-as com `spec_graph.py rep
 ## [Unreleased]
 
 ### Added
+- Relógio de xadrez com controles de tempo, incremento e queda de bandeira (SPEC-0051)
+- Regras de partida do xadrez: SAN, resultado por regras e histórico de lances (SPEC-0050)
 - Motor de regras do xadrez (módulo Chess) validado por perft (SPEC-0049)
 - W.O. por desconexão do oponente com tolerância de 15 s e aviso na arena (SPEC-0042)
 - Abandonar partida com confirmação, voltar ao lobby e revanche com aceite do oponente (SPEC-0041)
