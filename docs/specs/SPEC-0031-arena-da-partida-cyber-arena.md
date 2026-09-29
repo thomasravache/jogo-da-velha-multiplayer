@@ -89,7 +89,7 @@ NeonProgress [Parameter] double Value(0–100) · Tone="Success|Warning|Danger" 
 
 Faixas do timer (DefaultTurnTimeSeconds = 15): restante > 50% → Success · > 20% → Warning · senão Danger
 Realce de célula: data-win="true" nas 3 células de WinningLine; animação "win-pulse" (1,5 s)
-Layout: >= lg  [PlayerCard X] [tabuleiro + timer + status] [PlayerCard O]      < lg  [X][O] · status · tabuleiro · timer
+Layout: >= lg  [PlayerCard X] [tabuleiro + timer + status] [PlayerCard O]      < lg  [X][O] · status · timer · tabuleiro
 ```
 
 **Arquivos/módulos afetados:** ver `touches`. `GameSession.cs` ganha `WinningLine` e reutiliza o conjunto de linhas de `CheckWin`.
