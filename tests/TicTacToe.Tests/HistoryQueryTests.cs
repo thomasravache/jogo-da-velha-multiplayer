@@ -200,6 +200,24 @@ public class HistoryQueryTests
         Assert.Empty(mineName.Items); // o próprio nome não é adversário
     }
 
+    [Fact(DisplayName = "SPEC-0038:IT-01 — Curingas do LIKE na busca casam apenas literalmente")]
+    [Trait("Category", "SPEC-0038:IT-01")]
+    public async Task Opponent_ShouldTreatLikeWildcardsLiterally()
+    {
+        var options = HistoryData.NewOptions();
+        var data = HistoryData.TwentyFive(Now);
+        data[0].PlayerOName = "50%_[x]";
+        await HistoryData.Seed(options, data);
+        await using var db = new GameplayDbContext(options);
+        var service = HistoryData.Service(db);
+
+        foreach (var term in new[] { "%", "_", "[x]", "50%_[" })
+        {
+            var page = await service.GetHistoryAsync(HistoryData.Query(opponent: term, pageSize: 100));
+            Assert.True(page.TotalItems is 1, $"'{term}' casou {page.TotalItems} partida(s)");
+        }
+    }
+
     [Fact(DisplayName = "SPEC-0038:IT-01 — Ordenação: recentes, menor duração (nulos por último) e por resultado")]
     [Trait("Category", "SPEC-0038:IT-01")]
     public async Task Sort_ShouldFollowTheContract()
@@ -290,6 +308,7 @@ public class HistoryQueryTests
         Assert.Equal(0, stranger.Total);
     }
 
+    // Smoke sobre EF InMemory: não prova o p95 no SQL Server (o índice de PlayerXId/PlayerOId não é exercitado aqui).
     [Fact(DisplayName = "SPEC-0038:IT-04 — Consulta paginada com 1.000 partidas responde em menos de 200 ms")]
     [Trait("Category", "SPEC-0038:IT-04")]
     public async Task Query_ShouldBeFastWithThousandGames()

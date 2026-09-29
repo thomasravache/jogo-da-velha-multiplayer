@@ -53,10 +53,10 @@ public class HistoryAdvancedUiTests
         return new HistoryPage([item], total, Math.Clamp(q.Page, 1, pageCount), pageCount, new HistoryCounts(25, 10, 10, 5, 5));
     }
 
-    private static BunitContext NewContext(GameResultService service, bool withProfile = true)
+    private static BunitContext NewContext(GameResultService service, bool withProfile = true, InMemoryPlayerStorage? storage = null)
     {
         var ctx = new BunitContext();
-        var storage = new InMemoryPlayerStorage();
+        storage ??= new InMemoryPlayerStorage();
         if (withProfile)
         {
             storage.Data[PlayerIdentityService.StorageKey] = JsonSerializer.Serialize(new { id = HistoryData.Me, nick = "Eu" });
@@ -68,12 +68,12 @@ public class HistoryAdvancedUiTests
         return ctx;
     }
 
-    private static async Task<(BunitContext Ctx, GameplayDbContext Db)> RealContext(IEnumerable<MatchResult> data, bool withProfile = true)
+    private static async Task<(BunitContext Ctx, GameplayDbContext Db)> RealContext(IEnumerable<MatchResult> data, bool withProfile = true, InMemoryPlayerStorage? storage = null)
     {
         var options = HistoryData.NewOptions();
         await HistoryData.Seed(options, data);
         var db = new GameplayDbContext(options);
-        return (NewContext(HistoryData.Service(db), withProfile), db);
+        return (NewContext(HistoryData.Service(db), withProfile, storage), db);
     }
 
     private static IElement Radio(IRenderedComponent<History> cut, string group, string startsWith) =>
@@ -222,6 +222,22 @@ public class HistoryAdvancedUiTests
         Assert.Equal(["—"], Cells(cut, "duracao"));
         Assert.Equal(["—"], Cells(cut, "motivo"));
         Assert.Contains("Vitória de Velho", cut.Find("tbody tr").TextContent);
+    }
+
+    [Fact(DisplayName = "SPEC-0038:UT-06d — Falha inesperada ao carregar a identidade não derruba o circuito: cai no escopo Todos")]
+    [Trait("Category", "SPEC-0038:UT-06")]
+    public async Task IdentityFailure_ShouldFallBackToAllScope()
+    {
+        var storage = new InMemoryPlayerStorage { ThrowException = new NotSupportedException("interop indisponível") };
+        var (ctx, db) = await RealContext([new MatchResult { PlayerXName = "Velho", PlayerOName = "Antigo", WinnerName = "Velho", PlayedAt = Now }], withProfile: false, storage);
+        await using var _ = db;
+        await using var __ = ctx;
+
+        var cut = ctx.Render<History>();
+
+        WaitRows(cut, 1);
+        Assert.Equal("true", Radio(cut, "Escopo", "Todos").GetAttribute("aria-checked"));
+        Assert.Empty(cut.FindAll("[data-stat]"));
     }
 
     [Fact(DisplayName = "SPEC-0038:UT-06b — Escopo pessoal sem partidas mostra estado vazio próprio com 'Jogar agora'")]
