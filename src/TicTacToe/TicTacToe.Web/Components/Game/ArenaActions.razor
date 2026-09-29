@@ -1,0 +1,77 @@
+@if (InProgress)
+{
+    @if (!_confirming)
+    {
+        <button type="button" @ref="_askButton" @onclick="Ask" class="@ButtonCss text-ink-muted">Abandonar</button>
+    }
+    else
+    {
+        <div data-confirm-leave role="group" aria-label="Confirmar abandono" @onkeydown="OnKey" class="flex flex-col items-center gap-3">
+            <p role="alert" class="text-title-sm">Confirmar abandono?</p>
+            <div class="flex gap-3">
+                <button type="button" @ref="_confirmButton" @onclick="Confirm" class="@ButtonCss border-primary text-primary">Confirmar</button>
+                <button type="button" @onclick="Cancel" class="@ButtonCss text-ink-muted">Cancelar</button>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private const string ButtonCss =
+        "min-h-11 rounded-pill border border-stroke bg-surface-high/60 px-5 font-numeric text-label-numeric uppercase transition " +
+        "hover:border-stroke-active focus-visible:outline-2 focus-visible:outline-secondary";
+
+    private bool _confirming;
+    private bool _focusPending;
+    private ElementReference _confirmButton;
+    private ElementReference _askButton;
+    private bool _returnFocus;
+
+    [Parameter] public bool InProgress { get; set; }
+    [Parameter] public EventCallback OnLeave { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        if (!InProgress) _confirming = false;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!_focusPending && !_returnFocus) return;
+
+        var target = _focusPending ? _confirmButton : _askButton;
+        _focusPending = false;
+        _returnFocus = false;
+        try
+        {
+            await target.FocusAsync();
+        }
+        catch (Exception ex) when (ex is JSException or JSDisconnectedException or InvalidOperationException)
+        {
+            // Sem foco automático: a confirmação continua operável por Tab.
+        }
+    }
+
+    private void Ask()
+    {
+        _confirming = true;
+        _focusPending = true;
+    }
+
+    private void Cancel()
+    {
+        _confirming = false;
+        _returnFocus = true;
+    }
+
+    private async Task Confirm()
+    {
+        _confirming = false;
+        await OnLeave.InvokeAsync();
+    }
+
+    private void OnKey(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape") Cancel();
+    }
+}

@@ -59,6 +59,11 @@
     {
         var myName = Game.GetPlayerName(MyPlayer);
 
+        if (Game.Winner != Player.None && Game.EndReason == EndReason.Abandon)
+        {
+            return Game.Winner == MyPlayer ? "Oponente abandonou. Vitória por W.O." : "Você abandonou a partida";
+        }
+
         if (Game.Winner != Player.None)
         {
             return Game.Winner == MyPlayer

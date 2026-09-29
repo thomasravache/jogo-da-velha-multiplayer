@@ -7,6 +7,10 @@ namespace TicTacToe.Modules.Gameplay;
 
 public enum Player { None, X, O }
 
+public enum LeaveResult { Forfeited, Discarded, Left, Rejected }
+
+public enum RematchState { None, Requested, Declined, Expired }
+
 #pragma warning disable CA1720 // nome definido pelo contrato da SPEC-0040
 public enum SeriesFormat { Single = 0, BestOf5 = 1 }
 #pragma warning restore CA1720
@@ -168,6 +172,129 @@ public class GameSession : IDisposable
     public Player RoundStarter => _roundStarter;
     public bool IsMatchPoint(Player player) => !SeriesOver && _format == SeriesFormat.BestOf5 && GetScore(player) == SeriesTarget - 1;
 
+    // Abandono e revanche com aceite (SPEC-0041): estado compartilhado pelos dois circuitos, sob o lock da sessão.
+    private static readonly TimeSpan RematchTimeout = TimeSpan.FromSeconds(30);
+    private readonly HashSet<Player> _left = [];
+    private DateTimeOffset _rematchRequestedAt;
+
+    public RematchState RematchState { get; private set; }
+    public Player? RematchRequestedBy { get; private set; }
+
+    public bool HasLeft(Player player)
+    {
+        lock (_lock) { return _left.Contains(player); }
+    }
+
+    private bool RoundEnded => Winner != Player.None || IsDraw;
+
+    private static Player Other(Player player) => player == Player.X ? Player.O : Player.X;
+
+    private void ClearRematch()
+    {
+        RematchState = RematchState.None;
+        RematchRequestedBy = null;
+    }
+
+    public LeaveResult Leave(Player player)
+    {
+        LeaveResult result;
+        lock (_lock)
+        {
+            if (player == Player.None || !_left.Add(player)) return LeaveResult.Rejected;
+
+            if (RoundEnded)
+            {
+                ClearRematch();
+                result = LeaveResult.Left;
+            }
+            else if (_mode == GameMode.Solo)
+            {
+                _resultRecorded = true; // partida descartada: nada a gravar
+                result = LeaveResult.Discarded;
+            }
+            else
+            {
+                var opponent = Other(player);
+                Winner = opponent;
+                _endedAt = _time.GetUtcNow();
+                _endReason = Gameplay.EndReason.Abandon;
+                _scores[opponent] = GetScore(opponent) + 1;
+                RegisterRoundWon(opponent);
+                if (_format == SeriesFormat.BestOf5)
+                {
+                    SeriesOver = true;
+                    _seriesWinner = opponent;
+                }
+
+                result = LeaveResult.Forfeited;
+            }
+        }
+
+        OnStateChanged?.Invoke();
+        return result;
+    }
+
+    public bool RequestRematch(Player player)
+    {
+        lock (_lock)
+        {
+            if (player == Player.None || _left.Contains(player) || !RoundEnded) return false;
+            if (_format == SeriesFormat.BestOf5 && !SeriesOver) return false; // dentro da série a próxima rodada é imediata (Restart)
+
+            if (_mode == GameMode.Solo)
+            {
+                RestartCore();
+            }
+            else if (_left.Contains(Other(player)))
+            {
+                return false;
+            }
+            else if (RematchState == RematchState.Requested)
+            {
+                if (RematchRequestedBy == player) return false;
+                RestartCore(); // pedidos simultâneos: aceite automático
+            }
+            else
+            {
+                RematchState = RematchState.Requested;
+                RematchRequestedBy = player;
+                _rematchRequestedAt = _time.GetUtcNow();
+            }
+        }
+
+        OnStateChanged?.Invoke();
+        return true;
+    }
+
+    public bool AcceptRematch(Player player)
+    {
+        lock (_lock)
+        {
+            if (!CanAnswerRematch(player)) return false;
+            RestartCore();
+        }
+
+        OnStateChanged?.Invoke();
+        return true;
+    }
+
+    public bool DeclineRematch(Player player)
+    {
+        lock (_lock)
+        {
+            if (!CanAnswerRematch(player)) return false;
+            RematchState = RematchState.Declined;
+        }
+
+        OnStateChanged?.Invoke();
+        return true;
+    }
+
+    // Chamado com o lock adquirido: só quem recebeu o pedido responde, com os dois ainda na partida.
+    private bool CanAnswerRematch(Player player) =>
+        RematchState == RematchState.Requested && RematchRequestedBy is { } requester && requester != player
+        && player != Player.None && RoundEnded && !_left.Contains(player) && !_left.Contains(requester);
+
     public void SetPlayerName(Player player, string name) =>
         _playerNames[player] = name;
 
@@ -191,14 +318,26 @@ public class GameSession : IDisposable
 
     public void Tick()
     {
+        var changed = false;
+        var skipTick = false;
         lock (_lock)
         {
-            if (Winner != Player.None || IsDraw || RemainingSeconds <= 0)
-                return;
+            if (RematchState == RematchState.Requested && _time.GetUtcNow() - _rematchRequestedAt >= RematchTimeout)
+            {
+                RematchState = RematchState.Expired;
+                changed = true;
+            }
 
-            RemainingSeconds--;
+            if (Winner != Player.None || IsDraw || RemainingSeconds <= 0 || _left.Count > 0)
+            {
+                skipTick = true;
+            }
+            else
+            {
+                RemainingSeconds--;
+            }
 
-            if (RemainingSeconds <= 0)
+            if (!skipTick && RemainingSeconds <= 0)
             {
                 IsTimedOut = true;
                 _endedAt = _time.GetUtcNow();
@@ -209,35 +348,45 @@ public class GameSession : IDisposable
             }
         }
 
-        OnStateChanged?.Invoke();
+        if (!skipTick || changed) OnStateChanged?.Invoke();
     }
 
     public void Restart()
     {
         lock (_lock)
         {
-            if (_format == SeriesFormat.BestOf5)
-            {
-                if (SeriesOver)
-                {
-                    // Série encerrada: nova série com placar zerado, novo id e X abrindo.
-                    _scores.Clear();
-                    RoundsDecided = 0;
-                    SeriesOver = false;
-                    _seriesWinner = Player.None;
-                    _seriesId = Guid.NewGuid();
-                }
-                else if (Winner == Player.None && !IsDraw)
-                {
-                    return; // rodada em andamento: nada a fazer
-                }
+            if (!RestartCore()) return;
+        }
 
-                _roundStarter = RoundsDecided % 2 == 0 ? Player.X : Player.O;
+        OnStateChanged?.Invoke();
+    }
+
+    // Chamado com o lock adquirido; falso quando não há o que reiniciar (rodada em andamento numa série).
+    private bool RestartCore()
+    {
+        if (_left.Count > 0) return false; // alguém saiu: não há com quem jogar
+
+        if (_format == SeriesFormat.BestOf5)
+        {
+            if (SeriesOver)
+            {
+                // Série encerrada: nova série com placar zerado, novo id e X abrindo.
+                _scores.Clear();
+                RoundsDecided = 0;
+                SeriesOver = false;
+                _seriesWinner = Player.None;
+                _seriesId = Guid.NewGuid();
+            }
+            else if (Winner == Player.None && !IsDraw)
+            {
+                return false;
             }
 
-            ResetRound();
+            _roundStarter = RoundsDecided % 2 == 0 ? Player.X : Player.O;
         }
-        OnStateChanged?.Invoke();
+
+        ResetRound();
+        return true;
     }
 
     // Chamado com o lock adquirido: reinicia o tabuleiro da rodada.
@@ -254,6 +403,7 @@ public class GameSession : IDisposable
         IsTimedOut = false;
         CurrentTurn = _format == SeriesFormat.BestOf5 ? _roundStarter : Player.X;
         RemainingSeconds = DefaultTurnTimeSeconds;
+        ClearRematch();
     }
 
     // Chamado com o lock adquirido, após somar o ponto da rodada.

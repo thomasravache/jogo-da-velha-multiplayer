@@ -4,7 +4,7 @@ title: Abandonar partida e pedir revanche
 tier: full
 type: feature
 user_facing: true
-status: approved
+status: in-progress
 created: 2026-09-29
 parent: SPEC-0035
 depends_on: [SPEC-0044, SPEC-0045]
@@ -202,10 +202,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | Gate | Status | Evidência | Data |
 |---|---|---|---|
 | G0 Spec | PASS | `spec_graph.py validate` das 18 specs: 0 erros, 0 avisos | 2026-09-29 |
-| G1 Red | PENDING | | |
-| G2 Green | PENDING | | |
-| G3 Arquitetura | PENDING | | |
-| G4 Review | PENDING | | |
+| G1 Red | PASS | verify SPEC-0041: Red antes do Green, testes do plano rastreados | 2026-09-29 |
+| G2 Green | PASS | dotnet test 309/309 local; format e tailwind --check limpos; verify PASS | 2026-09-29 |
+| G3 Arquitetura | N/A | sem suíte Category=Architecture | 2026-09-29 |
+| G4 Review | PASS | Review independente (subagente): FAIL condicional a M1 (evento dentro do lock no Tick) e M2 (reinício com oponente ausente numa série); ambos corrigidos com testes, mais menores (try/finally no abandono, foco ao cancelar, wrapper vazio, região aria-live sempre presente, TryRemove antes do Dispose). Restam: Restart público sem consentimento (só a UI protege), sessão vaza se quem ficou fecha a aba (SPEC-0042), teste de aceites realmente concorrentes já coberto por Parallel.Invoke | 2026-09-29 |
 | G5 Integração & CI | PENDING | | |
 | H2 Integração aprovada | PENDING | | |
 | G6 Deploy | PENDING | | |

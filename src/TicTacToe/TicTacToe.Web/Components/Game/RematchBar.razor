@@ -1,21 +1,70 @@
+@using TicTacToe.Modules.Gameplay
 @using TicTacToe.Web.Components.Ui
-@if (Finished)
-{
-    <div class="col-span-2 flex justify-center lg:col-span-1 lg:col-start-2 lg:row-start-3">
-        <PillButton Size="PillSize.Lg" Icon="refresh" OnClick="OnRematch">@Label</PillButton>
-    </div>
-}
+<div aria-live="polite" class="@(Finished ? "col-span-2 flex flex-col items-center gap-3 text-center lg:col-span-1 lg:col-start-2 lg:row-start-3" : "sr-only")">
+    @if (Finished)
+    {
+        @if (OpponentLeft && !Consent)
+        {
+            <p class="text-body-md text-ink-muted">Oponente saiu da partida</p>
+        }
+        else if (!Consent)
+        {
+            <PillButton Size="PillSize.Lg" Icon="refresh" OnClick="OnRematch">@Label</PillButton>
+        }
+        else
+        {
+            @if (Message is { } message)
+            {
+                <p class="text-body-md text-ink-muted">@message</p>
+            }
+
+            @if (State == RematchState.Requested && !RequestedByMe && !OpponentLeft)
+            {
+                <div class="flex gap-3">
+                    <PillButton Icon="check" OnClick="OnAccept">Aceitar</PillButton>
+                    <PillButton Variant="PillVariant.Outline" Icon="close" OnClick="OnDecline">Recusar</PillButton>
+                </div>
+            }
+            else if (State != RematchState.Requested && !OpponentLeft)
+            {
+                <PillButton Size="PillSize.Lg" Icon="refresh" OnClick="OnRequest">Pedir revanche</PillButton>
+            }
+        }
+
+        @if (OnBackToLobby.HasDelegate)
+        {
+            <PillButton Variant="PillVariant.Outline" Icon="play" OnClick="OnBackToLobby">Voltar ao lobby</PillButton>
+        }
+    }
+</div>
 
 @code {
     public enum RematchKind { Rematch, NextRound, NewSeries }
 
     [Parameter] public RematchKind Kind { get; set; } = RematchKind.Rematch;
+    [Parameter] public bool Consent { get; set; }
+    [Parameter] public RematchState State { get; set; }
+    [Parameter] public bool RequestedByMe { get; set; }
+    [Parameter] public string? RequesterName { get; set; }
+    [Parameter] public bool OpponentLeft { get; set; }
+    [Parameter] public EventCallback OnRequest { get; set; }
+    [Parameter] public EventCallback OnAccept { get; set; }
+    [Parameter] public EventCallback OnDecline { get; set; }
+    [Parameter] public EventCallback OnBackToLobby { get; set; }
+
     private string Label => Kind switch
     {
         RematchKind.NextRound => "Próxima rodada",
         RematchKind.NewSeries => "Nova série",
         _ => "Jogar novamente",
     };
+
+    private string? Message =>
+        OpponentLeft ? "Oponente saiu da partida"
+        : State == RematchState.Requested ? (RequestedByMe ? "Aguardando resposta…" : $"{RequesterName} pediu revanche")
+        : State == RematchState.Declined ? "Oponente recusou a revanche"
+        : State == RematchState.Expired ? "O pedido de revanche expirou"
+        : null;
 
     [Parameter] public bool Finished { get; set; }
     [Parameter] public EventCallback OnRematch { get; set; }
