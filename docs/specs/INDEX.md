@@ -4,19 +4,18 @@
 
 ## Saúde
 
-- Validação (G0): **0 erro(s), 0 aviso(s)**
-- Specs: approved 8, in-progress 1, implemented 30
+- Validação (G0): **0 erro(s), 1 aviso(s)** — rode `spec_graph.py validate`
+- Specs: approved 8, implemented 31
 - Impedimentos: **0 aberto(s)**, 0 resolvido(s)
 
 ## Plano de Execução
 
-**Em andamento:** SPEC-0034  
+**Em andamento:** —  
 **Paradas por impedimento:** —  
 **Próximo lote:** SPEC-0036
 
 | Onda | Spec | Título | Tier/Tam. | Status | Prontidão | Observação |
 |---|---|---|---|---|---|---|
-| 1 | SPEC-0034 | Remoção do MudBlazor e do Bootstrap | full/M | in-progress | 🔄 em andamento |  |
 | 1 | SPEC-0036 | Persistência enriquecida de partidas | full/M | approved | ✅ pronta |  |
 | 2 | SPEC-0037 | Identidade anônima do jogador | full/M | approved | ⛔ aguarda implementação de SPEC-0036 |  |
 | 3 | SPEC-0038 | Histórico avançado | full/M | approved | ⛔ aguarda implementação de SPEC-0036; aguarda implementação de SPEC-0037 |  |
@@ -34,7 +33,7 @@
 | SPEC-0005 | Jogo da Velha | implemented | 3/3 implementadas |
 | SPEC-0013 | Evolução do Jogo da Velha | implemented | 6/6 implementadas |
 | SPEC-0021 | Engenharia de Qualidade e Refatoração Arquitetural | implemented | 4/4 implementadas |
-| SPEC-0028 | Redesign Cyber Arena — migração da UI para Tailwind (Fase 1 visual) | approved | 6/7 implementadas |
+| SPEC-0028 | Redesign Cyber Arena — migração da UI para Tailwind (Fase 1 visual) | approved | 7/7 implementadas |
 | SPEC-0035 | Evolução funcional a partir do Stitch (Fase 2) | approved | 1/9 implementadas |
 
 ## Grafo de Dependências
@@ -48,7 +47,6 @@ flowchart LR
     S0031["SPEC-0031<br/>Arena da partida Cyber Arena"]:::implemented
     S0032["SPEC-0032<br/>Histórico de partidas Cyber Arena"]:::implemented
     S0033["SPEC-0033<br/>Ranking Cyber Arena"]:::implemented
-    S0034["SPEC-0034<br/>Remoção do MudBlazor e do Bootstrap"]:::inprogress
   end
   subgraph E0035["SPEC-0035 · Evolução funcional a partir do Stitch (Fase 2)"]
     S0036["SPEC-0036<br/>Persistência enriquecida de partidas"]:::approved
@@ -61,10 +59,6 @@ flowchart LR
     S0044["SPEC-0044<br/>Série melhor de 5: interface no lobby e…"]:::approved
     S0045["SPEC-0045<br/>Gravação única do resultado da partida"]:::implemented
   end
-  S0030 --> S0034
-  S0031 --> S0034
-  S0032 --> S0034
-  S0033 --> S0034
   S0031 --> S0036
   S0045 --> S0036
   S0036 --> S0037
@@ -125,7 +119,7 @@ flowchart LR
 | [SPEC-0031](SPEC-0031-arena-da-partida-cyber-arena.md) | Arena da partida Cyber Arena | full | feature | implemented | 2026-09-29 | SPEC-0028 | SPEC-0043 | — |
 | [SPEC-0032](SPEC-0032-historico-de-partidas-cyber-arena.md) | Histórico de partidas Cyber Arena | full | feature | implemented | 2026-09-29 | SPEC-0028 | SPEC-0043 | — |
 | [SPEC-0033](SPEC-0033-ranking-cyber-arena.md) | Ranking Cyber Arena | full | feature | implemented | 2026-09-29 | SPEC-0028 | SPEC-0043 | — |
-| [SPEC-0034](SPEC-0034-remocao-do-mudblazor-e-do-bootstrap.md) | Remoção do MudBlazor e do Bootstrap | full | migration | in-progress | 2026-09-29 | SPEC-0028 | SPEC-0030, SPEC-0031, SPEC-0032, SPEC-0033 | — |
+| [SPEC-0034](SPEC-0034-remocao-do-mudblazor-e-do-bootstrap.md) | Remoção do MudBlazor e do Bootstrap | full | migration | implemented | 2026-09-29 | SPEC-0028 | SPEC-0030, SPEC-0031, SPEC-0032, SPEC-0033 | — |
 | [SPEC-0035](SPEC-0035-evolucao-funcional-a-partir-do-stitch-fase-2.md) | Evolução funcional a partir do Stitch (Fase 2) | epic | feature | approved | 2026-09-29 | — | — | — |
 | [SPEC-0036](SPEC-0036-persistencia-enriquecida-de-partidas.md) | Persistência enriquecida de partidas | full | feature | approved | 2026-09-29 | SPEC-0035 | SPEC-0031, SPEC-0045 | — |
 | [SPEC-0037](SPEC-0037-identidade-anonima-do-jogador.md) | Identidade anônima do jogador | full | feature | approved | 2026-09-29 | SPEC-0035 | SPEC-0036 | — |
