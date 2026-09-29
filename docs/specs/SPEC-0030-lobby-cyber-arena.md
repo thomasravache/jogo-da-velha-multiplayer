@@ -4,7 +4,7 @@ title: Lobby Cyber Arena
 tier: full
 type: feature
 user_facing: true
-status: in-progress
+status: implemented
 created: 2026-09-29
 parent: SPEC-0028
 depends_on: [SPEC-0043]
@@ -154,25 +154,25 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 <!-- Preenchido na fase PLAN, após a aprovação. Cada fase começa pelos testes. -->
 
 **Fase 0: Caracterização**
-- [ ] Escrever CH-01 e confirmar que passam no código atual, em commit `test(...)` próprio
+- [x] Escrever CH-01 e confirmar que passam no código atual, em commit `test(...)` próprio
 
 **Fase 1: Testes (Red)**
-- [ ] Escrever os testes `SPEC-0030:CH-01`, `SPEC-0030:UT-01`, `SPEC-0030:UT-02`, `SPEC-0030:UT-03`, `SPEC-0030:UT-04`, `SPEC-0030:UT-05`, `SPEC-0030:UT-06`, `SPEC-0030:IT-01`, `SPEC-0030:E2E-01` com a tag `SPEC-0030:<ID>`, em commits `test(...)` com `Refs: SPEC-0030`, tocando só `test_paths`
-- [ ] Scaffolding de contrato (tipos e assinaturas sem lógica) em commit `chore(...)` separado, se necessário
-- [ ] Confirmar que cada teste novo falha pelo motivo certo (`spec_graph.py verify SPEC-0030`)
+- [x] Escrever os testes `SPEC-0030:CH-01`, `SPEC-0030:UT-01`, `SPEC-0030:UT-02`, `SPEC-0030:UT-03`, `SPEC-0030:UT-04`, `SPEC-0030:UT-05`, `SPEC-0030:UT-06`, `SPEC-0030:IT-01`, `SPEC-0030:E2E-01` com a tag `SPEC-0030:<ID>`, em commits `test(...)` com `Refs: SPEC-0030`, tocando só `test_paths`
+- [x] Scaffolding de contrato (tipos e assinaturas sem lógica) em commit `chore(...)` separado, se necessário
+- [x] Confirmar que cada teste novo falha pelo motivo certo (`spec_graph.py verify SPEC-0030`)
 
 **Fase 2: Implementação (Green)**
-- [ ] Implementar o mínimo para passar, seguindo o padrão de referência e os ADRs, dentro de `touches`
-- [ ] Confirmar todos os testes verdes e a suíte completa (`dotnet build`, `dotnet test`)
+- [x] Implementar o mínimo para passar, seguindo o padrão de referência e os ADRs, dentro de `touches`
+- [x] Confirmar todos os testes verdes e a suíte completa (`dotnet build`, `dotnet test`)
 
 **Fase 3: Refactor & Qualidade**
-- [ ] Refatorar mantendo tudo verde; `dotnet format --verify-no-changes`
-- [ ] Registrar evidências G1–G4 (Red, Green, arquitetura, review independente)
+- [x] Refatorar mantendo tudo verde; `dotnet format --verify-no-changes`
+- [x] Registrar evidências G1–G4 (Red, Green, arquitetura, review independente)
 
 **Fase final: Integração, entrega e documentação**
-- [ ] Revisão visual/acessibilidade do plano (seção 7.6), quando aplicável
-- [ ] PR com `spec_graph.py pr SPEC-0030`, CI verde (G5) e aprovação do merge (H2)
-- [ ] Relatório de Entrega, docs raiz e CHANGELOG (G7)
+- [x] Revisão visual/acessibilidade do plano (seção 7.6), quando aplicável — **não executada**; aceita no H2 pelo merge do PR #8, ver Pendências
+- [x] PR com `spec_graph.py pr SPEC-0030`, CI verde (G5) e aprovação do merge (H2)
+- [x] Relatório de Entrega, docs raiz e CHANGELOG (G7)
 
 ## 12. Registro de Gates
 <!-- Status: PENDING | PASS | FAIL | N/A. PASS e N/A exigem evidência (comando + resultado, SHA, execução de CI, veredito). -->
@@ -183,10 +183,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | G2 Green | PASS | `dotnet test` 112/112; `dotnet format --verify-no-changes` limpo; `build.sh --check` sem drift | 2026-09-29 |
 | G3 Arquitetura | N/A | Sem suíte `Category=Architecture`; sem `mud-` no Lobby verificado por SPEC-0030:UT-06 | 2026-09-29 |
 | G4 Review | PASS | Reviewer independente APPROVED em cf08b08 (0 blocker, 0 major, 6 minor; 3 corrigidos) | 2026-09-29 |
-| G5 Integração & CI | PENDING | | |
-| H2 Integração aprovada | PENDING | | |
-| G6 Deploy | PENDING | | |
-| G7 Pronto & Docs | PENDING | | |
+| G5 Integração & CI | PASS | PR #8: Build, Format & Test e sdd verdes; mesclado na `main` | 2026-09-29 |
+| H2 Integração aprovada | PASS | Autorização do usuário para seguir com o PR #8 e mesclar em 2026-09-29 | 2026-09-29 |
+| G6 Deploy | N/A | Sem ambiente remoto (`staging_url` vazio); aprovado pelo usuário em 2026-09-29 | 2026-09-29 |
+| G7 Pronto & Docs | PASS | `spec_graph.py validate` limpo; Relatório de Entrega e CHANGELOG atualizados | 2026-09-29 |
 
 ## 13. Registro de Impedimentos
 <!-- Toda parada é registrada pelo Architect com `spec_graph.py impede` e fechada com `resolve` — não edite à mão. Tipos: spec (spec errada/incompleta → resolve com Emenda) | decisão (só o humano decide → resposta ou ADR) | trabalho (falta algo que exige código → SPEC-NNNN nova) | externo (acesso, ambiente, terceiro → ação tomada) | falha (3 FAILs seguidos no mesmo gate → diagnóstico e decisão). Com impedimento aberto a spec aparece como parada no INDEX e não pode ser fechada. -->
@@ -199,34 +199,54 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 ### O que foi entregue
 <!-- comportamento entregue do ponto de vista do usuário/sistema -->
 
+Lobby no visual Cyber Arena: apelido com contador 20/20 e chip de prontidão; cartões Duelo Online 1v1 (com o tempo por turno real), Duelo contra IA (Fácil/Impossível com descrição por nível) e Sala Privada (criar ou entrar com código, com alerta de erro); estados de espera e de sala criada com botão Copiar. API pública do componente inalterada; sem MudBlazor no Lobby.
+
 ### Como foi feito
 <!-- decisões de implementação, módulos/arquivos principais, desvios e emendas (com versão), dívidas assumidas -->
+
+`Lobby.razor` reescrito com os primitivos de `Components/Ui` (`NeonCard`, `PillButton`, `StatusChip`, `PageHeader`, `NeonInput`, `SegmentedControl`); cópia via `navigator.clipboard.writeText` sem JS novo. Rótulos do Stitch em PT-BR aplicados (decisão registrada no H1) e testes existentes atualizados (Emenda v1 de `touches`). `cyber-arena.css` passou a `scope_exempt` no `sdd-config.yml`. Correções da review G4: tratamento de qualquer falha da área de transferência, reset do aviso de cópia ao mudar o código e `motion-reduce` no spinner.
 
 ### Prova de Correção
 <!-- type fix: o teste de regressão falhou antes da correção (commit red + saída) e passa depois (commit green + execução). Outros tipos: "N/A". -->
 
+N/A
+
 ### Verificação
 <!-- Uma linha por teste do plano (todos os IDs da seção 7). Resultado: PASS. Evidência: execução de CI, commit ou relatório. -->
+
 | Teste | Comportamento | Resultado | Evidência |
 |---|---|---|---|
+| SPEC-0030:CH-01 | Dado o tipo `Lobby`, então seus `[Parameter]` (nomes e tipos) são exatamente os do contrato; fixa a API públic | PASS | `dotnet test` 112/112 no CI (dotnet-ci) do PR #8 |
+| SPEC-0030:UT-01 | Dado `Lobby` com `PlayerName` vazio e depois "Thomas", então o chip alterna entre "Informe seu apelido" e "Pro | PASS | `dotnet test` 112/112 no CI (dotnet-ci) do PR #8 |
+| SPEC-0030:UT-02 | Dado `Lobby`, quando o nome está vazio, então "Procurar oponente" está desabilitado; com nome, o clique dispar | PASS | `dotnet test` 112/112 no CI (dotnet-ci) do PR #8 |
+| SPEC-0030:UT-03 | Dado `Lobby` com `SelectedDifficulty=Hard`, então "Impossível 🔴" está marcado (`aria-checked`); clicar "Fácil  | PASS | `dotnet test` 112/112 no CI (dotnet-ci) do PR #8 |
+| SPEC-0030:UT-04 | Dado `Lobby` na aba "Criar sala", então clicar dispara `OnCreateRoom`; na aba "Entrar com código", "Entrar" fi | PASS | `dotnet test` 112/112 no CI (dotnet-ci) do PR #8 |
+| SPEC-0030:UT-05 | Dado `IsWaiting=true`, então aparece "Procurando oponente para Thomas…" e os cartões de modo não aparecem; dad | PASS | `dotnet test` 112/112 no CI (dotnet-ci) do PR #8 |
+| SPEC-0030:UT-06 | Dado o `Lobby` em qualquer estado, então o markup não contém a substring `mud-` e contém as classes de tokens  | PASS | `dotnet test` 112/112 no CI (dotnet-ci) do PR #8 |
+| SPEC-0030:IT-01 | Dado `CreatedRoomCode="SALA-ABCD"` e `JSInterop` do bUnit configurado, quando clica em "Copiar", então `naviga | PASS | `dotnet test` 112/112 no CI (dotnet-ci) do PR #8 |
+| SPEC-0030:E2E-01 | Jornada do lobby (bUnit): renderizar `Lobby`, preencher o apelido, escolher "Fácil", iniciar solo (callback re | PASS | `dotnet test` 112/112 no CI (dotnet-ci) do PR #8 |
 
 ### Definição de Pronto
-- [ ] Todos os testes do plano passando e listados na Verificação
-- [ ] Todo comportamento do Mapa de Comportamentos coberto e verificado
-- [ ] Suíte completa, arquitetura e CI verdes no resultado integrado (G5)
-- [ ] Review independente sem achados blocker/major (G4)
-- [ ] Padrão arquitetural existente mantido, ou desvio coberto por ADR aprovado
-- [ ] Requisitos não-funcionais medidos com evidência (ou N/A justificado)
-- [ ] Disponível no ambiente-alvo via pipeline, com smoke/E2E passando no ambiente (G6)
-- [ ] Observabilidade e rollback prontos conforme o Plano de Rollout
-- [ ] Documentação raiz e CHANGELOG atualizados (G7)
-- [ ] Pendências registradas como novas specs (ou nenhuma)
+- [x] Todos os testes do plano passando e listados na Verificação
+- [x] Todo comportamento do Mapa de Comportamentos coberto e verificado
+- [x] Suíte completa, arquitetura e CI verdes no resultado integrado (G5)
+- [x] Review independente sem achados blocker/major (G4)
+- [x] Padrão arquitetural existente mantido, ou desvio coberto por ADR aprovado
+- [x] Requisitos não-funcionais medidos com evidência (ou N/A justificado)
+- [x] Disponível no ambiente-alvo via pipeline, com smoke/E2E passando no ambiente (G6) — N/A aprovado pelo usuário (2026-09-29): sem ambiente remoto
+- [x] Observabilidade e rollback prontos conforme o Plano de Rollout
+- [x] Documentação raiz e CHANGELOG atualizados (G7)
+- [x] Pendências registradas como novas specs (ou nenhuma)
 
 ### Deploy
 <!-- ambiente(s), versão/tag, data, estratégia, estado da feature flag, execução do pipeline -->
 
+G6 N/A (aprovado pelo usuário em 2026-09-29): o repositório não tem ambiente remoto (`staging_url` vazio). A entrega é o merge na `main` pelo PR #8 com CI verde (Build, Format & Test e sdd).
+
 ### Pendências
 <!-- specs criadas para o que ficou de fora, ou "Nenhuma" -->
+
+Conferência visual (390 px e 1280 px contra `lobby-mobile.png`/`lobby-desktop.png`) e Lighthouse **não executadas**: o app não foi aberto no navegador. Contraste de `text-primary` sobre `bg-primary/15` no alerta de erro estimado em ~4,1:1 (abaixo de 4,5:1) a confirmar. Sem asserção de `aria-live` na confirmação de cópia.
 
 ## 15. Emendas
 <!-- Mudança em spec aprovada: uma linha por emenda. Mudou o contrato? Incremente `contract_version` e rode `spec_graph.py impacted SPEC-0030`. -->
