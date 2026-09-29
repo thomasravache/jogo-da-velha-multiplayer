@@ -169,6 +169,27 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 ## 11. Checklist de Implementação
 <!-- Preenchido na fase PLAN, após a aprovação. Cada fase começa pelos testes. -->
 
+**Fase 0: Caracterização**
+- [ ] Escrever CH-01 e confirmar que passam no código atual, em commit `test(...)` próprio
+
+**Fase 1: Testes (Red)**
+- [ ] Escrever os testes `SPEC-0031:CH-01`, `SPEC-0031:UT-01`, `SPEC-0031:UT-02`, `SPEC-0031:UT-03`, `SPEC-0031:UT-04`, `SPEC-0031:UT-05`, `SPEC-0031:UT-06`, `SPEC-0031:UT-07`, `SPEC-0031:UT-08`, `SPEC-0031:UT-09`, `SPEC-0031:UT-10`, `SPEC-0031:UT-11`, `SPEC-0031:UT-12`, `SPEC-0031:IT-01`, `SPEC-0031:E2E-01` com a tag `SPEC-0031:<ID>`, em commits `test(...)` com `Refs: SPEC-0031`, tocando só `test_paths`
+- [ ] Scaffolding de contrato (tipos e assinaturas sem lógica) em commit `chore(...)` separado, se necessário
+- [ ] Confirmar que cada teste novo falha pelo motivo certo (`spec_graph.py verify SPEC-0031`)
+
+**Fase 2: Implementação (Green)**
+- [ ] Implementar o mínimo para passar, seguindo o padrão de referência e os ADRs, dentro de `touches`
+- [ ] Confirmar todos os testes verdes e a suíte completa (`dotnet build`, `dotnet test`)
+
+**Fase 3: Refactor & Qualidade**
+- [ ] Refatorar mantendo tudo verde; `dotnet format --verify-no-changes`
+- [ ] Registrar evidências G1–G4 (Red, Green, arquitetura, review independente)
+
+**Fase final: Integração, entrega e documentação**
+- [ ] Revisão visual/acessibilidade do plano (seção 7.6), quando aplicável
+- [ ] PR com `spec_graph.py pr SPEC-0031`, CI verde (G5) e aprovação do merge (H2)
+- [ ] Relatório de Entrega, docs raiz e CHANGELOG (G7)
+
 ## 12. Registro de Gates
 <!-- Status: PENDING | PASS | FAIL | N/A. PASS e N/A exigem evidência (comando + resultado, SHA, execução de CI, veredito). -->
 | Gate | Status | Evidência | Data |
