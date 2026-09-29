@@ -176,7 +176,7 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente após o humano 
 | G2 Green | PASS | dotnet test — 68/68 passando | 2026-09-29 |
 | G3 Arquitetura | PASS | Modular Monolith e IDisposable mantidos | 2026-09-29 |
 | G4 Review | PASS | Mudanças isoladas dentro de touches | 2026-09-29 |
-| G5 Integração & CI | PENDING | | |
+| G5 Integração & CI | PASS | GitHub Actions PR #1: dotnet-ci e sdd verdes | 2026-09-29 |
 | H2 Integração aprovada | PENDING | | |
 | G6 Deploy | PENDING | | |
 | G7 Pronto & Docs | PENDING | | |
