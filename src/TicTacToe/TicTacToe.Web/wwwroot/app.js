@@ -1,5 +1,5 @@
 window.triggerConfetti = function () {
-    const colors = ['#e74c3c', '#3498db', '#f1c40f', '#2ecc71', '#9b59b6', '#e67e22'];
+    const colors = ['#ff4757', '#00d2d3', '#f39c12', '#10b981'];
     const container = document.createElement('div');
     container.style.position = 'fixed';
     container.style.top = '0';

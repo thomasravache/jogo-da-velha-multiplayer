@@ -1,52 +1,44 @@
+@using TicTacToe.Web.Components.Ui
 @using TicTacToe.Modules.Gameplay
 
 @if (Game != null)
 {
-    var currentName = Game.GetPlayerName(Game.CurrentTurn);
-    var myName = Game.GetPlayerName(MyPlayer);
+    var running = Game.Winner == Player.None && !Game.IsDraw;
 
-    <div class="players-bar">
-        <span class="player-tag x @(MyPlayer == Player.X ? "me" : "")">
-            ✕ @Game.GetPlayerName(Player.X) <span class="score-badge">@Game.GetScore(Player.X)</span>
-        </span>
-        <span class="vs">vs</span>
-        <span class="player-tag o @(MyPlayer == Player.O ? "me" : "")">
-            ◯ @Game.GetPlayerName(Player.O) <span class="score-badge">@Game.GetScore(Player.O)</span>
-        </span>
-    </div>
+    <div class="contents">
+        <PlayerCard Player="Player.X" Name="@Game.GetPlayerName(Player.X)" Score="@Game.GetScore(Player.X)"
+                    IsMe="@(MyPlayer == Player.X)" IsActive="@(running && Game.CurrentTurn == Player.X)"
+                    Class="lg:col-start-1 lg:row-start-2" />
+        <PlayerCard Player="Player.O" Name="@Game.GetPlayerName(Player.O)" Score="@Game.GetScore(Player.O)"
+                    IsMe="@(MyPlayer == Player.O)" IsActive="@(running && Game.CurrentTurn == Player.O)"
+                    Class="lg:col-start-3 lg:row-start-2" />
 
-    <div class="status">
-        @if (Game.Winner != Player.None)
-        {
-            var winnerName = Game.GetPlayerName(Game.Winner);
-            if (Game.Winner == MyPlayer)
-            {
-                <strong class="win">Você venceu, @myName! 🎉</strong>
-            }
-            else
-            {
-                <strong class="lose">@winnerName venceu! 😅</strong>
-            }
-        }
-        else if (Game.IsDraw)
-        {
-            <strong>Deu velha! 🤝</strong>
-        }
-        else
-        {
-            @if (Game.CurrentTurn == MyPlayer)
-            {
-                <span class="my-turn">Sua vez, <strong>@myName</strong>!</span>
-            }
-            else
-            {
-                <span>Vez de <strong>@currentName</strong>...</span>
-            }
-        }
+        <p aria-live="polite" class="col-span-2 text-center text-title-sm lg:col-span-1 lg:col-start-2 lg:row-start-1">@StatusText()</p>
     </div>
 }
 
 @code {
     [Parameter] public GameSession Game { get; set; } = default!;
     [Parameter] public Player MyPlayer { get; set; }
+
+    private string StatusText()
+    {
+        var myName = Game.GetPlayerName(MyPlayer);
+
+        if (Game.Winner != Player.None)
+        {
+            return Game.Winner == MyPlayer
+                ? $"Você venceu, {myName}! 🎉"
+                : $"{Game.GetPlayerName(Game.Winner)} venceu! 😅";
+        }
+
+        if (Game.IsDraw)
+        {
+            return "Deu velha! 🤝";
+        }
+
+        return Game.CurrentTurn == MyPlayer
+            ? $"Sua vez, {myName}!"
+            : $"Vez de {Game.GetPlayerName(Game.CurrentTurn)}…";
+    }
 }

@@ -1,45 +1,64 @@
-@using MudBlazor
 @using TicTacToe.Modules.Gameplay
+@using TicTacToe.Web.Components.Ui
 
 @if (Game != null)
 {
-    <div class="timer-container mb-3 d-flex flex-column align-center w-100">
+    <div class="col-span-2 flex flex-col items-center gap-4 lg:col-span-1 lg:col-start-2 lg:row-start-2">
         @if (Game.Winner != Player.None && Game.IsTimedOut)
         {
-            <MudAlert Severity="Severity.Warning" Variant="Variant.Filled" Dense="true" Class="mb-2">
-                Tempo esgotado! Vitória por W.O. para @Game.GetPlayerName(Game.Winner)! ⏱️
-            </MudAlert>
+            <p role="alert" class="w-full rounded-cell bg-warning/15 px-4 py-2 text-center text-body-md text-warning">
+                Tempo esgotado! Vitória por W.O. para @Game.GetPlayerName(Game.Winner) ⏱️
+            </p>
         }
         else if (Game.Winner == Player.None && !Game.IsDraw)
         {
-            <div class="d-flex align-center justify-space-between w-100 px-2 mb-1" style="max-width: 320px;">
-                <MudText Typo="Typo.caption" Color="Color.Secondary">Tempo de jogada</MudText>
-                <MudChip T="string"
-                         Size="Size.Small"
-                         Variant="Variant.Filled"
-                         Color="@GetTimerColor()"
-                         Icon="@Icons.Material.Filled.Timer">
-                    @($"{Game.RemainingSeconds}s")
-                </MudChip>
+            <div class="flex w-full max-w-[var(--size-board-desktop)] flex-col gap-1">
+                <NeonProgress Value="@TimerPercent" Tone="@TimerTone" Label="@($"{Game.RemainingSeconds:00}s restantes")" />
+                <p class="text-center text-body-md text-ink-muted">Jogada fora do tempo = vitória do oponente por W.O.</p>
             </div>
-            <MudProgressLinear Color="@GetTimerColor()"
-                               Value="@((double)Game.RemainingSeconds / GameSession.DefaultTurnTimeSeconds * 100)"
-                               Class="rounded-pill my-1"
-                               Style="max-width: 320px;" />
         }
-    </div>
 
-    <div class="board">
-        @for (int i = 0; i < 9; i++)
-        {
-            var index = i;
-            var cell = Game.Board[index];
-            var canPlay = Game.Winner == Player.None && !Game.IsDraw && Game.CurrentTurn == MyPlayer && cell == Player.None;
-            <div class="cell @(cell.ToString().ToLower()) @(canPlay ? "playable" : "")"
-                 @onclick="() => HandleCellClick(index)">
-                @(cell == Player.None ? "" : (cell == Player.X ? "✕" : "◯"))
-            </div>
-        }
+        <div class="board">
+            @for (var i = 0; i < 9; i++)
+            {
+                var index = i;
+                var cell = Game.Board[index];
+                var canPlay = CanPlay(index);
+                var win = Game.WinningLine?.Contains(index) == true;
+                <div data-cell="@index" role="button" tabindex="@(canPlay ? 0 : -1)" aria-label="@CellLabel(index, cell)" aria-disabled="@(canPlay ? null : "true")"
+                     data-playable="@(canPlay ? "true" : null)" data-win="@(win ? "true" : null)"
+                     data-mark="@(cell == Player.None ? null : cell.ToString())"
+                     class="@CellCss(cell, canPlay, win)"
+                     @onclick="() => HandleCellClick(index)"
+                     @onkeydown="e => HandleKey(e, index)">
+                    @if (canPlay)
+                    {
+                        <svg data-ghost="@MyPlayer" viewBox="0 0 24 24" class="@GhostCss" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true">
+                            @if (MyPlayer == Player.X)
+                            {
+                                <path d="M5 5l14 14M19 5L5 19" />
+                            }
+                            else
+                            {
+                                <circle cx="12" cy="12" r="7.5" />
+                            }
+                        </svg>
+                    }
+                    else if (cell == Player.X)
+                    {
+                        <svg viewBox="0 0 24 24" class="size-3/5" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" aria-hidden="true">
+                            <path d="M5 5l14 14M19 5L5 19" />
+                        </svg>
+                    }
+                    else if (cell == Player.O)
+                    {
+                        <svg viewBox="0 0 24 24" class="size-3/5" fill="none" stroke="currentColor" stroke-width="3.2" aria-hidden="true">
+                            <circle cx="12" cy="12" r="7.5" />
+                        </svg>
+                    }
+                </div>
+            }
+        </div>
     </div>
 }
 
@@ -48,19 +67,37 @@
     [Parameter] public Player MyPlayer { get; set; }
     [Parameter] public EventCallback<int> OnCellClick { get; set; }
 
-    private Color GetTimerColor()
-    {
-        if (Game == null) return Color.Default;
-        if (Game.RemainingSeconds > 7) return Color.Success;
-        if (Game.RemainingSeconds > 3) return Color.Warning;
-        return Color.Error;
-    }
+    private double TimerPercent => (double)Game.RemainingSeconds / GameSession.DefaultTurnTimeSeconds * 100;
+
+    // Faixas do DESIGN.md: verde acima de 50%, âmbar de 50% a 20%, vermelho abaixo de 20%.
+    private NeonProgress.ProgressTone TimerTone =>
+        TimerPercent > 50 ? NeonProgress.ProgressTone.Success : TimerPercent > 20 ? NeonProgress.ProgressTone.Warning : NeonProgress.ProgressTone.Danger;
+
+    private bool CanPlay(int index) =>
+        Game.Winner == Player.None && !Game.IsDraw && Game.CurrentTurn == MyPlayer && Game.Board[index] == Player.None;
+
+    private string GhostCss =>
+        "size-3/5 opacity-0 transition-opacity motion-reduce:transition-none group-hover:opacity-30 group-focus-visible:opacity-30 " +
+        (MyPlayer == Player.X ? "text-primary" : "text-secondary");
+
+    private static string CellLabel(int index, Player cell) =>
+        cell == Player.None ? $"Casa {index + 1}, vazia" : $"Casa {index + 1}, {cell}";
+
+    private static string CellCss(Player cell, bool canPlay, bool win) =>
+        "group flex aspect-square items-center justify-center rounded-cell border border-stroke bg-surface-high shadow-[inset_0_0_0_1px_rgb(255_255_255/0.05)] transition lg:rounded-cell-lg " +
+        "focus-visible:outline-2 focus-visible:outline-secondary " +
+        (cell == Player.X ? "text-primary drop-shadow-[0_0_12px_rgb(255_71_87/0.6)] " : cell == Player.O ? "text-secondary drop-shadow-[0_0_12px_rgb(0_210_211/0.6)] " : "") +
+        (canPlay ? "cursor-pointer hover:bg-surface-high/70 " : "") +
+        (win ? "animate-win-pulse motion-reduce:animate-none border-success bg-success/25" : "");
 
     private async Task HandleCellClick(int index)
     {
-        if (Game != null && Game.Winner == Player.None && !Game.IsDraw && Game.CurrentTurn == MyPlayer && Game.Board[index] == Player.None)
+        if (CanPlay(index))
         {
             await OnCellClick.InvokeAsync(index);
         }
     }
+
+    private Task HandleKey(KeyboardEventArgs e, int index) =>
+        e.Key is "Enter" or " " ? HandleCellClick(index) : Task.CompletedTask;
 }

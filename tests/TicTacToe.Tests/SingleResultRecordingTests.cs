@@ -133,6 +133,7 @@ public class SingleResultRecordingTests
         ctx.Services.AddMudServices();
         ctx.Services.AddSingleton<MatchmakingService>();
         ctx.Services.AddSingleton<ConcurrentDictionary<Guid, GameSession>>();
+        ctx.Services.AddSingleton(new TicTacToe.Web.Components.Ui.ShellState());
         ctx.Services.AddTransient(_ => new GameplayDbContext(options));
         ctx.Services.AddTransient(sp => new GameResultService(
             sp.GetRequiredService<GameplayDbContext>(), NullLogger<GameResultService>.Instance));

@@ -1,0 +1,29 @@
+@using TicTacToe.Modules.Gameplay
+@using TicTacToe.Web.Components.Ui
+
+<div data-player="@Player" data-active="@(IsActive ? "true" : "false")" class="@Css">
+    <NeonCard Accent="@Accent" Class="flex flex-col items-center gap-2 p-4 text-center">
+        <span class="@SymbolCss" aria-hidden="true">@(Player == Player.X ? "✕" : "◯")</span>
+        <span class="w-full min-w-0 break-words text-title-sm">@Name</span>
+        @if (IsMe)
+        {
+            <StatusChip Tone="ChipTone.Gold">Você</StatusChip>
+        }
+        <span class="font-numeric text-headline-md" data-score aria-label="@($"{Score} vitórias na sessão")">@Score</span>
+    </NeonCard>
+</div>
+
+@code {
+    [Parameter] public Player Player { get; set; }
+    [Parameter] public string Name { get; set; } = "";
+    [Parameter] public int Score { get; set; }
+    [Parameter] public bool IsMe { get; set; }
+    [Parameter] public bool IsActive { get; set; }
+    [Parameter] public string? Class { get; set; }
+
+    private CardAccent Accent => !IsActive ? CardAccent.None : Player == Player.X ? CardAccent.X : CardAccent.O;
+
+    private string Css => "min-w-0 transition-opacity " + (IsActive ? "opacity-100" : "opacity-60") + " " + Class;
+
+    private string SymbolCss => "text-headline-lg " + (Player == Player.X ? "text-primary" : "text-secondary");
+}

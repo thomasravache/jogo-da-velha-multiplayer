@@ -5,20 +5,20 @@
 ## Saúde
 
 - Validação (G0): **0 erro(s), 0 aviso(s)**
-- Specs: approved 10, in-progress 2, implemented 27
+- Specs: approved 9, in-progress 3, implemented 27
 - Impedimentos: **0 aberto(s)**, 0 resolvido(s)
 
 ## Plano de Execução
 
-**Em andamento:** SPEC-0032, SPEC-0033  
+**Em andamento:** SPEC-0031, SPEC-0032, SPEC-0033  
 **Paradas por impedimento:** —  
-**Próximo lote:** SPEC-0031
+**Próximo lote:** —
 
 | Onda | Spec | Título | Tier/Tam. | Status | Prontidão | Observação |
 |---|---|---|---|---|---|---|
+| 1 | SPEC-0031 | Arena da partida Cyber Arena | full/M | in-progress | 🔄 em andamento |  |
 | 1 | SPEC-0032 | Histórico de partidas Cyber Arena | full/S | in-progress | 🔄 em andamento |  |
 | 1 | SPEC-0033 | Ranking Cyber Arena | full/S | in-progress | 🔄 em andamento |  |
-| 1 | SPEC-0031 | Arena da partida Cyber Arena | full/M | approved | ✅ pronta |  |
 | 2 | SPEC-0034 | Remoção do MudBlazor e do Bootstrap | full/M | approved | ⛔ aguarda implementação de SPEC-0031; aguarda implementação de SPEC-0032; aguarda implementação de SPEC-0033 |  |
 | 2 | SPEC-0036 | Persistência enriquecida de partidas | full/M | approved | ⛔ aguarda implementação de SPEC-0031 |  |
 | 3 | SPEC-0037 | Identidade anônima do jogador | full/M | approved | ⛔ aguarda implementação de SPEC-0036 |  |
@@ -48,7 +48,7 @@ Seta contínua: depende da implementação. Seta tracejada: consome contrato.
 flowchart LR
   subgraph E0028["SPEC-0028 · Redesign Cyber Arena — migração da UI para Tailwind (Fase 1 visual)"]
     S0030["SPEC-0030<br/>Lobby Cyber Arena"]:::implemented
-    S0031["SPEC-0031<br/>Arena da partida Cyber Arena"]:::approved
+    S0031["SPEC-0031<br/>Arena da partida Cyber Arena"]:::inprogress
     S0032["SPEC-0032<br/>Histórico de partidas Cyber Arena"]:::inprogress
     S0033["SPEC-0033<br/>Ranking Cyber Arena"]:::inprogress
     S0034["SPEC-0034<br/>Remoção do MudBlazor e do Bootstrap"]:::approved
@@ -130,7 +130,7 @@ flowchart LR
 | [SPEC-0028](SPEC-0028-redesign-cyber-arena-migracao-da-ui-para-tailwind-fase-1-vis.md) | Redesign Cyber Arena — migração da UI para Tailwind (Fase 1 visual) | epic | migration | approved | 2026-09-29 | — | — | — |
 | [SPEC-0029](SPEC-0029-pipeline-tailwind-tokens-e-fontes-cyber-arena.md) | Pipeline Tailwind, tokens e fontes Cyber Arena | full | migration | implemented | 2026-09-29 | SPEC-0028 | — | — |
 | [SPEC-0030](SPEC-0030-lobby-cyber-arena.md) | Lobby Cyber Arena | full | feature | implemented | 2026-09-29 | SPEC-0028 | SPEC-0043 | — |
-| [SPEC-0031](SPEC-0031-arena-da-partida-cyber-arena.md) | Arena da partida Cyber Arena | full | feature | approved | 2026-09-29 | SPEC-0028 | SPEC-0043 | — |
+| [SPEC-0031](SPEC-0031-arena-da-partida-cyber-arena.md) | Arena da partida Cyber Arena | full | feature | in-progress | 2026-09-29 | SPEC-0028 | SPEC-0043 | — |
 | [SPEC-0032](SPEC-0032-historico-de-partidas-cyber-arena.md) | Histórico de partidas Cyber Arena | full | feature | in-progress | 2026-09-29 | SPEC-0028 | SPEC-0043 | — |
 | [SPEC-0033](SPEC-0033-ranking-cyber-arena.md) | Ranking Cyber Arena | full | feature | in-progress | 2026-09-29 | SPEC-0028 | SPEC-0043 | — |
 | [SPEC-0034](SPEC-0034-remocao-do-mudblazor-e-do-bootstrap.md) | Remoção do MudBlazor e do Bootstrap | full | migration | approved | 2026-09-29 | SPEC-0028 | SPEC-0030, SPEC-0031, SPEC-0032, SPEC-0033 | — |

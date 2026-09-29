@@ -1,0 +1,12 @@
+@using TicTacToe.Web.Components.Ui
+@if (Finished)
+{
+    <div class="col-span-2 flex justify-center lg:col-span-1 lg:col-start-2 lg:row-start-3">
+        <PillButton Size="PillSize.Lg" Icon="refresh" OnClick="OnRematch">Jogar novamente</PillButton>
+    </div>
+}
+
+@code {
+    [Parameter] public bool Finished { get; set; }
+    [Parameter] public EventCallback OnRematch { get; set; }
+}

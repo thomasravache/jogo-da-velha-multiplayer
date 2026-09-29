@@ -4,13 +4,13 @@ title: Arena da partida Cyber Arena
 tier: full
 type: feature
 user_facing: true
-status: approved
+status: in-progress
 created: 2026-09-29
 parent: SPEC-0028
 depends_on: [SPEC-0043]
 consumes_contract: []
 contract_version: 1
-touches: [src/TicTacToe/TicTacToe.Web/Components/Pages/Home.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/Home.razor.cs, src/TicTacToe/TicTacToe.Web/Components/Pages/Home.razor.css, src/TicTacToe/TicTacToe.Web/Components/Game/GameBoard.razor, src/TicTacToe/TicTacToe.Web/Components/Game/Scoreboard.razor, src/TicTacToe/TicTacToe.Web/Components/Game/PlayerCard.razor, src/TicTacToe/TicTacToe.Web/Components/Game/RematchBar.razor, src/TicTacToe/TicTacToe.Web/Components/Ui/NeonProgress.razor, src/TicTacToe/TicTacToe.Modules.Gameplay/GameSession.cs, src/TicTacToe/TicTacToe.Web/wwwroot/app.js, tests/TicTacToe.Tests/ArenaCyberArenaTests.cs, tests/TicTacToe.Tests/GameSessionWinningLineTests.cs, tests/TicTacToe.Tests/DecomposedComponentsTests.cs, tests/TicTacToe.Tests/GameBoardTimerTests.cs, tests/TicTacToe.Tests/MudBlazorIntegrationTests.cs]
+touches: [src/TicTacToe/TicTacToe.Web/Components/Pages/Home.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/Home.razor.cs, src/TicTacToe/TicTacToe.Web/Components/Pages/Home.razor.css, src/TicTacToe/TicTacToe.Web/Components/Game/GameBoard.razor, src/TicTacToe/TicTacToe.Web/Components/Game/Scoreboard.razor, src/TicTacToe/TicTacToe.Web/Components/Game/PlayerCard.razor, src/TicTacToe/TicTacToe.Web/Components/Game/RematchBar.razor, src/TicTacToe/TicTacToe.Web/Components/Ui/NeonProgress.razor, src/TicTacToe/TicTacToe.Modules.Gameplay/GameSession.cs, src/TicTacToe/TicTacToe.Web/wwwroot/app.js, tests/TicTacToe.Tests/ArenaCyberArenaTests.cs, tests/TicTacToe.Tests/GameSessionWinningLineTests.cs, tests/TicTacToe.Tests/DecomposedComponentsTests.cs, tests/TicTacToe.Tests/GameBoardTimerTests.cs, tests/TicTacToe.Tests/MudBlazorIntegrationTests.cs, tests/TicTacToe.Tests/SingleResultRecordingTests.cs]
 adrs: [ADR-0008]
 external: []
 size: M
@@ -89,7 +89,7 @@ NeonProgress [Parameter] double Value(0–100) · Tone="Success|Warning|Danger" 
 
 Faixas do timer (DefaultTurnTimeSeconds = 15): restante > 50% → Success · > 20% → Warning · senão Danger
 Realce de célula: data-win="true" nas 3 células de WinningLine; animação "win-pulse" (1,5 s)
-Layout: >= lg  [PlayerCard X] [tabuleiro + timer + status] [PlayerCard O]      < lg  [X][O] · status · tabuleiro · timer
+Layout: >= lg  [PlayerCard X] [tabuleiro + timer + status] [PlayerCard O]      < lg  [X][O] · status · timer · tabuleiro
 ```
 
 **Arquivos/módulos afetados:** ver `touches`. `GameSession.cs` ganha `WinningLine` e reutiliza o conjunto de linhas de `CheckWin`.
@@ -118,7 +118,7 @@ Layout: >= lg  [PlayerCard X] [tabuleiro + timer + status] [PlayerCard O]      <
 ### 7.1 Testes de Caracterização
 - **CH-01** — Dado `GameSession`, então `MakeMove` mantém as regras atuais (turno alternado, vitória por jogada, `Restart`) — fixa o comportamento antes de extrair as linhas de vitória.
 
-**Testes existentes afetados:** `DecomposedComponentsTests` (afirma `players-bar`, `status`, `.cell.playable` e o conteúdo de `Home.razor.css` com `.game-container`/`.board`), `GameBoardTimerTests` (afirma `mud-progress-linear`) e `MudBlazorIntegrationTests` `SPEC-0026:IT-02` (GameBoard). São atualizados para os novos seletores/primitivos; mudanças justificadas pela troca de biblioteca e pela remoção do CSS legado (ADR-0008).
+**Testes existentes afetados:** `DecomposedComponentsTests` (afirma `players-bar`, `status`, `.cell.playable` e o conteúdo de `Home.razor.css` com `.game-container`/`.board`), `GameBoardTimerTests` (afirma `mud-progress-linear`) e `MudBlazorIntegrationTests` (teste do GameBoard da SPEC-0026). São atualizados para os novos seletores/primitivos; mudanças justificadas pela troca de biblioteca e pela remoção do CSS legado (ADR-0008).
 
 ### 7.2 Testes Unitários
 - **UT-01** — Dado `Scoreboard` com "Alice" (X, placar 2) e "Bob" (O, placar 1) e `MyPlayer=X`, então há dois `PlayerCard` com nome, símbolo e placar, e a tag "Você" só no card de Alice.
@@ -195,10 +195,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | Gate | Status | Evidência | Data |
 |---|---|---|---|
 | G0 Spec | PASS | `spec_graph.py validate` das 18 specs: 0 erros, 0 avisos | 2026-09-29 |
-| G1 Red | PENDING | | |
-| G2 Green | PENDING | | |
-| G3 Arquitetura | PENDING | | |
-| G4 Review | PENDING | | |
+| G1 Red | PASS | `verify SPEC-0031`: CH-01 e Red antes do Green; 15/15 testes rastreados; 17 falhas iniciais pelos motivos esperados | 2026-09-29 |
+| G2 Green | PASS | `dotnet test` 148/148; `dotnet format --verify-no-changes` limpo; `build.sh --check` sem drift | 2026-09-29 |
+| G3 Arquitetura | N/A | Sem suíte `Category=Architecture`; ausência de `mud-` verificada por SPEC-0031:UT-12 | 2026-09-29 |
+| G4 Review | PASS | Reviewer independente: CHANGES_REQUESTED em c24d68d (major de escopo corrigido), APPROVED em d23a77a (0 blocker, 0 major) | 2026-09-29 |
 | G5 Integração & CI | PENDING | | |
 | H2 Integração aprovada | PENDING | | |
 | G6 Deploy | PENDING | | |
@@ -248,3 +248,4 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 <!-- Mudança em spec aprovada: uma linha por emenda. Mudou o contrato? Incremente `contract_version` e rode `spec_graph.py impacted SPEC-0031`. -->
 | Versão do contrato | Data | Mudança | Motivo | Specs impactadas | Aprovado por |
 |---|---|---|---|---|---|
+| 1 (contrato inalterado) | 2026-09-29 | `touches` inclui `SingleResultRecordingTests.cs` | A `Home` passa a injetar `ShellState` (modo imersivo); o contexto de teste que renderiza a `Home` precisa registrá-lo | SPEC-0045 (teste) | thomas (2026-09-29) |
