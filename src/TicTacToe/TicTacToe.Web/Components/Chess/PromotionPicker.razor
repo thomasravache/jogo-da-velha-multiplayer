@@ -40,6 +40,11 @@
 
     private Task HandleKeyAsync(KeyboardEventArgs e)
     {
+        if (e.CtrlKey || e.MetaKey || e.AltKey || e.Repeat)
+        {
+            return Task.CompletedTask;
+        }
+
         if (e.Key == "Escape")
         {
             return OnCancel.InvokeAsync();

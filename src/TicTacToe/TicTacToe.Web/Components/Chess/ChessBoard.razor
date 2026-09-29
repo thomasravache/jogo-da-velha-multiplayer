@@ -26,6 +26,8 @@
                                 @ref="_buttons[index]"
                                 @onclick="() => HandleClickAsync(index)"
                                 @onkeydown="e => HandleKeyAsync(e, index)"
+                                @onkeyup="HandleKeyUp"
+                                @onfocusout="HandleFocusOut"
                                 @ondragover:preventDefault
                                 @ondrop:preventDefault
                                 @ondrop="() => HandleDropAsync(index)">
@@ -178,9 +180,22 @@
             return;
         }
 
+        _keyActivated = null;
         _focus = index;
         await OnSquareActivated.InvokeAsync(new Square(index));
     }
+
+    // Enter gera o clique no keydown, então a marca acaba no keyup. O Espaço gera o clique só
+    // depois do keyup; a marca dele é consumida por esse clique (ou zerada ao sair da casa).
+    private void HandleKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            _keyActivated = null;
+        }
+    }
+
+    private void HandleFocusOut() => _keyActivated = null;
 
     private async Task HandleKeyAsync(KeyboardEventArgs e, int index)
     {
