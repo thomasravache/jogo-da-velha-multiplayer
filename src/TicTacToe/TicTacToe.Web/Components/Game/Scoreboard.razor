@@ -4,22 +4,56 @@
 @if (Game != null)
 {
     var running = Game.Winner == Player.None && !Game.IsDraw;
+    var series = Game.Format == SeriesFormat.BestOf5;
+    var target = series ? Game.SeriesTarget : 0;
 
     <div class="contents">
-        <PlayerCard Player="Player.X" Name="@Game.GetPlayerName(Player.X)" Score="@Game.GetScore(Player.X)"
+        @if (series)
+        {
+            <p data-series-header class="col-span-2 text-center font-numeric text-label-badge uppercase text-ink-muted lg:col-span-3">
+                Melhor de 5 • Rodada @Math.Min(DisplayedRound, 5) de 5
+            </p>
+        }
+
+        <PlayerCard Player="Player.X" Name="@Game.GetPlayerName(Player.X)" Score="@Game.GetScore(Player.X)" SeriesWins="@Game.GetScore(Player.X)" SeriesTarget="@target" MatchPoint="@Game.IsMatchPoint(Player.X)"
                     IsMe="@(MyPlayer == Player.X)" IsActive="@(running && Game.CurrentTurn == Player.X)"
                     Class="lg:col-start-1 lg:row-start-2" />
-        <PlayerCard Player="Player.O" Name="@Game.GetPlayerName(Player.O)" Score="@Game.GetScore(Player.O)"
+        <PlayerCard Player="Player.O" Name="@Game.GetPlayerName(Player.O)" Score="@Game.GetScore(Player.O)" SeriesWins="@Game.GetScore(Player.O)" SeriesTarget="@target" MatchPoint="@Game.IsMatchPoint(Player.O)"
                     IsMe="@(MyPlayer == Player.O)" IsActive="@(running && Game.CurrentTurn == Player.O)"
                     Class="lg:col-start-3 lg:row-start-2" />
 
         <p aria-live="polite" class="col-span-2 text-center text-title-sm lg:col-span-1 lg:col-start-2 lg:row-start-1">@StatusText()</p>
+
+        @if (series && SeriesNotice() is { } notice)
+        {
+            <p data-series-notice aria-live="polite" class="col-span-2 text-center text-body-md text-ink-muted lg:col-span-1 lg:col-start-2">@notice</p>
+        }
     </div>
 }
 
 @code {
     [Parameter] public GameSession Game { get; set; } = default!;
     [Parameter] public Player MyPlayer { get; set; }
+
+    // A rodada em exibição: enquanto decidida, ainda é a que acabou de terminar.
+    private int DisplayedRound => Game.Winner != Player.None ? Game.RoundNumber - 1 : Game.RoundNumber;
+
+    private string? SeriesNotice()
+    {
+        if (Game.IsSeriesOver)
+        {
+            var winner = Game.SeriesWinner;
+            var loser = winner == Player.X ? Player.O : Player.X;
+            return $"{Game.GetPlayerName(winner)} venceu a série {Game.GetScore(winner)} × {Game.GetScore(loser)}";
+        }
+
+        if (Game.Winner != Player.None)
+        {
+            return $"Rodada {DisplayedRound} para {Game.GetPlayerName(Game.Winner)}!";
+        }
+
+        return Game.IsDraw ? "Rodada empatada, será repetida" : null;
+    }
 
     private string StatusText()
     {

@@ -9,6 +9,21 @@
         {
             <StatusChip Tone="ChipTone.Gold">Você</StatusChip>
         }
+        @if (SeriesTarget > 0)
+        {
+            <span role="img" aria-label="@($"{SeriesWins} de {SeriesTarget} vitórias")" class="flex gap-1.5">
+                @for (var i = 0; i < SeriesTarget; i++)
+                {
+                    var filled = i < SeriesWins;
+                    <span data-series-marker data-filled="@(filled ? "true" : "false")"
+                          class="@("size-3 rounded-full border " + (filled ? "border-gold bg-gold" : "border-stroke"))"></span>
+                }
+            </span>
+            @if (MatchPoint)
+            {
+                <StatusChip Tone="ChipTone.Danger">Match point</StatusChip>
+            }
+        }
         <span class="font-numeric text-headline-md" data-score aria-label="@($"{Score} vitórias na sessão")">@Score</span>
     </NeonCard>
 </div>

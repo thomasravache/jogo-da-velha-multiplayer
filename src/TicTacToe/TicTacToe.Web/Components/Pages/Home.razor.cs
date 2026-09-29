@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using TicTacToe.Modules.Gameplay;
 using TicTacToe.Modules.Matchmaking;
+using TicTacToe.Web.Components.Game;
 using TicTacToe.Web.Components.Ui;
 using TicTacToe.Web.Services.PlayerIdentity;
 
@@ -29,8 +30,12 @@ public partial class Home : IDisposable
     private bool IsSoloGame;
     private AiDifficulty SelectedDifficulty = AiDifficulty.Hard;
 
-    // Formato da partida: 1 = única, 5 = melhor de 5 (o seletor na interface chega com a SPEC-0044).
-    private int SelectedBestOf = 1;
+    private SeriesFormat SelectedFormat = SeriesFormat.Single;
+    private int SelectedBestOf => SelectedFormat == SeriesFormat.BestOf5 ? 5 : 1;
+
+    private static RematchBar.RematchKind RematchKindFor(GameSession game) =>
+        game.Format == SeriesFormat.Single ? RematchBar.RematchKind.Rematch
+        : game.IsSeriesOver ? RematchBar.RematchKind.NewSeries : RematchBar.RematchKind.NextRound;
     private static readonly BotTurnRunner BotRunner = new(TimeProvider.System);
     private readonly CancellationTokenSource _botCts = new();
 

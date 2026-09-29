@@ -43,6 +43,14 @@ else
             </StatusChip>
         </NeonCard>
 
+        <NeonCard Class="flex flex-col gap-3 p-5">
+            <span class="font-numeric text-label-badge uppercase text-ink-muted">Formato da partida</span>
+            <SegmentedControl TValue="SeriesFormat" AriaLabel="Formato" Items="_formatItems" Value="SelectedFormat" ValueChanged="SetFormat" />
+            <p class="text-body-md text-ink-muted">
+                @(SelectedFormat == SeriesFormat.BestOf5 ? "Vence quem chegar a 3 rodadas." : "Uma única rodada decide a partida.")
+            </p>
+        </NeonCard>
+
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
             <NeonCard Accent="CardAccent.X" Class="flex flex-col gap-4 p-5">
                 <StatusChip Tone="ChipTone.Danger">Multiplayer online</StatusChip>
@@ -103,6 +111,12 @@ else
     [
         (AiDifficulty.Easy, "Fácil 🟢"),
         (AiDifficulty.Hard, "Impossível 🔴"),
+    ];
+
+    private static readonly IReadOnlyList<(SeriesFormat Value, string Label)> _formatItems =
+    [
+        (SeriesFormat.Single, "Partida única"),
+        (SeriesFormat.BestOf5, "Melhor de 5"),
     ];
 
     private static readonly IReadOnlyList<(RoomTab Value, string Label)> _roomItems =
@@ -170,6 +184,12 @@ else
     {
         SelectedDifficulty = difficulty;
         await DifficultyChanged.InvokeAsync(difficulty);
+    }
+
+    private async Task SetFormat(SeriesFormat format)
+    {
+        SelectedFormat = format;
+        await FormatChanged.InvokeAsync(format);
     }
 
     private void SetTab(RoomTab tab) => _tab = tab;
