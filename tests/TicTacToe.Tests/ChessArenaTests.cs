@@ -2,6 +2,7 @@ using System.Text.RegularExpressions;
 using AngleSharp.Dom;
 using Bunit;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.Extensions.DependencyInjection;
 using TicTacToe.Modules.Chess;
 using TicTacToe.Web.Components.Chess;
 using Xunit;
@@ -457,5 +458,130 @@ public class ChessArenaTests
             Assert.Contains("4 lances", arena.Find("[data-end-summary]").TextContent, StringComparison.Ordinal);
             Assert.Equal("true", arena.Find("[role=grid]").GetAttribute("aria-disabled"));
         }
+    }
+
+    // ---------- Ajustes da review G4 ----------
+
+    [Fact(DisplayName = "SPEC-0057:UT-04 — o pulso de 1 s usa o TimeProvider do DI e atualiza o mm:ss sem re-render forçado")]
+    [Trait("Category", "SPEC-0057:UT-04")]
+    public void Arena_ShouldTickClockWithInjectedTimeProvider()
+    {
+        using var ctx = NewContext();
+        var time = new ManualTime();
+        ctx.Services.AddSingleton<TimeProvider>(time);
+        using var session = ChessSessionTests.New(time);
+        var cut = Render(ctx, session);
+        ChessSessionTests.Line(session, "e2e4");
+        Assert.Equal("05:00", Clock(cut, "black"));
+
+        time.Advance(Second);
+
+        Assert.Equal("04:59", Clock(cut, "black"));
+    }
+
+    [Fact(DisplayName = "SPEC-0057:UT-04 — sem relógio correndo (após a bandeira) não há alerta de tempo baixo")]
+    [Trait("Category", "SPEC-0057:UT-04")]
+    public void Arena_ShouldNotAlertWhenClockIsNotRunning()
+    {
+        using var ctx = NewContext();
+        var time = new ManualTime();
+        using var session = ChessSessionTests.New(time);
+        var cut = Render(ctx, session);
+        ChessSessionTests.Line(session, "e2e4");
+        time.Advance(301 * Second);
+        session.Tick();
+        Refresh(cut);
+
+        Assert.Equal("00:00", Clock(cut, "black"));
+        Assert.NotEqual("true", Card(cut, "black").QuerySelector("[data-clock]")!.GetAttribute("data-low"));
+        Assert.Empty(cut.FindAll("[data-notice='low-time']"));
+    }
+
+    [Fact(DisplayName = "SPEC-0057:UT-07 — o fim da partida é anunciado na única região viva, com o título do resultado")]
+    [Trait("Category", "SPEC-0057:UT-07")]
+    public void Arena_ShouldAnnounceEndInSingleLiveRegion()
+    {
+        using var ctx = NewContext();
+        using var session = ChessSessionTests.New();
+        var cut = Render(ctx, session);
+
+        ChessSessionTests.Line(session, "f2f3", "e7e5", "g2g4", "d8h4");
+
+        Assert.Single(cut.FindAll("[aria-live]"));
+        Assert.Contains("Xeque-mate — Bia venceu", Notices(cut), StringComparison.Ordinal);
+    }
+
+    [Fact(DisplayName = "SPEC-0057:UT-02 — 'Lance recusado.' some quando o estado da sessão muda")]
+    [Trait("Category", "SPEC-0057:UT-02")]
+    public void Arena_ShouldClearRejectedMessageOnStateChange()
+    {
+        using var ctx = NewContext();
+        var time = new ManualTime();
+        using var session = ChessSessionTests.New(time);
+        var black = Render(ctx, session, 1);
+        ChessSessionTests.Line(session, "e2e4");
+        Click(black, "e7");
+        time.Advance(301 * Second);
+
+        Click(black, "e5");
+
+        Assert.Contains("Lance recusado.", Notices(black), StringComparison.Ordinal);
+
+        session.RestartCore(swapColors: false);
+
+        Assert.DoesNotContain("Lance recusado.", Notices(black), StringComparison.Ordinal);
+    }
+
+    [Fact(DisplayName = "SPEC-0057:UT-08 — cartão final: verde só para quem venceu, vermelho para quem perdeu")]
+    [Trait("Category", "SPEC-0057:UT-08")]
+    public void Arena_ShouldColorEndCardByViewerOutcome()
+    {
+        using var ctx = NewContext();
+        using var session = ChessSessionTests.New();
+        var white = Render(ctx, session, 0);
+        var black = Render(ctx, session, 1);
+
+        ChessSessionTests.Line(session, "f2f3", "e7e5", "g2g4", "d8h4");
+
+        Assert.Equal("loss", white.Find("[data-end-card]").GetAttribute("data-result"));
+        Assert.Equal("win", black.Find("[data-end-card]").GetAttribute("data-result"));
+    }
+
+    [Fact(DisplayName = "SPEC-0057:UT-09 — trocar o parâmetro Session resubscreve: a sessão antiga deixa de renderizar")]
+    [Trait("Category", "SPEC-0057:UT-09")]
+    public void Arena_ShouldResubscribeWhenSessionChanges()
+    {
+        using var ctx = NewContext();
+        using var first = ChessSessionTests.New();
+        using var second = ChessSessionTests.New();
+        var cut = Render(ctx, first);
+
+        cut.Render(p => p.Add(c => c.Session, second));
+        var renders = cut.RenderCount;
+        ChessSessionTests.Line(first, "e2e4");
+        Assert.Equal(renders, cut.RenderCount);
+        Assert.Empty(cut.FindAll("[data-move-list] li"));
+
+        ChessSessionTests.Line(second, "d2d4");
+
+        Assert.Equal("d4", Normalize(cut.Find("[data-move-list] li").TextContent).Replace("1. ", "", StringComparison.Ordinal));
+    }
+
+    [Fact(DisplayName = "SPEC-0057:UT-09 — 'Pouco tempo' aparece na região viva só com o relógio correndo abaixo de 10 s")]
+    [Trait("Category", "SPEC-0057:UT-09")]
+    public void Arena_ShouldAnnounceLowTimeOnce()
+    {
+        using var ctx = NewContext();
+        var time = new ManualTime();
+        using var session = ChessSessionTests.New(time);
+        var cut = Render(ctx, session);
+        ChessSessionTests.Line(session, "e2e4");
+        Assert.Empty(cut.FindAll("[data-notice='low-time']"));
+
+        time.Advance(295 * Second);
+        Refresh(cut);
+
+        Assert.Single(cut.FindAll("[aria-live]"));
+        Assert.Contains("Pouco tempo, Bia!", Notices(cut), StringComparison.Ordinal);
     }
 }

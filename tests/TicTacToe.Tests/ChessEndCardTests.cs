@@ -65,4 +65,23 @@ public class ChessEndCardTests
         Assert.Contains("1 lance", summary, StringComparison.Ordinal);
         Assert.DoesNotContain("1 lances", summary, StringComparison.Ordinal);
     }
+
+    [Theory(DisplayName = "SPEC-0057:UT-08 — cor do cartão: verde só na vitória de quem vê, vermelho na derrota, neutro sem perspectiva")]
+    [Trait("Category", "SPEC-0057:UT-08")]
+    [InlineData(true, "win")]
+    [InlineData(false, "loss")]
+    [InlineData(null, "neutral")]
+    public void EndCard_ShouldReflectViewerOutcome(bool? viewerWon, string expected)
+    {
+        using var ctx = new BunitContext();
+
+        var cut = ctx.Render<ChessEndCard>(p => p
+            .Add(c => c.Result, new ChessResult(ChessOutcome.WhiteWins, ChessEndReason.Checkmate))
+            .Add(c => c.WinnerName, "Ana")
+            .Add(c => c.ViewerWon, viewerWon));
+
+        var card = cut.Find("[data-end-card]");
+        Assert.Equal(expected, card.GetAttribute("data-result"));
+        Assert.Equal(expected == "win", card.ClassName!.Contains("success", StringComparison.Ordinal));
+    }
 }

@@ -30,9 +30,11 @@ public class ChessMoveListTests
         Assert.Equal("ol", cut.Find("[data-move-list]").TagName.ToLowerInvariant());
         var items = cut.FindAll("[data-move-list] li").Select(li => Normalize(li.TextContent)).ToArray();
         Assert.Equal(["1. e4 e5", "2. Nf3 Nc6", "3. Bc4"], items);
+        Assert.Equal("list", cut.Find("[data-move-list]").GetAttribute("role"));
         var current = cut.FindAll("[aria-current]");
         Assert.Single(current);
-        Assert.Equal("Bc4", Normalize(current[0].TextContent));
+        Assert.Equal("li", current[0].TagName.ToLowerInvariant());
+        Assert.Equal("3. Bc4", Normalize(current[0].TextContent));
     }
 
     [Fact(DisplayName = "SPEC-0057:UT-05 — número par de lances marca o lance das pretas como atual")]
@@ -43,7 +45,8 @@ public class ChessMoveListTests
 
         var cut = ctx.Render<ChessMoveList>(p => p.Add(c => c.Moves, Played("e2e4", "e7e5")));
 
-        Assert.Equal("e5", Normalize(cut.Find("[aria-current]").TextContent));
+        Assert.Equal("li", cut.Find("[aria-current]").TagName.ToLowerInvariant());
+        Assert.Equal("1. e4 e5", Normalize(cut.Find("[aria-current]").TextContent));
         Assert.Single(cut.FindAll("[data-move-list] li"));
     }
 
