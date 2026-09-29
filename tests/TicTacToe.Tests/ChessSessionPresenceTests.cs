@@ -188,9 +188,8 @@ public class ChessSessionPresenceTests
 
         // Terceira: partida normal, revanche aceita troca cores e renova relógios.
         using var third = ChessSessionTests.New(time);
-        ChessSessionTests.Line(third, "e2e4");
+        ChessSessionLeaveTests.FoolsMate(third);
         time.Advance(20 * Second);
-        third.Forfeit(PieceColor.Black, ChessEndReason.Resignation);
         third.RequestRematch(PieceColor.Black);
         Assert.True(third.AcceptRematch(PieceColor.White));
 
