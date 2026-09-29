@@ -35,7 +35,18 @@ public class GameSession : IDisposable
         }
     }
 
-    public bool TryMarkResultRecorded() => throw new NotImplementedException();
+    private bool _resultRecorded;
+
+    /// <summary>Marca atomicamente que o resultado da rodada foi gravado; verdadeiro só no primeiro chamador.</summary>
+    public bool TryMarkResultRecorded()
+    {
+        lock (_lock)
+        {
+            if (_resultRecorded) return false;
+            _resultRecorded = true;
+            return true;
+        }
+    }
 
     public void SetPlayerName(Player player, string name) =>
         _playerNames[player] = name;
@@ -73,6 +84,7 @@ public class GameSession : IDisposable
         lock (_lock)
         {
             Array.Clear(Board, 0, Board.Length);
+            _resultRecorded = false;
             Winner = Player.None;
             IsTimedOut = false;
             CurrentTurn = Player.X;
