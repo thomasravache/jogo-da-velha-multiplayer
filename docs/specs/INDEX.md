@@ -5,20 +5,19 @@
 ## Saúde
 
 - Validação (G0): **0 erro(s), 0 aviso(s)**
-- Specs: approved 2, in-progress 1, implemented 36
+- Specs: approved 2, implemented 37
 - Impedimentos: **0 aberto(s)**, 0 resolvido(s)
 
 ## Plano de Execução
 
-**Em andamento:** SPEC-0044  
+**Em andamento:** —  
 **Paradas por impedimento:** —  
-**Próximo lote:** —
+**Próximo lote:** SPEC-0041
 
 | Onda | Spec | Título | Tier/Tam. | Status | Prontidão | Observação |
 |---|---|---|---|---|---|---|
-| 1 | SPEC-0044 | Série melhor de 5: interface no lobby e na arena | full/M | in-progress | 🔄 em andamento |  |
-| 2 | SPEC-0041 | Abandonar partida e pedir revanche | full/M | approved | ⛔ aguarda implementação de SPEC-0044 |  |
-| 3 | SPEC-0042 | W.O. por desconexão do oponente | full/M | approved | ⛔ aguarda implementação de SPEC-0041 |  |
+| 1 | SPEC-0041 | Abandonar partida e pedir revanche | full/M | approved | ✅ pronta |  |
+| 2 | SPEC-0042 | W.O. por desconexão do oponente | full/M | approved | ⛔ aguarda implementação de SPEC-0041 |  |
 
 ## Épicos
 
@@ -29,7 +28,7 @@
 | SPEC-0013 | Evolução do Jogo da Velha | implemented | 6/6 implementadas |
 | SPEC-0021 | Engenharia de Qualidade e Refatoração Arquitetural | implemented | 4/4 implementadas |
 | SPEC-0028 | Redesign Cyber Arena — migração da UI para Tailwind (Fase 1 visual) | implemented | 7/7 implementadas |
-| SPEC-0035 | Evolução funcional a partir do Stitch (Fase 2) | approved | 6/9 implementadas |
+| SPEC-0035 | Evolução funcional a partir do Stitch (Fase 2) | approved | 7/9 implementadas |
 
 ## Grafo de Dependências
 
@@ -37,21 +36,15 @@ Seta contínua: depende da implementação. Seta tracejada: consome contrato.
 
 ```mermaid
 flowchart LR
-  subgraph E0028["SPEC-0028 · Redesign Cyber Arena — migração da UI para Tailwind (Fase 1 visual)"]
-    S0030["SPEC-0030<br/>Lobby Cyber Arena"]:::implemented
-  end
   subgraph E0035["SPEC-0035 · Evolução funcional a partir do Stitch (Fase 2)"]
-    S0040["SPEC-0040<br/>Série melhor de 5 (MD5)"]:::implemented
     S0041["SPEC-0041<br/>Abandonar partida e pedir revanche"]:::approved
     S0042["SPEC-0042<br/>W.O. por desconexão do oponente"]:::approved
-    S0044["SPEC-0044<br/>Série melhor de 5: interface no lobby e…"]:::inprogress
+    S0044["SPEC-0044<br/>Série melhor de 5: interface no lobby e…"]:::implemented
     S0045["SPEC-0045<br/>Gravação única do resultado da partida"]:::implemented
   end
   S0044 --> S0041
   S0045 --> S0041
   S0041 --> S0042
-  S0030 --> S0044
-  S0040 --> S0044
   classDef proposed fill:#fef3c7,stroke:#d97706,color:#111
   classDef approved fill:#dbeafe,stroke:#2563eb,color:#111
   classDef inprogress fill:#ede9fe,stroke:#7c3aed,color:#111
@@ -106,7 +99,7 @@ flowchart LR
 | [SPEC-0041](SPEC-0041-abandonar-partida-e-pedir-revanche.md) | Abandonar partida e pedir revanche | full | feature | approved | 2026-09-29 | SPEC-0035 | SPEC-0044, SPEC-0045 | — |
 | [SPEC-0042](SPEC-0042-w-o-por-desconexao-do-oponente.md) | W.O. por desconexão do oponente | full | feature | approved | 2026-09-29 | SPEC-0035 | SPEC-0041 | — |
 | [SPEC-0043](SPEC-0043-shell-e-primitivos-de-ui-cyber-arena.md) | Shell e primitivos de UI Cyber Arena | full | feature | implemented | 2026-09-29 | SPEC-0028 | SPEC-0029 | — |
-| [SPEC-0044](SPEC-0044-serie-melhor-de-5-interface-no-lobby-e-na-arena.md) | Série melhor de 5: interface no lobby e na arena | full | feature | in-progress | 2026-09-29 | SPEC-0035 | SPEC-0030, SPEC-0040 | — |
+| [SPEC-0044](SPEC-0044-serie-melhor-de-5-interface-no-lobby-e-na-arena.md) | Série melhor de 5: interface no lobby e na arena | full | feature | implemented | 2026-09-29 | SPEC-0035 | SPEC-0030, SPEC-0040 | — |
 | [SPEC-0045](SPEC-0045-gravacao-unica-do-resultado-da-partida.md) | Gravação única do resultado da partida | full | fix | implemented | 2026-09-29 | SPEC-0035 | — | — |
 
 ## ADRs
