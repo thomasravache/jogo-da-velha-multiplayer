@@ -4,7 +4,7 @@ title: Peças SVG e tabuleiro interativo
 tier: full
 type: feature
 user_facing: true
-status: approved
+status: in-progress
 created: 2026-09-29
 parent: SPEC-0046
 depends_on: [SPEC-0050]
@@ -182,10 +182,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | Gate | Status | Evidência | Data |
 |---|---|---|---|
 | G0 Spec | PASS | `spec_graph.py validate` limpo (0 erro, 0 aviso); checklist de julgamento do G0 feito pelo Architect | 2026-09-29 |
-| G1 Red | PENDING | | |
-| G2 Green | PENDING | | |
-| G3 Arquitetura | PENDING | | |
-| G4 Review | PENDING | | |
+| G1 Red | PASS | verify SPEC-0055: Red antes do Green (880bc75), 11/11 testes do plano rastreados | 2026-09-29 |
+| G2 Green | PASS | dotnet test 625 verdes (1 pulado: perft pesado); format e tailwind --check limpos; verify PASS | 2026-09-29 |
+| G3 Arquitetura | N/A | fronteira de módulos coberta por ChessModuleBoundaryTests (SPEC-0049) | 2026-09-29 |
+| G4 Review | PASS | Review independente (subagente): PASS, 0 bloqueantes/maiores; contraste WCAG recalculado (contorno preto 3,60/5,10; casas 1,42); menores tratados (atalhos ignoram modificadores; marca de teclado zerada no keyup). Dívidas: sem trap de foco no diálogo, arrastar em botão pode não funcionar no Firefox, rolagem da página em setas/Espaço (herdada do GameBoard), revisão visual e Lighthouse no H2 | 2026-09-29 |
 | G5 Integração & CI | PENDING | | |
 | H2 Integração aprovada | PENDING | | |
 | G6 Deploy | PENDING | | |
