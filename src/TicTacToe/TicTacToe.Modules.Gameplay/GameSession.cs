@@ -35,6 +35,8 @@ public class GameSession : IDisposable
         }
     }
 
+    public bool TryMarkResultRecorded() => throw new NotImplementedException();
+
     public void SetPlayerName(Player player, string name) =>
         _playerNames[player] = name;
 

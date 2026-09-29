@@ -33,6 +33,8 @@ public class GameResultService(GameplayDbContext db, ILogger<GameResultService> 
         }
     }
 
+    public Task<bool> SaveOnceAsync(GameSession game) => throw new NotImplementedException();
+
     public async Task<List<MatchResult>> GetRecentAsync(int count = 10) =>
         await db.MatchResults
             .OrderByDescending(m => m.PlayedAt)
