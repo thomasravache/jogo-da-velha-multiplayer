@@ -142,7 +142,7 @@ public class SingleResultRecordingTests
     private static void StartOnline(IRenderedComponent<Home> home, string name)
     {
         home.Find("#playerName").Input(name);
-        home.FindAll("button").First(b => b.TextContent.Contains("Jogar Online")).Click();
+        home.FindAll("button").First(b => b.TextContent.Contains("Procurar oponente")).Click();
     }
 
     [Fact(DisplayName = "SPEC-0045:IT-02 — Dois jogadores observando a mesma partida geram uma única linha")]
@@ -182,7 +182,7 @@ public class SingleResultRecordingTests
 
         var home = ctx.Render<Home>();
         home.Find("#playerName").Input("Thomas");
-        home.FindAll("button").First(b => b.TextContent.Contains("Jogar vs Robô")).Click();
+        home.FindAll("button").First(b => b.TextContent.Contains("Iniciar partida solo")).Click();
 
         var games = ctx.Services.GetRequiredService<ConcurrentDictionary<Guid, GameSession>>();
         var game = Assert.Single(games.Values);

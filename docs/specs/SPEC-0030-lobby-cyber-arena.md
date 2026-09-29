@@ -4,13 +4,13 @@ title: Lobby Cyber Arena
 tier: full
 type: feature
 user_facing: true
-status: approved
+status: in-progress
 created: 2026-09-29
 parent: SPEC-0028
 depends_on: [SPEC-0043]
 consumes_contract: []
 contract_version: 1
-touches: [src/TicTacToe/TicTacToe.Web/Components/Game/Lobby.razor, src/TicTacToe/TicTacToe.Web/Components/Game/Lobby.razor.css, tests/TicTacToe.Tests/LobbyCyberArenaTests.cs, tests/TicTacToe.Tests/DecomposedComponentsTests.cs, tests/TicTacToe.Tests/SoloDifficultyUiTests.cs, tests/TicTacToe.Tests/MudBlazorIntegrationTests.cs]
+touches: [src/TicTacToe/TicTacToe.Web/Components/Game/Lobby.razor, src/TicTacToe/TicTacToe.Web/Components/Game/Lobby.razor.css, tests/TicTacToe.Tests/LobbyCyberArenaTests.cs, tests/TicTacToe.Tests/DecomposedComponentsTests.cs, tests/TicTacToe.Tests/SoloDifficultyUiTests.cs, tests/TicTacToe.Tests/MudBlazorIntegrationTests.cs, tests/TicTacToe.Tests/ShellLayoutTests.cs, tests/TicTacToe.Tests/SingleResultRecordingTests.cs]
 adrs: [ADR-0008]
 external: []
 size: M
@@ -179,10 +179,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | Gate | Status | Evidência | Data |
 |---|---|---|---|
 | G0 Spec | PASS | `spec_graph.py validate` das 18 specs: 0 erros, 0 avisos | 2026-09-29 |
-| G1 Red | PENDING | | |
-| G2 Green | PENDING | | |
-| G3 Arquitetura | PENDING | | |
-| G4 Review | PENDING | | |
+| G1 Red | PASS | `verify SPEC-0030`: CH-01 e Red antes do Green; 9/9 testes rastreados; 14 falhas iniciais pelos motivos esperados | 2026-09-29 |
+| G2 Green | PASS | `dotnet test` 112/112; `dotnet format --verify-no-changes` limpo; `build.sh --check` sem drift | 2026-09-29 |
+| G3 Arquitetura | N/A | Sem suíte `Category=Architecture`; sem `mud-` no Lobby verificado por SPEC-0030:UT-06 | 2026-09-29 |
+| G4 Review | PASS | Reviewer independente APPROVED em cf08b08 (0 blocker, 0 major, 6 minor; 3 corrigidos) | 2026-09-29 |
 | G5 Integração & CI | PENDING | | |
 | H2 Integração aprovada | PENDING | | |
 | G6 Deploy | PENDING | | |
@@ -232,3 +232,4 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 <!-- Mudança em spec aprovada: uma linha por emenda. Mudou o contrato? Incremente `contract_version` e rode `spec_graph.py impacted SPEC-0030`. -->
 | Versão do contrato | Data | Mudança | Motivo | Specs impactadas | Aprovado por |
 |---|---|---|---|---|---|
+| 1 (contrato inalterado) | 2026-09-29 | `touches` inclui `ShellLayoutTests.cs` e `SingleResultRecordingTests.cs` | Os novos rótulos do Stitch quebram `SPEC-0043:IT-01` (procura "Jogar Online") e `SPEC-0045:IT-02` (clica pelo texto do botão); só os textos são atualizados | SPEC-0043, SPEC-0045 (testes) | thomas (2026-09-29) |

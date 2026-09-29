@@ -5,18 +5,18 @@
 ## Saúde
 
 - Validação (G0): **0 erro(s), 0 aviso(s)**
-- Specs: approved 13, implemented 26
+- Specs: approved 12, in-progress 1, implemented 26
 - Impedimentos: **0 aberto(s)**, 0 resolvido(s)
 
 ## Plano de Execução
 
-**Em andamento:** —  
+**Em andamento:** SPEC-0030  
 **Paradas por impedimento:** —  
-**Próximo lote:** SPEC-0030, SPEC-0032, SPEC-0033
+**Próximo lote:** SPEC-0032, SPEC-0033
 
 | Onda | Spec | Título | Tier/Tam. | Status | Prontidão | Observação |
 |---|---|---|---|---|---|---|
-| 1 | SPEC-0030 | Lobby Cyber Arena | full/M | approved | ✅ pronta |  |
+| 1 | SPEC-0030 | Lobby Cyber Arena | full/M | in-progress | 🔄 em andamento |  |
 | 1 | SPEC-0032 | Histórico de partidas Cyber Arena | full/S | approved | ✅ pronta |  |
 | 1 | SPEC-0033 | Ranking Cyber Arena | full/S | approved | ✅ pronta |  |
 | 2 | SPEC-0031 | Arena da partida Cyber Arena | full/M | approved | ✅ pronta | saiu da onda 1: arquivos em comum com SPEC-0030 |
@@ -48,7 +48,7 @@ Seta contínua: depende da implementação. Seta tracejada: consome contrato.
 ```mermaid
 flowchart LR
   subgraph E0028["SPEC-0028 · Redesign Cyber Arena — migração da UI para Tailwind (Fase 1 visual)"]
-    S0030["SPEC-0030<br/>Lobby Cyber Arena"]:::approved
+    S0030["SPEC-0030<br/>Lobby Cyber Arena"]:::inprogress
     S0031["SPEC-0031<br/>Arena da partida Cyber Arena"]:::approved
     S0032["SPEC-0032<br/>Histórico de partidas Cyber Arena"]:::approved
     S0033["SPEC-0033<br/>Ranking Cyber Arena"]:::approved
@@ -130,7 +130,7 @@ flowchart LR
 | [SPEC-0027](SPEC-0027-timer-de-turno-e-timeout-por-w-o.md) | Timer de turno e timeout por W.O. | full | feature | implemented | 2026-09-29 | — | — | — |
 | [SPEC-0028](SPEC-0028-redesign-cyber-arena-migracao-da-ui-para-tailwind-fase-1-vis.md) | Redesign Cyber Arena — migração da UI para Tailwind (Fase 1 visual) | epic | migration | approved | 2026-09-29 | — | — | — |
 | [SPEC-0029](SPEC-0029-pipeline-tailwind-tokens-e-fontes-cyber-arena.md) | Pipeline Tailwind, tokens e fontes Cyber Arena | full | migration | implemented | 2026-09-29 | SPEC-0028 | — | — |
-| [SPEC-0030](SPEC-0030-lobby-cyber-arena.md) | Lobby Cyber Arena | full | feature | approved | 2026-09-29 | SPEC-0028 | SPEC-0043 | — |
+| [SPEC-0030](SPEC-0030-lobby-cyber-arena.md) | Lobby Cyber Arena | full | feature | in-progress | 2026-09-29 | SPEC-0028 | SPEC-0043 | — |
 | [SPEC-0031](SPEC-0031-arena-da-partida-cyber-arena.md) | Arena da partida Cyber Arena | full | feature | approved | 2026-09-29 | SPEC-0028 | SPEC-0043 | — |
 | [SPEC-0032](SPEC-0032-historico-de-partidas-cyber-arena.md) | Histórico de partidas Cyber Arena | full | feature | approved | 2026-09-29 | SPEC-0028 | SPEC-0043 | — |
 | [SPEC-0033](SPEC-0033-ranking-cyber-arena.md) | Ranking Cyber Arena | full | feature | approved | 2026-09-29 | SPEC-0028 | SPEC-0043 | — |

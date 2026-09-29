@@ -50,7 +50,7 @@ public class MudBlazorIntegrationTests
         Assert.DoesNotContain("top-row px-4", markup);
     }
 
-    [Fact(DisplayName = "SPEC-0026:IT-01 — Lobby utiliza componentes MudBlazor no tema escuro")]
+    [Fact(DisplayName = "SPEC-0026:IT-01 — Lobby renderiza no tema escuro com os primitivos Cyber Arena (atualizado pela SPEC-0030)")]
     [Trait("Category", "SPEC-0026:IT-01")]
     public async Task Lobby_ShouldUseMudBlazorComponents()
     {
@@ -62,9 +62,9 @@ public class MudBlazorIntegrationTests
             .Add(p => p.SelectedDifficulty, AiDifficulty.Hard));
 
         var markup = cut.Markup;
-        Assert.Contains("mud-card", markup);
-        Assert.Contains("mud-button", markup);
-        Assert.Contains("Jogar Online", markup);
+        Assert.Contains("backdrop-blur", markup);
+        Assert.Contains("rounded-pill", markup);
+        Assert.Contains("Procurar oponente", markup);
     }
 
     [Fact(DisplayName = "SPEC-0026:IT-02 — GameBoard processa jogadas e possui estilização compatível")]

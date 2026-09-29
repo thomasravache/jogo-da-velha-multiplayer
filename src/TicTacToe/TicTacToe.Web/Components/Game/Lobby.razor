@@ -1,119 +1,118 @@
 @using TicTacToe.Modules.Gameplay
+@using TicTacToe.Web.Components.Ui
+@inject IJSRuntime JS
 
 @if (CreatedRoomCode != null)
 {
-    <MudCard Class="lobby lobby-card waiting pa-6 text-center" Elevation="4">
-        <MudCardContent Class="d-flex flex-column align-center gap-3">
-            <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
-            <MudText Typo="Typo.h5" Class="font-weight-bold">Sala criada!</MudText>
-            <div class="room-code-badge">@CreatedRoomCode</div>
-            <MudText Typo="Typo.body2" Color="Color.Secondary">Compartilhe o código com seu amigo para começar 🔒</MudText>
-        </MudCardContent>
-    </MudCard>
+    <NeonCard Accent="CardAccent.O" Class="mx-auto flex w-full max-w-md flex-col items-center gap-4 p-6 text-center">
+        <StatusChip Tone="ChipTone.Waiting" Dot="true">Aguardando amigo</StatusChip>
+        <h2 class="text-headline-md">Sala criada!</h2>
+        <p class="font-numeric text-headline-lg tracking-[0.15em] text-secondary" aria-label="Código da sala">@CreatedRoomCode</p>
+        <PillButton Variant="PillVariant.Outline" Icon="@(_copy == CopyState.Copied ? "check" : "copy")" OnClick="CopyCode">Copiar</PillButton>
+        <p class="text-body-md text-ink-muted" role="status" aria-live="polite">
+            @(_copy switch
+            {
+                CopyState.Copied => "Código copiado!",
+                CopyState.Failed => "Não foi possível copiar. Selecione o código acima e copie manualmente.",
+                _ => "Compartilhe o código com seu amigo para começar 🔒",
+            })
+        </p>
+    </NeonCard>
 }
 else if (IsWaiting)
 {
-    <MudCard Class="lobby lobby-card waiting pa-6 text-center" Elevation="4">
-        <MudCardContent Class="d-flex flex-column align-center gap-3">
-            <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
-            <MudText Typo="Typo.h6">Procurando oponente para <strong>@PlayerName</strong>... ⏳</MudText>
-        </MudCardContent>
-    </MudCard>
+    <NeonCard Class="mx-auto flex w-full max-w-md flex-col items-center gap-4 p-6 text-center">
+        <span class="size-10 animate-spin motion-reduce:animate-none rounded-full border-4 border-secondary border-t-transparent" aria-hidden="true"></span>
+        <StatusChip Tone="ChipTone.Waiting" Dot="true">Na fila</StatusChip>
+        <p class="text-title-sm" role="status" aria-live="polite">Procurando oponente para @PlayerName…</p>
+    </NeonCard>
 }
 else
 {
-    <MudCard Class="lobby lobby-card pa-6" Elevation="4">
-        <MudCardContent Class="d-flex flex-column align-center gap-4">
-            <div class="nickname-box d-flex flex-column align-center w-100">
-                <label for="playerName" class="difficulty-label mb-1">Seu apelido</label>
-                <input id="playerName"
-                       type="text"
-                       maxlength="20"
-                       placeholder="Ex: Thomas"
-                       value="@PlayerName"
-                       @oninput="HandleNameInput"
-                       class="name-input" />
+    <div class="mx-auto flex w-full max-w-[var(--size-frame)] flex-col gap-6 py-4">
+        <PageHeader Eyebrow="XO Arena" Title="Arena de Batalhas XO" Subtitle="Escolha seu modo de combate e desafie um oponente." />
+
+        <NeonCard Class="flex flex-col gap-3 p-5 md:flex-row md:items-end">
+            <div class="flex-1">
+                <NeonInput Id="playerName" Label="Seu apelido" Placeholder="Ex: Thomas" MaxLength="20" ShowCounter="true"
+                           Value="@PlayerName" ValueChanged="HandleNameInput" />
             </div>
+            <StatusChip Tone="@(HasName ? ChipTone.Online : ChipTone.Neutral)" Dot="@HasName">
+                @(HasName ? "Pronto para jogar" : "Informe seu apelido")
+            </StatusChip>
+        </NeonCard>
 
-            <div class="mode-actions d-flex flex-column gap-3 w-100">
-                <MudButton Variant="Variant.Filled"
-                           Color="Color.Primary"
-                           Size="Size.Large"
-                           StartIcon="@Icons.Material.Filled.Public"
-                           Disabled="@(string.IsNullOrWhiteSpace(PlayerName))"
-                           OnClick="OnPlayOnline"
-                           Class="btn-play">
-                    Jogar Online 🌐
-                </MudButton>
-
-                <div class="solo-section d-flex flex-column gap-2">
-                    <div class="difficulty-container d-flex align-center justify-space-between pa-2 rounded">
-                        <span class="difficulty-label">Dificuldade:</span>
-                        <div class="difficulty-selector" role="group" aria-label="Dificuldade da IA">
-                            <MudButton Variant="@(SelectedDifficulty == AiDifficulty.Easy ? Variant.Filled : Variant.Outlined)"
-                                       Color="Color.Success"
-                                       Size="Size.Small"
-                                       Class="@(SelectedDifficulty == AiDifficulty.Easy ? "btn-diff active" : "btn-diff")"
-                                       aria-pressed="@(SelectedDifficulty == AiDifficulty.Easy)"
-                                       OnClick="() => SetDifficulty(AiDifficulty.Easy)">
-                                Fácil 🟢
-                            </MudButton>
-                            <MudButton Variant="@(SelectedDifficulty == AiDifficulty.Hard ? Variant.Filled : Variant.Outlined)"
-                                       Color="Color.Secondary"
-                                       Size="Size.Small"
-                                       Class="@(SelectedDifficulty == AiDifficulty.Hard ? "btn-diff active" : "btn-diff")"
-                                       aria-pressed="@(SelectedDifficulty == AiDifficulty.Hard)"
-                                       OnClick="() => SetDifficulty(AiDifficulty.Hard)">
-                                Impossível 🔴
-                            </MudButton>
-                        </div>
-                    </div>
-                    <MudButton Variant="Variant.Filled"
-                               Color="Color.Tertiary"
-                               Size="Size.Large"
-                               StartIcon="@Icons.Material.Filled.SmartToy"
-                               Disabled="@(string.IsNullOrWhiteSpace(PlayerName))"
-                               OnClick="OnPlaySolo"
-                               Class="btn-play btn-solo">
-                        Jogar vs Robô (IA) 🤖
-                    </MudButton>
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+            <NeonCard Accent="CardAccent.X" Class="flex flex-col gap-4 p-5">
+                <StatusChip Tone="ChipTone.Danger">Multiplayer online</StatusChip>
+                <h2 class="text-headline-md">Duelo Online 1v1</h2>
+                <p class="text-body-md text-ink-muted">Encontre um oponente humano na fila e jogue agora.</p>
+                <div class="flex items-center justify-between rounded-cell bg-surface-high/60 px-4 py-3">
+                    <span class="text-body-md text-ink-muted">Tempo por turno</span>
+                    <span class="font-numeric text-label-numeric">@GameSession.DefaultTurnTimeSeconds segundos</span>
                 </div>
+                <PillButton Size="PillSize.Lg" Icon="globe" Class="mt-auto" Disabled="@(!HasName)" OnClick="OnPlayOnline">Procurar oponente</PillButton>
+            </NeonCard>
 
-                <MudButton Variant="Variant.Filled"
-                           Color="Color.Dark"
-                           Size="Size.Large"
-                           StartIcon="@Icons.Material.Filled.Lock"
-                           Disabled="@(string.IsNullOrWhiteSpace(PlayerName))"
-                           OnClick="OnCreateRoom"
-                           Class="btn-play btn-private">
-                    Criar Sala Privada 🔒
-                </MudButton>
+            <NeonCard Accent="CardAccent.O" Class="flex flex-col gap-4 p-5">
+                <StatusChip Tone="ChipTone.Waiting">Treino solo</StatusChip>
+                <h2 class="text-headline-md">Duelo contra IA</h2>
+                <SegmentedControl TValue="AiDifficulty" AriaLabel="Dificuldade da IA"
+                                  Items="_difficultyItems" Value="SelectedDifficulty" ValueChanged="SetDifficulty" />
+                <p class="text-body-md text-ink-muted">
+                    @(SelectedDifficulty == AiDifficulty.Easy
+                        ? "O robô joga em casas aleatórias. Bom para aquecer."
+                        : "Algoritmo Minimax: o robô calcula todas as jogadas possíveis e nunca perde.")
+                </p>
+                <PillButton Variant="PillVariant.Outline" Size="PillSize.Lg" Icon="robot" Class="mt-auto" Disabled="@(!HasName)" OnClick="OnPlaySolo">Iniciar partida solo</PillButton>
+            </NeonCard>
 
-                <div class="join-room-box d-flex gap-2">
-                    <input type="text"
-                           placeholder="Código (ex: SALA-ABCD)"
-                           value="@InputRoomCode"
-                           @oninput="HandleRoomCodeInput"
-                           class="code-input" />
-                    <MudButton Variant="Variant.Filled"
-                               Color="Color.Info"
-                               Disabled="@(string.IsNullOrWhiteSpace(PlayerName) || string.IsNullOrWhiteSpace(InputRoomCode))"
-                               OnClick="OnJoinRoom"
-                               Class="btn-join">
-                        Entrar 🔑
-                    </MudButton>
-                </div>
-
+            <NeonCard Class="flex flex-col gap-4 p-5">
+                <StatusChip Tone="ChipTone.Neutral">Entre amigos</StatusChip>
+                <h2 class="text-headline-md">Sala Privada</h2>
+                <SegmentedControl TValue="RoomTab" AriaLabel="Ação da sala privada"
+                                  Items="_roomItems" Value="_tab" ValueChanged="SetTab" />
+                @if (_tab == RoomTab.Create)
+                {
+                    <p class="text-body-md text-ink-muted">Crie uma sala e compartilhe o código com um amigo.</p>
+                    <PillButton Variant="PillVariant.Outline" Size="PillSize.Lg" Icon="lock" Class="mt-auto" Disabled="@(!HasName)" OnClick="OnCreateRoom">Criar sala 🔒</PillButton>
+                }
+                else
+                {
+                    <NeonInput Id="roomCode" Label="Código da sala" Placeholder="Ex: SALA-ABCD" MaxLength="20"
+                               Value="@InputRoomCode" ValueChanged="HandleRoomCodeInput" />
+                    <PillButton Variant="PillVariant.Outline" Size="PillSize.Lg" Icon="key" Class="mt-auto"
+                                Disabled="@(!HasName || string.IsNullOrWhiteSpace(InputRoomCode))" OnClick="OnJoinRoom">Entrar 🔑</PillButton>
+                }
                 @if (!string.IsNullOrEmpty(RoomErrorMessage))
                 {
-                    <MudAlert Severity="Severity.Error" Dense="true" Class="mt-1">@RoomErrorMessage</MudAlert>
+                    <p role="alert" class="rounded-cell bg-primary/15 px-4 py-2 text-body-md text-primary">@RoomErrorMessage</p>
                 }
-            </div>
-        </MudCardContent>
-    </MudCard>
+            </NeonCard>
+        </div>
+    </div>
 }
 
 @code {
+    private enum RoomTab { Create, Join }
+
+    private enum CopyState { None, Copied, Failed }
+
+    private static readonly IReadOnlyList<(AiDifficulty Value, string Label)> _difficultyItems =
+    [
+        (AiDifficulty.Easy, "Fácil 🟢"),
+        (AiDifficulty.Hard, "Impossível 🔴"),
+    ];
+
+    private static readonly IReadOnlyList<(RoomTab Value, string Label)> _roomItems =
+    [
+        (RoomTab.Create, "Criar sala"),
+        (RoomTab.Join, "Entrar com código"),
+    ];
+
+    private RoomTab _tab = RoomTab.Create;
+    private CopyState _copy = CopyState.None;
+
     [Parameter] public string PlayerName { get; set; } = "";
     [Parameter] public EventCallback<string> PlayerNameChanged { get; set; }
 
@@ -132,11 +131,29 @@ else
     [Parameter] public EventCallback OnCreateRoom { get; set; }
     [Parameter] public EventCallback OnJoinRoom { get; set; }
 
-    private async Task HandleNameInput(ChangeEventArgs e)
+    private string? _copiedFor;
+
+    protected override void OnParametersSet()
     {
-        var val = e.Value?.ToString() ?? "";
-        PlayerName = val;
-        await PlayerNameChanged.InvokeAsync(val);
+        if (_copiedFor != CreatedRoomCode)
+        {
+            _copy = CopyState.None;
+            _copiedFor = CreatedRoomCode;
+        }
+    }
+
+    private bool HasName => !string.IsNullOrWhiteSpace(PlayerName);
+
+    private async Task HandleNameInput(string value)
+    {
+        PlayerName = value;
+        await PlayerNameChanged.InvokeAsync(value);
+    }
+
+    private async Task HandleRoomCodeInput(string value)
+    {
+        InputRoomCode = value;
+        await InputRoomCodeChanged.InvokeAsync(value);
     }
 
     private async Task SetDifficulty(AiDifficulty difficulty)
@@ -145,10 +162,18 @@ else
         await DifficultyChanged.InvokeAsync(difficulty);
     }
 
-    private async Task HandleRoomCodeInput(ChangeEventArgs e)
+    private void SetTab(RoomTab tab) => _tab = tab;
+
+    private async Task CopyCode()
     {
-        var val = e.Value?.ToString() ?? "";
-        InputRoomCode = val;
-        await InputRoomCodeChanged.InvokeAsync(val);
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", CreatedRoomCode);
+            _copy = CopyState.Copied;
+        }
+        catch (Exception ex) when (ex is JSException or JSDisconnectedException or InvalidOperationException)
+        {
+            _copy = CopyState.Failed;
+        }
     }
 }

@@ -23,6 +23,7 @@ test_paths:
 scope_exempt:
   - "docs/specs/**"
   - "docs/adr/**"
+  - "src/TicTacToe/TicTacToe.Web/wwwroot/css/cyber-arena.css"  # gerado pelo Tailwind; controlado por tools/tailwind/build.sh --check
 dependency_manifests:
   - "**/*.csproj"
 tracker:
