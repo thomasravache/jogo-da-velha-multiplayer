@@ -239,4 +239,19 @@ public class LobbyCyberArenaTests
         await cut.InvokeAsync(() => Button(cut, "Copiar").Click());
         cut.WaitForAssertion(() => Assert.Contains("Código copiado!", cut.Markup));
     }
+
+    [Fact(DisplayName = "SPEC-0030:IT-01b — Aviso de cópia é zerado quando o código da sala muda")]
+    [Trait("Category", "SPEC-0030:IT-01")]
+    public async Task CopyNotice_ShouldReset_WhenRoomCodeChanges()
+    {
+        await using var ctx = new BunitContext();
+        ctx.JSInterop.SetupVoid("navigator.clipboard.writeText", "SALA-ABCD").SetVoidResult();
+        var cut = RenderLobby(ctx, p => p.Add(l => l.PlayerName, "Thomas").Add(l => l.CreatedRoomCode, "SALA-ABCD"));
+
+        await cut.InvokeAsync(() => Button(cut, "Copiar").Click());
+        cut.WaitForAssertion(() => Assert.Contains("Código copiado!", cut.Markup));
+
+        cut.Render(p => p.Add(l => l.CreatedRoomCode, "SALA-WXYZ"));
+        Assert.DoesNotContain("Código copiado!", cut.Markup);
+    }
 }
