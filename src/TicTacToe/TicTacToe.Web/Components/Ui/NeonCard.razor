@@ -1,0 +1,20 @@
+<div class="@Css">@ChildContent</div>
+
+@code {
+    [Parameter] public CardAccent Accent { get; set; } = CardAccent.None;
+    [Parameter] public string? Class { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private string Css => string.Join(' ', new[]
+    {
+        "rounded-card border bg-surface/80 backdrop-blur-md shadow-[0_8px_24px_rgb(0_0_0/0.45)]",
+        Accent switch
+        {
+            CardAccent.X => "border-primary/60 shadow-[0_0_20px_rgb(255_71_87/0.35)]",
+            CardAccent.O => "border-secondary/60 shadow-[0_0_20px_rgb(0_210_211/0.35)]",
+            CardAccent.Win => "border-success/60 bg-success/10 shadow-[0_0_20px_rgb(16_185_129/0.35)]",
+            _ => "border-stroke",
+        },
+        Class,
+    }.Where(c => !string.IsNullOrWhiteSpace(c)));
+}

@@ -167,8 +167,8 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | G2 Green | PASS | `dotnet test` 76/76; `dotnet format --verify-no-changes` limpo; fix d06c33c | 2026-09-29 |
 | G3 Arquitetura | N/A | Sem suíte `Category=Architecture` no projeto; nenhuma dependência entre módulos alterada | 2026-09-29 |
 | G4 Review | PASS | Reviewer independente APPROVED em 80e2b69 (0 blocker, 0 major, 5 minor) | 2026-09-29 |
-| G5 Integração & CI | PENDING | | |
-| H2 Integração aprovada | PENDING | | |
+| G5 Integração & CI | PASS | PR #4: Build, Format & Test e sdd verdes; mesclado em 228e738 | 2026-09-29 |
+| H2 Integração aprovada | PASS | Autorização do merge do PR #4 pelo usuário em 2026-09-29 | 2026-09-29 |
 | G6 Deploy | PENDING | | |
 | G7 Pronto & Docs | PENDING | | |
 

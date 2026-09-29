@@ -1,0 +1,56 @@
+@if (Href is not null && !IsDisabled)
+{
+    <a href="@Href" class="@Css">@Content</a>
+}
+else
+{
+    <button type="button" class="@Css" disabled="@IsDisabled" aria-busy="@(Loading ? "true" : null)" @onclick="HandleClick">@Content</button>
+}
+
+@code {
+    [Parameter] public PillVariant Variant { get; set; } = PillVariant.Primary;
+    [Parameter] public PillSize Size { get; set; } = PillSize.Md;
+    [Parameter] public string? Icon { get; set; }
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public bool Loading { get; set; }
+    [Parameter] public string? Href { get; set; }
+    [Parameter] public string? Class { get; set; }
+    [Parameter] public EventCallback OnClick { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private bool IsDisabled => Disabled || Loading;
+
+    private string Css => string.Join(' ', new[]
+    {
+        "inline-flex items-center justify-center gap-2 no-underline! rounded-pill font-numeric font-semibold uppercase tracking-[0.08em] transition",
+        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary disabled:pointer-events-none disabled:opacity-50",
+        Size == PillSize.Lg ? "min-h-12 px-8 py-4 text-body-lg" : "min-h-11 px-5 py-2.5 text-label-numeric",
+        Variant switch
+        {
+            PillVariant.Outline => "border border-surface-high text-secondary! hover:border-stroke-active hover:bg-surface-high/40",
+            PillVariant.Ghost => "text-ink-muted! hover:bg-surface-high/50 hover:text-ink!",
+            _ => "bg-linear-to-br from-primary to-[#e74c3c] text-canvas! shadow-[0_4px_16px_rgb(255_71_87/0.4)] hover:brightness-110",
+        },
+        Class,
+    }.Where(c => !string.IsNullOrWhiteSpace(c)));
+
+    private RenderFragment Content => @<text>
+        @if (Loading)
+        {
+            <span data-loading class="size-4 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden="true"></span>
+        }
+        else if (!string.IsNullOrWhiteSpace(Icon))
+        {
+            <Icon Name="@Icon" Size="20" />
+        }
+        @ChildContent
+    </text>;
+
+    private async Task HandleClick()
+    {
+        if (!IsDisabled)
+        {
+            await OnClick.InvokeAsync();
+        }
+    }
+}

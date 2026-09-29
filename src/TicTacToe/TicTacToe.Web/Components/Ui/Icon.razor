@@ -1,0 +1,19 @@
+@{
+    if (!IconPaths.All.TryGetValue(Name, out var inner))
+    {
+        throw new ArgumentOutOfRangeException(nameof(Name), Name, "Ícone desconhecido.");
+    }
+    var labeled = !string.IsNullOrWhiteSpace(Label);
+}
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="@Size" height="@Size" fill="currentColor"
+     class="shrink-0"
+     aria-hidden="@(labeled ? null : "true")"
+     role="@(labeled ? "img" : null)"
+     aria-label="@(labeled ? Label : null)"
+     focusable="false">@((MarkupString)inner)</svg>
+
+@code {
+    [Parameter] public string Name { get; set; } = "";
+    [Parameter] public int Size { get; set; } = 20;
+    [Parameter] public string? Label { get; set; }
+}

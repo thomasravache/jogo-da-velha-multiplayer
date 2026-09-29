@@ -1,26 +1,56 @@
 @inherits LayoutComponentBase
+@using TicTacToe.Web.Components.Ui
+@implements IDisposable
+@inject NavigationManager Navigation
+@inject ShellState Shell
 
 <MudThemeProvider Theme="_theme" IsDarkMode="true" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
 
-<MudLayout>
-    <MudAppBar Elevation="2" Dense="true" Color="Color.Surface" Fixed="true">
-        <MudText Typo="Typo.h6" Class="d-flex align-center font-weight-bold">
-            <MudIcon Icon="@Icons.Material.Filled.SportsEsports" Class="mr-2" Color="Color.Primary" />
-            Jogo da Velha Multiplayer
-        </MudText>
-        <MudSpacer />
-        <MudButton Href="/" StartIcon="@Icons.Material.Filled.PlayArrow" Color="Color.Inherit">Jogar</MudButton>
-        <MudButton Href="/history" StartIcon="@Icons.Material.Filled.History" Color="Color.Inherit">Histórico</MudButton>
-        <MudButton Href="/leaderboard" StartIcon="@Icons.Material.Filled.Leaderboard" Color="Color.Inherit">Ranking</MudButton>
-    </MudAppBar>
+<div class="relative min-h-screen bg-canvas font-display text-ink antialiased">
+    <div aria-hidden="true" class="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-15%,rgb(255_71_87/0.12),transparent_70%),radial-gradient(ellipse_70%_50%_at_50%_110%,rgb(0_210_211/0.08),transparent_60%)]"></div>
 
-    <MudMainContent Class="d-flex justify-center align-center min-vh-100 pa-4">
+    <header class="fixed inset-x-0 top-0 z-50 h-16 border-b border-stroke bg-canvas/85 backdrop-blur-xl">
+        <div class="mx-auto flex h-full w-full max-w-[1440px] items-center justify-between gap-4 px-gutter lg:px-gutter-desktop">
+            <a href="/" class="flex items-center gap-2 rounded-pill text-ink! no-underline! focus-visible:outline-2 focus-visible:outline-secondary">
+                <img src="@Assets["img/xo-arena-logo.svg"]" alt="XO Arena" class="h-8 w-8" />
+                <span class="text-headline-md uppercase tracking-tight">XO Arena</span>
+            </a>
+
+            @if (Shell.Immersive && !string.IsNullOrWhiteSpace(Shell.Title))
+            {
+                <span class="font-numeric text-label-badge uppercase text-secondary lg:hidden">@Shell.Title</span>
+            }
+
+            <nav aria-label="Principal" class="hidden items-center gap-1 rounded-card bg-surface/70 p-1 lg:flex">
+                @foreach (var item in Items)
+                {
+                    <a href="@item.Href" aria-current="@(IsActive(item.Href) ? "page" : null)"
+                       class="@DesktopLinkCss(item.Href)">@item.Label</a>
+                }
+            </nav>
+        </div>
+    </header>
+
+    <main class="relative z-10 min-h-screen bg-transparent! px-gutter pb-24 pt-20 lg:pb-8">
         @Body
-    </MudMainContent>
-</MudLayout>
+    </main>
+
+    @if (!Shell.Immersive)
+    {
+        <nav aria-label="Principal (mobile)" class="fixed inset-x-0 bottom-0 z-50 flex border-t border-stroke bg-surface/90 backdrop-blur-xl lg:hidden">
+            @foreach (var item in Items)
+            {
+                <a href="@item.Href" aria-current="@(IsActive(item.Href) ? "page" : null)" class="@MobileLinkCss(item.Href)">
+                    <Icon Name="@item.Icon" Size="24" />
+                    <span class="text-label-badge">@item.Label</span>
+                </a>
+            }
+        </nav>
+    }
+</div>
 
 <div id="blazor-error-ui">
     An unhandled error has occurred.
@@ -29,6 +59,15 @@
 </div>
 
 @code {
+    private sealed record NavItem(string Href, string Label, string Icon);
+
+    private static readonly NavItem[] Items =
+    [
+        new("/", "Jogar", "play"),
+        new("/history", "Histórico", "history"),
+        new("/leaderboard", "Ranking", "leaderboard"),
+    ];
+
     private MudTheme _theme = new MudTheme
     {
         PaletteDark = new PaletteDark
@@ -43,4 +82,36 @@
             ActionDefault = "#e0e0e0"
         }
     };
+
+    protected override void OnInitialized()
+    {
+        Navigation.LocationChanged += OnStateChanged;
+        Shell.Changed += OnShellChanged;
+    }
+
+    private bool IsActive(string href)
+    {
+        var path = new Uri(Navigation.Uri).AbsolutePath;
+        return href == "/"
+            ? path == "/"
+            : path.Equals(href, StringComparison.OrdinalIgnoreCase) || path.StartsWith(href + "/", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private string DesktopLinkCss(string href) =>
+        "rounded-cell px-4 py-1.5 font-numeric text-label-badge uppercase tracking-wider no-underline! transition focus-visible:outline-2 focus-visible:outline-secondary " +
+        (IsActive(href) ? "bg-surface-high text-ink! shadow-[0_0_12px_rgb(0_210_211/0.25)]" : "text-ink-muted! hover:bg-surface-high/60 hover:text-ink!");
+
+    private string MobileLinkCss(string href) =>
+        "flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 font-numeric uppercase no-underline! focus-visible:outline-2 focus-visible:outline-secondary " +
+        (IsActive(href) ? "text-secondary!" : "text-ink-muted!");
+
+    private void OnStateChanged(object? sender, LocationChangedEventArgs e) => _ = InvokeAsync(StateHasChanged);
+
+    private void OnShellChanged() => _ = InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= OnStateChanged;
+        Shell.Changed -= OnShellChanged;
+    }
 }

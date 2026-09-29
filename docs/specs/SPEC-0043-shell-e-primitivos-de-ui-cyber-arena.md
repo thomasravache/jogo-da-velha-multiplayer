@@ -4,7 +4,7 @@ title: Shell e primitivos de UI Cyber Arena
 tier: full
 type: feature
 user_facing: true
-status: approved
+status: in-progress
 created: 2026-09-29
 parent: SPEC-0028
 depends_on: [SPEC-0029]
@@ -206,10 +206,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | Gate | Status | Evidência | Data |
 |---|---|---|---|
 | G0 Spec | PASS | `spec_graph.py validate` das 18 specs: 0 erros, 0 avisos | 2026-09-29 |
-| G1 Red | PENDING | | |
-| G2 Green | PENDING | | |
-| G3 Arquitetura | PENDING | | |
-| G4 Review | PENDING | | |
+| G1 Red | PASS | `verify SPEC-0043`: primeiro red e23a140/900cee5; 14/14 testes rastreados; 15 falhas iniciais | 2026-09-29 |
+| G2 Green | PASS | `dotnet test` 102/102; `dotnet format --verify-no-changes` limpo; `build.sh --check` sem drift | 2026-09-29 |
+| G3 Arquitetura | N/A | Sem suíte `Category=Architecture`; regras do ADR-0008 cobertas por `TailwindDesignSystemTests` | 2026-09-29 |
+| G4 Review | PASS | Reviewer independente: CHANGES_REQUESTED em 5940110 (3 major corrigidos), APPROVED em 572f5e5 | 2026-09-29 |
 | G5 Integração & CI | PENDING | | |
 | H2 Integração aprovada | PENDING | | |
 | G6 Deploy | PENDING | | |

@@ -210,8 +210,8 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | G2 Green | PASS | `dotnet test` 74/74; `build.sh --check` sem drift; feat a56db55 | 2026-09-29 |
 | G3 Arquitetura | PASS | Regra do ADR-0008 (versão pinada, sha256, tokens, sem preflight) garantida por `TailwindDesignSystemTests` | 2026-09-29 |
 | G4 Review | PASS | Reviewer independente APPROVED em a56db55 (0 blocker, 0 major, 5 minor; 2 corrigidos em f0026fe) | 2026-09-29 |
-| G5 Integração & CI | PENDING | | |
-| H2 Integração aprovada | PENDING | | |
+| G5 Integração & CI | PASS | PR #5: Build, Format & Test e sdd verdes; mesclado em 120370f | 2026-09-29 |
+| H2 Integração aprovada | PASS | Autorização do merge do PR #5 pelo usuário em 2026-09-29 | 2026-09-29 |
 | G6 Deploy | PENDING | | |
 | G7 Pronto & Docs | PENDING | | |
 

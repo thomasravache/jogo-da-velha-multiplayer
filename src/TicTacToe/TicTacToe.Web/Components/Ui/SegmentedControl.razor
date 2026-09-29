@@ -1,0 +1,74 @@
+@typeparam TValue
+
+<div role="radiogroup" aria-label="@AriaLabel" class="inline-flex w-full gap-1 rounded-pill border border-stroke bg-surface-high/40 p-1">
+    @for (var i = 0; i < Items.Count; i++)
+    {
+        var index = i;
+        var item = Items[i];
+        var selected = IsSelected(item.Value);
+        <button type="button" role="radio" aria-checked="@(selected ? "true" : "false")" tabindex="@(IsTabStop(index) ? 0 : -1)"
+                class="@ItemCss(selected)"
+                @ref="_refs[index]"
+                @onclick="() => Select(item.Value)"
+                @onkeydown="e => HandleKey(e, index)">@item.Label</button>
+    }
+</div>
+
+@code {
+    private ElementReference[] _refs = [];
+
+    [Parameter] public IReadOnlyList<(TValue Value, string Label)> Items { get; set; } = [];
+    [Parameter] public TValue? Value { get; set; }
+    [Parameter] public EventCallback<TValue> ValueChanged { get; set; }
+    [Parameter] public string AriaLabel { get; set; } = "";
+
+    protected override void OnParametersSet()
+    {
+        if (_refs.Length != Items.Count)
+        {
+            _refs = new ElementReference[Items.Count];
+        }
+    }
+
+    private bool IsSelected(TValue candidate) => EqualityComparer<TValue>.Default.Equals(candidate, Value!);
+
+    private int SelectedIndex()
+    {
+        for (var i = 0; i < Items.Count; i++)
+        {
+            if (IsSelected(Items[i].Value)) return i;
+        }
+
+        return -1;
+    }
+
+    // Roving tabindex: só o item selecionado (ou o primeiro, se nenhum casar) entra na ordem de tabulação.
+    private bool IsTabStop(int index)
+    {
+        var selected = SelectedIndex();
+        return selected >= 0 ? index == selected : index == 0;
+    }
+
+    private static string ItemCss(bool selected) =>
+        "min-h-11 flex-1 rounded-pill px-4 font-numeric text-label-numeric uppercase transition focus-visible:outline-2 focus-visible:outline-secondary " +
+        (selected ? "bg-surface-high text-ink shadow-[0_0_12px_rgb(0_210_211/0.25)]" : "text-ink-muted hover:text-ink");
+
+    private Task Select(TValue value) => ValueChanged.InvokeAsync(value);
+
+    // Setas horizontais movem seleção e foco; Cima/Baixo/Home/End não são tratados para não brigar com a rolagem da página.
+    private async Task HandleKey(KeyboardEventArgs e, int index)
+    {
+        var count = Items.Count;
+        if (count == 0) return;
+        var target = e.Key switch
+        {
+            "ArrowRight" => (index + 1) % count,
+            "ArrowLeft" => (index - 1 + count) % count,
+            _ => -1,
+        };
+        if (target < 0) return;
+
+        await Select(Items[target].Value);
+        await _refs[target].FocusAsync();
+    }
+}
