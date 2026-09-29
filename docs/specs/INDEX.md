@@ -5,20 +5,19 @@
 ## Saúde
 
 - Validação (G0): **76 erro(s), 14 aviso(s)** — rode `spec_graph.py validate`
-- Specs: approved 3, implemented 18
+- Specs: approved 2, implemented 19
 - Impedimentos: **0 aberto(s)**, 0 resolvido(s)
 
 ## Plano de Execução
 
 **Em andamento:** —  
 **Paradas por impedimento:** —  
-**Próximo lote:** SPEC-0023
+**Próximo lote:** SPEC-0024
 
 | Onda | Spec | Título | Tier/Tam. | Status | Prontidão | Observação |
 |---|---|---|---|---|---|---|
-| 1 | SPEC-0023 | Infraestrutura de Cobertura de Código e Testes com bUnit | full/S | approved | ✅ pronta |  |
-| 2 | SPEC-0024 | Decomposição do Componente Home e Isolamento de CSS | full/M | approved | ⛔ aguarda implementação de SPEC-0023 |  |
-| 3 | SPEC-0025 | Eventos em Tempo Real sem Polling e EF Core Migrations | full/M | approved | ⛔ aguarda implementação de SPEC-0024 |  |
+| 1 | SPEC-0024 | Decomposição do Componente Home e Isolamento de CSS | full/M | approved | ✅ pronta |  |
+| 2 | SPEC-0025 | Eventos em Tempo Real sem Polling e EF Core Migrations | full/M | approved | ⛔ aguarda implementação de SPEC-0024 |  |
 
 ## Épicos
 
@@ -27,7 +26,7 @@
 | SPEC-0001 | Fundação do Projeto | implemented | 3/3 implementadas |
 | SPEC-0005 | Jogo da Velha | implemented | 3/3 implementadas |
 | SPEC-0013 | Evolução do Jogo da Velha | implemented | 6/6 implementadas |
-| SPEC-0021 | Engenharia de Qualidade e Refatoração Arquitetural | approved | 1/4 implementadas |
+| SPEC-0021 | Engenharia de Qualidade e Refatoração Arquitetural | approved | 2/4 implementadas |
 
 ## Grafo de Dependências
 
@@ -36,12 +35,10 @@ Seta contínua: depende da implementação. Seta tracejada: consome contrato.
 ```mermaid
 flowchart LR
   subgraph E0021["SPEC-0021 · Engenharia de Qualidade e Refatoração Arquitetural"]
-    S0022["SPEC-0022<br/>Padronização de Código com EditorConfig…"]:::implemented
-    S0023["SPEC-0023<br/>Infraestrutura de Cobertura de Código e…"]:::approved
+    S0023["SPEC-0023<br/>Infraestrutura de Cobertura de Código e…"]:::implemented
     S0024["SPEC-0024<br/>Decomposição do Componente Home e Isola…"]:::approved
     S0025["SPEC-0025<br/>Eventos em Tempo Real sem Polling e EF …"]:::approved
   end
-  S0022 --> S0023
   S0023 --> S0024
   S0024 --> S0025
   classDef proposed fill:#fef3c7,stroke:#d97706,color:#111
@@ -77,7 +74,7 @@ flowchart LR
 | [SPEC-0020](SPEC-0020-correcao-de-inversao-de-nomes-em-salas-privadas-e-partidas.md) | Correção de Inversão de Nomes em Salas Privadas e Partidas | lite | fix | implemented | 2026-09-29 | — | — | — |
 | [SPEC-0021](SPEC-0021-engenharia-de-qualidade-e-refatoracao-arquitetural.md) | Engenharia de Qualidade e Refatoração Arquitetural | epic | feature | approved | 2026-09-29 | — | — | — |
 | [SPEC-0022](SPEC-0022-padronizacao-de-codigo-com-editorconfig-e-directory-build-pr.md) | Padronização de Código com EditorConfig e Directory.Build.props | full | foundation | implemented | 2026-09-29 | SPEC-0021 | — | — |
-| [SPEC-0023](SPEC-0023-infraestrutura-de-cobertura-de-codigo-e-testes-com-bunit.md) | Infraestrutura de Cobertura de Código e Testes com bUnit | full | foundation | approved | 2026-09-29 | SPEC-0021 | SPEC-0022 | — |
+| [SPEC-0023](SPEC-0023-infraestrutura-de-cobertura-de-codigo-e-testes-com-bunit.md) | Infraestrutura de Cobertura de Código e Testes com bUnit | full | foundation | implemented | 2026-09-29 | SPEC-0021 | SPEC-0022 | — |
 | [SPEC-0024](SPEC-0024-decomposicao-do-componente-home-e-isolamento-de-css.md) | Decomposição do Componente Home e Isolamento de CSS | full | refactor | approved | 2026-09-29 | SPEC-0021 | SPEC-0023 | — |
 | [SPEC-0025](SPEC-0025-eventos-em-tempo-real-sem-polling-e-ef-core-migrations.md) | Eventos em Tempo Real sem Polling e EF Core Migrations | full | refactor | approved | 2026-09-29 | SPEC-0021 | SPEC-0024 | — |
 
