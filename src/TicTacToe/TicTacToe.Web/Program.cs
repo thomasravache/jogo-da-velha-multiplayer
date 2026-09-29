@@ -4,7 +4,9 @@ using TicTacToe.Modules.Gameplay;
 using TicTacToe.Modules.Matchmaking;
 using TicTacToe.Web.Components;
 using TicTacToe.Web.Components.Ui;
+using Microsoft.AspNetCore.Components.Server.Circuits;
 using TicTacToe.Web.Services.PlayerIdentity;
+using TicTacToe.Web.Services.Presence;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +16,8 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddScoped<ShellState>();
+builder.Services.AddScoped<MatchPresenceContext>();
+builder.Services.AddScoped<CircuitHandler, MatchPresenceCircuitHandler>();
 builder.Services.AddScoped<IPlayerStorage, BrowserPlayerStorage>();
 builder.Services.AddScoped<PlayerIdentityService>();
 builder.Services.AddOutputCache();

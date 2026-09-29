@@ -23,6 +23,10 @@
                 </p>
             }
             <p aria-live="polite" class="text-title-sm">@StatusText()</p>
+            @if (Game.Mode != GameMode.Solo)
+            {
+                <p data-disconnect-notice aria-live="polite" class="min-h-6 text-body-md text-warning">@DisconnectNotice()</p>
+            }
             @if (series)
             {
                 <p data-series-notice aria-live="polite" class="min-h-6 text-body-md text-ink-muted">@SeriesNotice()</p>
@@ -55,9 +59,22 @@
         return Game.IsDraw ? "Rodada empatada, será repetida" : null;
     }
 
+    private string? DisconnectNotice()
+    {
+        var opponent = MyPlayer == Player.X ? Player.O : Player.X;
+        return Game.DisconnectSecondsLeft(opponent) is { } left
+            ? $"Oponente desconectado. Aguardando reconexão… {left}s"
+            : null;
+    }
+
     private string StatusText()
     {
         var myName = Game.GetPlayerName(MyPlayer);
+
+        if (Game.Winner != Player.None && Game.EndReason == EndReason.Disconnect)
+        {
+            return Game.Winner == MyPlayer ? "Oponente desconectou. Vitória por W.O." : "Você foi desconectado. Derrota por W.O.";
+        }
 
         if (Game.Winner != Player.None && Game.EndReason == EndReason.Abandon)
         {
