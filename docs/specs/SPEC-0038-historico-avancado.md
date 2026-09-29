@@ -198,10 +198,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | Gate | Status | Evidência | Data |
 |---|---|---|---|
 | G0 Spec | PASS | `spec_graph.py validate` das 18 specs: 0 erros, 0 avisos | 2026-09-29 |
-| G1 Red | PENDING | | |
-| G2 Green | PENDING | | |
-| G3 Arquitetura | PENDING | | |
-| G4 Review | PENDING | | |
+| G1 Red | PASS | verify SPEC-0038: Red antes do Green (bc30c6e), CH-01 e 14+ testes rastreados; Red confirmado por NotImplementedException e UI ausente | 2026-09-29 |
+| G2 Green | PASS | dotnet test 233/233 local; dotnet format e tailwind --check limpos; verify PASS | 2026-09-29 |
+| G3 Arquitetura | N/A | sem suíte Category=Architecture; módulo Gameplay não referencia Matchmaking | 2026-09-29 |
+| G4 Review | PASS | Review independente (subagente): M1 (falha de identidade derrubava o circuito) corrigido com UT-06d; M2 documentado (IT-04 é smoke em InMemory); menores tratados: predicados só booleanos, empate alinhado, curingas do LIKE, guarda de descarte, aria-busy, papéis de tabela. Pendente: tradução para SQL Server só validada por inspeção | 2026-09-29 |
 | G5 Integração & CI | PENDING | | |
 | H2 Integração aprovada | PENDING | | |
 | G6 Deploy | PENDING | | |
