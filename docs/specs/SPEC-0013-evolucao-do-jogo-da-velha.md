@@ -52,6 +52,7 @@ Evoluir o jogo da velha multiplayer de um protótipo jogável para uma plataform
 | SPEC-0016 | Salas Privadas com Código | full | feature | M | SPEC-0014 | |
 | SPEC-0017 | Leaderboard e Estatísticas | full | feature | M | base | |
 | SPEC-0018 | Sincronização Reativa por Eventos | full | feature | M | SPEC-0016 | |
+| SPEC-0019 | Seleção de Dificuldade do Robô na UI | full | feature | S | SPEC-0015 | |
 
 ## 5. Estratégia de Entrega
 - **Ambientes:** Local via Aspire.

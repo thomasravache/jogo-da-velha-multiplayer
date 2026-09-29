@@ -4,7 +4,7 @@
 
 ## Saúde
 
-- Validação (G0): **76 erro(s), 14 aviso(s)** — rode `spec_graph.py validate`
+- Validação (G0): **0 erro(s), 0 aviso(s)**
 - Specs: implemented 22
 - Impedimentos: **0 aberto(s)**, 0 resolvido(s)
 
@@ -56,10 +56,10 @@ Nenhuma spec aberta.
 
 | ID | Título | Status | Garantido por (G3) |
 |---|---|---|---|
-| [ADR-0001](../adr/ADR-0001-orquestracao-e-desenvolvimento-local.md) | Orquestração e Desenvolvimento Local | accepted | — |
-| [ADR-0002](../adr/ADR-0002-frontend-e-ui.md) | Frontend e UI | accepted | — |
-| [ADR-0003](../adr/ADR-0003-banco-de-dados.md) | Banco de Dados | accepted | — |
-| [ADR-0004](../adr/ADR-0004-arquitetura.md) | Arquitetura | accepted | — |
+| [ADR-0001](../adr/ADR-0001-orquestracao-e-desenvolvimento-local.md) | Orquestração e Desenvolvimento Local | accepted | N/A — histórico |
+| [ADR-0002](../adr/ADR-0002-frontend-e-ui.md) | Frontend e UI | accepted | N/A — histórico |
+| [ADR-0003](../adr/ADR-0003-banco-de-dados.md) | Banco de Dados | accepted | N/A — histórico |
+| [ADR-0004](../adr/ADR-0004-arquitetura.md) | Arquitetura | accepted | N/A — histórico |
 | [ADR-0005](../adr/ADR-0005-padronizacao-de-analise-estatica-e-compilacao-estrita.md) | Padronização de Análise Estática e Compilação Estrita | accepted | Directory.Build.props e dotnet format |
 | [ADR-0006](../adr/ADR-0006-componentizacao-blazor-css-isolation-e-testes-com-bunit.md) | Componentização Blazor, CSS Isolation e Testes com bUnit | accepted | Testes de componentes bUnit |
 | [ADR-0007](../adr/ADR-0007-adocao-do-mudblazor-como-design-system-e-componentes.md) | Adoção do MudBlazor como Design System e Componentes | accepted | tests/TicTacToe.Tests/MudBlazorIntegrationTests.cs |

@@ -5,6 +5,7 @@ status: accepted
 origin: decision
 date: 2026-09-29
 decision_makers: [thomas]
+enforced_by: "N/A — histórico"
 ---
 
 # ADR-0002 — Frontend e UI

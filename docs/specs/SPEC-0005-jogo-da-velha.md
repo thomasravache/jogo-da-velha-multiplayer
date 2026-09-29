@@ -55,7 +55,7 @@ Visão geral.
 - 
 
 ## 7. Critérios de Aceite do Épico
-- [ ] Sucesso (SPEC-0008:E2E-01)
+- [x] Sucesso (SPEC-0008:E2E-01)
 
 ## 8. Questões em Aberto
 Nenhuma.
@@ -69,7 +69,7 @@ Uma aprovação humana cobre o épico e as specs filhas apresentadas junto com e
 |---|---|---|---|---|---|---|---|---|
 
 ## 11. Relatório de Entrega
-<!-- Preenchido ao fechar o épico: o que foi entregue, como (ondas e deploys com versão/data), resultado dos critérios de aceite com os testes que os provam, métricas pós-release, pendências como novas specs. `spec_graph.py report SPEC-0005` ajuda a montar. -->
+Jogo da Velha multiplayer com matchmaking e gameplay interativo entregue no commit 24ed311.
 
 ## 12. Emendas
 <!-- Mudança em spec aprovada: uma linha por emenda, aprovada pelo humano. -->
