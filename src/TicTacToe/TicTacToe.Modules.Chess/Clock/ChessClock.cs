@@ -1,25 +1,29 @@
 namespace TicTacToe.Modules.Chess;
 
 /// <summary>
-/// Relógio de xadrez sem threads: o tempo restante é calculado sob demanda a partir do <see cref="TimeProvider"/>.
-/// Começa parado; o primeiro <see cref="Press"/> (brancas) inicia o relógio das pretas.
+/// Relógio de xadrez sem threads próprias: o tempo restante é calculado sob demanda a partir do
+/// <see cref="TimeProvider"/>. Começa parado; o primeiro <see cref="Press"/> (brancas) inicia o relógio das pretas.
+/// Thread-safe: cada operação lê o relógio uma única vez e roda sob um lock privado.
 /// </summary>
 public sealed class ChessClock(TimeControl control, TimeProvider time)
 {
+    private readonly Lock _gate = new();
     private TimeSpan _white = control.Initial;
     private TimeSpan _black = control.Initial;
     private DateTimeOffset _startedAt;
-    private bool _stopped;
-
     private PieceColor? _running;
     private PieceColor? _flagged;
+    private bool _stopped;
 
     public PieceColor? Running
     {
         get
         {
-            Tick();
-            return _running;
+            lock (_gate)
+            {
+                Evaluate(time.GetUtcNow());
+                return _running;
+            }
         }
     }
 
@@ -27,74 +31,77 @@ public sealed class ChessClock(TimeControl control, TimeProvider time)
     {
         get
         {
-            Tick();
-            return _flagged;
+            lock (_gate)
+            {
+                Evaluate(time.GetUtcNow());
+                return _flagged;
+            }
         }
     }
 
     public void Press(PieceColor mover)
     {
-        Tick();
-        if (_stopped || _flagged is not null)
+        lock (_gate)
         {
-            return;
-        }
-
-        if (_running is null)
-        {
-            if (mover != PieceColor.White)
+            var now = time.GetUtcNow();
+            Evaluate(now);
+            if (_stopped || _flagged is not null)
             {
                 return;
             }
 
-            Set(PieceColor.White, Get(PieceColor.White) + control.Increment);
-            Start(PieceColor.Black);
-            return;
-        }
+            if (_running is null)
+            {
+                if (mover != PieceColor.White)
+                {
+                    return;
+                }
 
-        if (_running != mover)
-        {
-            return;
-        }
+                Set(PieceColor.White, Get(PieceColor.White) + control.Increment);
+                Start(PieceColor.Black, now);
+                return;
+            }
 
-        Set(mover, Remaining(mover) + control.Increment);
-        Start(Opponent(mover));
+            if (_running != mover)
+            {
+                return;
+            }
+
+            Set(mover, RemainingAt(mover, now) + control.Increment);
+            Start(Opponent(mover), now);
+        }
     }
 
     public void Stop()
     {
-        Tick();
-        if (_running is { } running)
+        lock (_gate)
         {
-            Set(running, Remaining(running));
-        }
+            var now = time.GetUtcNow();
+            Evaluate(now);
+            if (_running is { } running)
+            {
+                Set(running, RemainingAt(running, now));
+            }
 
-        _running = null;
-        _stopped = true;
+            _running = null;
+            _stopped = true;
+        }
     }
 
     public TimeSpan Remaining(PieceColor color)
     {
-        var stored = Get(color);
-        if (_running != color)
+        lock (_gate)
         {
-            return stored;
+            return RemainingAt(color, time.GetUtcNow());
         }
-
-        var left = stored - (time.GetUtcNow() - _startedAt);
-        return left > TimeSpan.Zero ? left : TimeSpan.Zero;
     }
 
     public void Tick()
     {
-        if (_running is not { } running || Remaining(running) > TimeSpan.Zero)
+        lock (_gate)
         {
-            return;
+            Evaluate(time.GetUtcNow());
         }
-
-        Set(running, TimeSpan.Zero);
-        _flagged = running;
-        _running = null;
     }
 
     private static PieceColor Opponent(PieceColor color) =>
@@ -114,9 +121,33 @@ public sealed class ChessClock(TimeControl control, TimeProvider time)
         }
     }
 
-    private void Start(PieceColor color)
+    private TimeSpan RemainingAt(PieceColor color, DateTimeOffset now)
+    {
+        var stored = Get(color);
+        if (_running != color)
+        {
+            return stored;
+        }
+
+        var left = stored - (now - _startedAt);
+        return left > TimeSpan.Zero ? left : TimeSpan.Zero;
+    }
+
+    private void Evaluate(DateTimeOffset now)
+    {
+        if (_running is not { } running || RemainingAt(running, now) > TimeSpan.Zero)
+        {
+            return;
+        }
+
+        Set(running, TimeSpan.Zero);
+        _flagged = running;
+        _running = null;
+    }
+
+    private void Start(PieceColor color, DateTimeOffset now)
     {
         _running = color;
-        _startedAt = time.GetUtcNow();
+        _startedAt = now;
     }
 }
