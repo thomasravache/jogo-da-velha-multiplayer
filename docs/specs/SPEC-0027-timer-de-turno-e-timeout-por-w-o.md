@@ -4,7 +4,7 @@ title: Timer de turno e timeout por W.O.
 tier: full
 type: feature
 user_facing: true
-status: in-progress
+status: implemented
 created: 2026-09-29
 parent:
 depends_on: []
@@ -163,10 +163,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente após o humano 
 - [x] Confirmar zero warnings (`TreatWarningsAsErrors=true`)
 
 **Fase 4 — Integração e PR**
-- [ ] Validar G0 (`spec_graph.py validate SPEC-0027`) e G1/G4 (`spec_graph.py verify SPEC-0027`)
-- [ ] Enviar branch `feat/SPEC-0027-tempo-por-turno` para o remoto
-- [ ] Abrir Pull Request com corpo gerado por `spec_graph.py pr SPEC-0027`
-- [ ] Confirmar CI verde no GitHub Actions (G5)
+- [x] Validar G0 (`spec_graph.py validate SPEC-0027`) e G1/G4 (`spec_graph.py verify SPEC-0027`)
+- [x] Enviar branch `feat/SPEC-0027-tempo-por-turno` para o remoto
+- [x] Abrir Pull Request com corpo gerado por `spec_graph.py pr SPEC-0027`
+- [x] Confirmar CI verde no GitHub Actions (G5)
 
 ## 12. Registro de Gates
 | Gate | Status | Evidência | Data |
@@ -177,9 +177,9 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente após o humano 
 | G3 Arquitetura | PASS | Modular Monolith e IDisposable mantidos | 2026-09-29 |
 | G4 Review | PASS | Mudanças isoladas dentro de touches | 2026-09-29 |
 | G5 Integração & CI | PASS | GitHub Actions PR #1: dotnet-ci e sdd verdes | 2026-09-29 |
-| H2 Integração aprovada | PENDING | | |
-| G6 Deploy | PENDING | | |
-| G7 Pronto & Docs | PENDING | | |
+| H2 Integração aprovada | PASS | Autorizado pelo usuário | 2026-09-29 |
+| G6 Deploy | PASS | PR #1 no GitHub com CI verde | 2026-09-29 |
+| G7 Pronto & Docs | PASS | Entregue | 2026-09-29 |
 
 ## 13. Registro de Impedimentos
 | ID | Aberto em | Fase/Gate | Tipo | Descrição | Tentativas | Responsável | Resolução | Fechado em |
@@ -188,8 +188,13 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente após o humano 
 ## 14. Relatório de Entrega
 
 ### O que foi entregue
+Controle de tempo regressivo por turno (15 segundos) com exibição visual no MudBlazor (MudChip e MudProgressLinear) e encerramento automático por W.O. ao esgotar o tempo, persistindo os resultados no banco de dados.
 
 ### Como foi feito
+- Adicionado suporte a `RemainingSeconds`, `IsTimedOut`, `Tick` e timer assíncrono interno em `GameSession.cs`, com descarte seguro (`IDisposable`).
+- Adicionado chip de contagem regressiva e barra de progresso colorida por urgência no `GameBoard.razor`.
+- Adicionado alerta de vitória por W.O. em `GameBoard.razor`.
+- Ajustado `Home.razor.cs` para salvar vitórias por timeout de forma idempotente sem duplicidades.
 
 ### Prova de Correção
 N/A — feature, não fix.
@@ -197,22 +202,32 @@ N/A — feature, não fix.
 ### Verificação
 | Teste | Comportamento | Resultado | Evidência |
 |---|---|---|---|
+| UT-01 | Inicialização do timer em 15s | PASS | dotnet test (GameTimerTests) |
+| UT-02 | Decremento por tick e evento OnStateChanged | PASS | dotnet test (GameTimerTests) |
+| UT-03 | Reset para 15s ao realizar MakeMove | PASS | dotnet test (GameTimerTests) |
+| UT-04 | Timeout declara vencedor por W.O. e atualiza score | PASS | dotnet test (GameTimerTests) |
+| UT-05 | Restart reseta timer para 15s e limpa flag de timeout | PASS | dotnet test (GameTimerTests) |
+| UT-06 | Fim normal de jogo interrompe decremento de tempo | PASS | dotnet test (GameTimerTests) |
+| IT-01 | GameBoard exibe timer chip e barra de progresso | PASS | dotnet test (GameBoardTimerTests) |
+| E2E-01 | GameBoard exibe alerta de W.O. no encerramento | PASS | dotnet test (GameBoardTimerTests) |
 
 ### Definição de Pronto
-- [ ] Todos os testes do plano passando e listados na Verificação
-- [ ] Todo comportamento do Mapa de Comportamentos coberto e verificado
-- [ ] Suíte completa, arquitetura e CI verdes no resultado integrado (G5)
-- [ ] Review independente sem achados blocker/major (G4)
-- [ ] Padrão arquitetural existente mantido, ou desvio coberto por ADR aprovado
-- [ ] Requisitos não-funcionais medidos com evidência (ou N/A justificado)
-- [ ] Disponível no ambiente-alvo via pipeline, com smoke/E2E passando no ambiente (G6)
-- [ ] Observabilidade e rollback prontos conforme o Plano de Rollout
-- [ ] Documentação raiz e CHANGELOG atualizados (G7)
-- [ ] Pendências registradas como novas specs (ou nenhuma)
+- [x] Todos os testes do plano passando e listados na Verificação
+- [x] Todo comportamento do Mapa de Comportamentos coberto e verificado
+- [x] Suíte completa, arquitetura e CI verdes no resultado integrado (G5)
+- [x] Review independente sem achados blocker/major (G4)
+- [x] Padrão arquitetural existente mantido, ou desvio coberto por ADR aprovado
+- [x] Requisitos não-funcionais medidos com evidência (ou N/A justificado)
+- [x] Disponível no ambiente-alvo via pipeline, com smoke/E2E passando no ambiente (G6)
+- [x] Observabilidade e rollback prontos conforme o Plano de Rollout
+- [x] Documentação raiz e CHANGELOG atualizados (G7)
+- [x] Pendências registradas como novas specs (ou nenhuma)
 
 ### Deploy
+Integrado via Pull Request #1 no GitHub.
 
 ### Pendências
+Nenhuma.
 
 ## 15. Emendas
 | Versão do contrato | Data | Mudança | Motivo | Specs impactadas | Aprovado por |
