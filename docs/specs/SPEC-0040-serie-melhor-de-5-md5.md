@@ -143,7 +143,7 @@ MatchResult   Guid? SeriesId · int? RoundNumber · int? BestOf          // migr
 N/A — sem contrato entre specs (a SPEC-0044 consome a API pública de `GameSession`, coberta por UT-02 a UT-07).
 
 ### 7.5 Testes E2E
-N/A — `user_facing: false`; a jornada do usuário é a `SPEC-0044:E2E-01`.
+N/A — `user_facing: false`; a jornada do usuário é o teste E2E da SPEC-0044.
 
 ### 7.6 Outros
 - SQL da migration conferido (`ADD` apenas).
