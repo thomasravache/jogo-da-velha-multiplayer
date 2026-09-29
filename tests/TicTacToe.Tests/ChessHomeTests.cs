@@ -120,8 +120,12 @@ public sealed class ChessHomeTests : IDisposable
     private static string ConnOf(IRenderedComponent<ChessHome> cut) =>
         (string)typeof(ChessHome).GetField("_connectionId", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.GetValue(cut.Instance)!;
 
-    private static Task<object?> Call(IRenderedComponent<ChessHome> cut, string method) =>
-        cut.InvokeAsync(() => typeof(ChessHome).GetMethod(method, System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.Invoke(cut.Instance, null));
+    // Chama o manipulador como o evento de UI faria e força a renderização que o Blazor faria depois dele.
+    private static async Task Call(IRenderedComponent<ChessHome> cut, string method)
+    {
+        await cut.InvokeAsync(() => typeof(ChessHome).GetMethod(method, System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.Invoke(cut.Instance, null));
+        cut.Render();
+    }
 
     private (IRenderedComponent<ChessHome> A, IRenderedComponent<ChessHome> B) Pair(string colorA, string colorB, string control = "Blitz")
     {
