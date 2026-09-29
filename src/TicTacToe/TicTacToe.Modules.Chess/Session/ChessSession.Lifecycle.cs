@@ -58,7 +58,7 @@ public sealed partial class ChessSession
         lock (_gate)
         {
             flagged = ApplyFlagLocked();
-            forfeited = !_restarting && ForfeitLocked(loser, reason);
+            forfeited = !RestartingLocked() && ForfeitLocked(loser, reason);
         }
 
         if (forfeited || flagged)
@@ -77,7 +77,7 @@ public sealed partial class ChessSession
         {
             flagged = ApplyFlagLocked();
             var seat = SeatOfLocked(player);
-            if (_restarting || _left[seat])
+            if (RestartingLocked() || _left[seat])
             {
                 result = ChessLeaveResult.Rejected;
             }
@@ -118,7 +118,7 @@ public sealed partial class ChessSession
             flagged = ApplyFlagLocked();
             var seat = SeatOfLocked(player);
             var other = 1 - seat;
-            if (_restarting || _left[seat] || (!_game.IsOver && _mode != ChessMode.Solo))
+            if (RestartingLocked() || _left[seat] || !_game.IsOver)
             {
                 accepted = false;
             }
@@ -204,7 +204,7 @@ public sealed partial class ChessSession
         lock (_gate)
         {
             var seat = SeatOfLocked(player);
-            if (_mode == ChessMode.Solo || _game.IsOver || _left[seat] || _restarting)
+            if (_mode == ChessMode.Solo || _game.IsOver || _left[seat] || RestartingLocked())
             {
                 return;
             }
@@ -259,10 +259,12 @@ public sealed partial class ChessSession
                 changed = true;
             }
 
-            if (!_game.IsOver && _mode != ChessMode.Solo && !_restarting)
+            if (!_game.IsOver && _mode != ChessMode.Solo && !RestartingLocked())
             {
                 var loserSeat = -1;
                 DateTimeOffset? earliest = null;
+
+                // Desempate arbitrário: em empate exato do instante da queda, perde o assento 0 (o primeiro do laço).
                 for (var seat = 0; seat < 2; seat++)
                 {
                     if (_disconnectedAt[seat] is { } since && now - since >= DisconnectGrace && (earliest is null || since < earliest))
@@ -314,6 +316,19 @@ public sealed partial class ChessSession
         return true;
     }
 
+    // A janela de reinício vai da limpeza (BeginRestartLocked) até RestartCore criar a nova partida, fora do lock.
+    // Enquanto a partida antiga segue encerrada os comandos são rejeitados; assim que a nova existe (inclusive para
+    // handlers do evento de restart) o flag é liberado aqui, sem depender do fim de Finish.
+    private bool RestartingLocked()
+    {
+        if (_restarting && !_game.IsOver)
+        {
+            _restarting = false;
+        }
+
+        return _restarting;
+    }
+
     private void ClearRematchLocked()
     {
         _rematchState = ChessRematchState.None;
@@ -324,7 +339,7 @@ public sealed partial class ChessSession
     private bool CanAnswerRematchLocked(PieceColor player)
     {
         var seat = SeatOfLocked(player);
-        return !_restarting
+        return !RestartingLocked()
             && _rematchState == ChessRematchState.Requested
             && _rematchRequesterSeat != seat
             && _game.IsOver
