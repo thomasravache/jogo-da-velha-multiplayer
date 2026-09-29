@@ -4,13 +4,13 @@ title: Remoção do MudBlazor e do Bootstrap
 tier: full
 type: migration
 user_facing: true
-status: approved
+status: in-progress
 created: 2026-09-29
 parent: SPEC-0028
 depends_on: [SPEC-0030, SPEC-0031, SPEC-0032, SPEC-0033]
 consumes_contract: []
 contract_version: 1
-touches: [src/TicTacToe/TicTacToe.Web/TicTacToe.Web.csproj, tests/TicTacToe.Tests/TicTacToe.Tests.csproj, src/TicTacToe/TicTacToe.Web/Program.cs, src/TicTacToe/TicTacToe.Web/Components/_Imports.razor, src/TicTacToe/TicTacToe.Web/Components/App.razor, src/TicTacToe/TicTacToe.Web/Components/Layout/**, src/TicTacToe/TicTacToe.Web/Components/Pages/Counter.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/Error.razor, src/TicTacToe/TicTacToe.Web/wwwroot/app.css, src/TicTacToe/TicTacToe.Web/wwwroot/lib/**, src/TicTacToe/TicTacToe.Web/Styles/**, src/TicTacToe/TicTacToe.Web/wwwroot/css/**, tests/TicTacToe.Tests/MudBlazorIntegrationTests.cs, tests/TicTacToe.Tests/TailwindDesignSystemTests.cs, README.md, CHANGELOG.md]
+touches: [src/TicTacToe/TicTacToe.Web/TicTacToe.Web.csproj, tests/TicTacToe.Tests/TicTacToe.Tests.csproj, src/TicTacToe/TicTacToe.Web/Program.cs, src/TicTacToe/TicTacToe.Web/Components/_Imports.razor, src/TicTacToe/TicTacToe.Web/Components/App.razor, src/TicTacToe/TicTacToe.Web/Components/Layout/**, src/TicTacToe/TicTacToe.Web/Components/Pages/Counter.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/Error.razor, src/TicTacToe/TicTacToe.Web/wwwroot/app.css, src/TicTacToe/TicTacToe.Web/wwwroot/lib/**, src/TicTacToe/TicTacToe.Web/Styles/**, src/TicTacToe/TicTacToe.Web/wwwroot/css/**, tests/TicTacToe.Tests/MudBlazorIntegrationTests.cs, tests/TicTacToe.Tests/TailwindDesignSystemTests.cs, tests/TicTacToe.Tests/DecomposedComponentsTests.cs, tests/TicTacToe.Tests/GameBoardTimerTests.cs, tests/TicTacToe.Tests/ShellLayoutTests.cs, tests/TicTacToe.Tests/SingleResultRecordingTests.cs, tests/TicTacToe.Tests/ArenaCyberArenaTests.cs, README.md, CHANGELOG.md]
 adrs: [ADR-0008, ADR-0007]
 external: []
 size: M
@@ -227,3 +227,4 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 <!-- Mudança em spec aprovada: uma linha por emenda. Mudou o contrato? Incremente `contract_version` e rode `spec_graph.py impacted SPEC-0034`. -->
 | Versão do contrato | Data | Mudança | Motivo | Specs impactadas | Aprovado por |
 |---|---|---|---|---|---|
+| 1 (contrato inalterado) | 2026-09-29 | `touches` inclui 5 arquivos de teste que registram `AddMudServices()` | Remover o pacote MudBlazor do projeto de testes quebra esses arquivos; neles só saem o registro de serviços e os usings | SPEC-0043, SPEC-0045, SPEC-0031 (testes) | thomas (2026-09-29) |
