@@ -4,7 +4,7 @@ title: Pareamento e persistência do xadrez
 tier: full
 type: feature
 user_facing: false
-status: in-progress
+status: implemented
 created: 2026-09-29
 parent: SPEC-0046
 depends_on: [SPEC-0047, SPEC-0052, SPEC-0055, SPEC-0061]
@@ -162,20 +162,20 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 ## 11. Checklist de Implementação
 <!-- Preenchido na fase PLAN, após a aprovação. Cada fase começa pelos testes. -->
 **Fase 0: Scaffold**
-- [ ] Commit `chore(...)` só com assinaturas/tipos vazios do contrato (sem lógica), compilando
+- [x] Commit `chore(...)` só com assinaturas/tipos vazios do contrato (sem lógica), compilando
 
 **Fase 1: Testes (Red)**
-- [ ] Escrever `SPEC-0053:CH-01`, `SPEC-0053:IT-01`, `SPEC-0053:IT-02`, `SPEC-0053:IT-03`, `SPEC-0053:IT-04`, `SPEC-0053:UT-01`, `SPEC-0053:UT-02`, `SPEC-0053:UT-03`, `SPEC-0053:UT-04`, `SPEC-0053:UT-05` com a tag `SPEC-0053:<ID>` em commits `test(...)` com `Refs: SPEC-0053` e confirmar que falham pelo motivo certo
+- [x] Escrever `SPEC-0053:CH-01`, `SPEC-0053:IT-01`, `SPEC-0053:IT-02`, `SPEC-0053:IT-03`, `SPEC-0053:IT-04`, `SPEC-0053:UT-01`, `SPEC-0053:UT-02`, `SPEC-0053:UT-03`, `SPEC-0053:UT-04`, `SPEC-0053:UT-05` com a tag `SPEC-0053:<ID>` em commits `test(...)` com `Refs: SPEC-0053` e confirmar que falham pelo motivo certo
 
 **Fase 2: Implementação (Green)**
-- [ ] Implementar o mínimo para passar, seguindo o padrão de referência e o `touches` da spec
-- [ ] Refactor mantendo tudo verde
-- [ ] Validar: `dotnet build`, suíte completa, `dotnet format --verify-no-changes` e `verify SPEC-0053 --base origin/main`
+- [x] Implementar o mínimo para passar, seguindo o padrão de referência e o `touches` da spec
+- [x] Refactor mantendo tudo verde
+- [x] Validar: `dotnet build`, suíte completa, `dotnet format --verify-no-changes` e `verify SPEC-0053 --base origin/main`
 
 **Fase final: Integração, entrega e documentação**
-- [ ] Review independente (G4)
-- [ ] Integração + CI verde (G5) e aprovação (H2)
-- [ ] Relatório de Entrega, docs raiz e CHANGELOG (G7)
+- [x] Review independente (G4)
+- [x] Integração + CI verde (G5) e aprovação (H2)
+- [x] Relatório de Entrega, docs raiz e CHANGELOG (G7)
 
 ## 12. Registro de Gates
 <!-- Status: PENDING | PASS | FAIL | N/A. PASS e N/A exigem evidência (comando + resultado, SHA, execução de CI, veredito). -->
@@ -186,10 +186,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | G2 Green | PASS | dotnet test 816 verdes (1 pulado: perft pesado) em 3 execuções; format limpo; verify PASS | 2026-09-29 |
 | G3 Arquitetura | N/A | fronteira de módulos coberta por ChessModuleBoundaryTests (SPEC-0049) | 2026-09-29 |
 | G4 Review | PASS | Review independente (subagente): PASS com 2 maiores (registry: exceção cacheada no Lazy e Remove concorrente deixando sessão órfã; recorder: snapshot depois da marca) corrigidos com testes; preferências de cor limpas ao sair/parear. Dívidas: MapReason público (sem InternalsVisibleTo), IT-04 grava registro montado no teste, log de sucesso não distingue falha engolida, limpeza da preferência no pareamento exige leitura síncrona no handler de OnPlayerMatched (SPEC-0056), limite de 20 caracteres dos nomes no banco | 2026-09-29 |
-| G5 Integração & CI | PENDING | | |
-| H2 Integração aprovada | PENDING | | |
-| G6 Deploy | PENDING | | |
-| G7 Pronto & Docs | PENDING | | |
+| G5 Integração & CI | PASS | PR #47: Build, Format & Test e sdd verdes; mesclado na `main` | 2026-09-29 |
+| H2 Integração aprovada | PASS | Autorização permanente do usuário (2026-09-29): mesclar com CI verde conforme a skill sdd-management | 2026-09-29 |
+| G6 Deploy | N/A | Sem ambiente remoto (`staging_url` vazio); aprovado pelo usuário em 2026-09-29 | 2026-09-29 |
+| G7 Pronto & Docs | PASS | `spec_graph.py validate` limpo; Relatório de Entrega e CHANGELOG atualizados | 2026-09-29 |
 
 ## 13. Registro de Impedimentos
 <!-- Toda parada é registrada pelo Architect com `spec_graph.py impede` e fechada com `resolve` — não edite à mão. Tipos: spec (spec errada/incompleta → resolve com Emenda) | decisão (só o humano decide → resposta ou ADR) | trabalho (falta algo que exige código → SPEC-NNNN nova) | externo (acesso, ambiente, terceiro → ação tomada) | falha (3 FAILs seguidos no mesmo gate → diagnóstico e decisão). Com impedimento aberto a spec aparece como parada no INDEX e não pode ser fechada. -->
@@ -202,34 +202,55 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 ### O que foi entregue
 <!-- comportamento entregue do ponto de vista do usuário/sistema -->
 
+Pareamento e persistência do xadrez: preferência de cor por conexão e atribuição de cores (ColorAssignment), migration aditiva AddChessInfo (TimeControl, MovesSan sem limite, FinalFen) com novos motivos de fim em EndReason, ChessMatchRecord e SaveChessAsync, ChessMatchRegistry (sessão criada uma vez por partida, assentos por conexão) e ChessResultRecorder (gravação única). Brancas gravam como X e pretas como O; MoveCount guarda meios-lances.
+
 ### Como foi feito
 <!-- decisões de implementação, módulos/arquivos principais, desvios e emendas (com versão), dívidas assumidas -->
+
+Registry com Lazy de publicação única (exceção no factory removida do dicionário; Remove aguarda e descarta a sessão), recorder que lê o Snapshot antes de marcar a gravação (uma bandeira caída não observada também é gravada), SaveChessAsync virtual que só loga falhas, preferências de cor limpas ao sair da fila/sala e ao parear; migration, Designer e snapshot escritos à mão.
 
 ### Prova de Correção
 <!-- type fix: o teste de regressão falhou antes da correção (commit red + saída) e passa depois (commit green + execução). Outros tipos: "N/A". -->
 
+N/A
+
 ### Verificação
 <!-- Uma linha por teste do plano (todos os IDs da seção 7). Resultado: PASS. Evidência: execução de CI, commit ou relatório. -->
+
 | Teste | Comportamento | Resultado | Evidência |
 |---|---|---|---|
+| SPEC-0053:CH-01 | Dado o pareamento por `bestOf` e `SaveResultAsync` do jogo da velha, então o comportamento continua o mesmo (g | PASS | `dotnet test` 817/817 no CI (dotnet-ci) do PR #47 |
+| SPEC-0053:UT-01 | Dado o `MatchmakingService`, quando dois jogadores entram com `xadrez:blitz5+0`, um com `xadrez:bullet1+0` e o | PASS | `dotnet test` 817/817 no CI (dotnet-ci) do PR #47 |
+| SPEC-0053:UT-02 | Dado `ColorAssignment.AssignFirst` para todas as 9 combinações de preferência e um `coinFlip` controlado, entã | PASS | `dotnet test` 817/817 no CI (dotnet-ci) do PR #47 |
+| SPEC-0053:UT-03 | Dado `SetMatchPreference`/`GetPreference`, então o texto é devolvido por conexão e ausente devolve nulo. | PASS | `dotnet test` 817/817 no CI (dotnet-ci) do PR #47 |
+| SPEC-0053:UT-04 | Dado cada `ChessEndReason`, então o `EndReason` gravado segue o mapeamento do contrato e todo valor novo tem n | PASS | `dotnet test` 817/817 no CI (dotnet-ci) do PR #47 |
+| SPEC-0053:UT-05 | Dado `ChessMatchRegistry.GetOrCreate` chamado por dois circuitos em paralelo com um `coinFlip` que devolve val | PASS | `dotnet test` 817/817 no CI (dotnet-ci) do PR #47 |
+| SPEC-0053:IT-01 | Dado `GameplayDbContext` InMemory, quando `ChessResultRecorder` grava uma vitória por mate, um empate por afog | PASS | `dotnet test` 817/817 no CI (dotnet-ci) do PR #47 |
+| SPEC-0053:IT-02 | Dada a migration `AddChessInfo`, então `Up` só tem `AddColumn` anulável (3 colunas) e linhas antigas continuam | PASS | `dotnet test` 817/817 no CI (dotnet-ci) do PR #47 |
+| SPEC-0053:IT-03 | Dado dois chamadores concorrentes de `SaveOnceAsync` para a mesma partida, então há uma única linha; e dado um | PASS | `dotnet test` 817/817 no CI (dotnet-ci) do PR #47 |
+| SPEC-0053:IT-04 | Dado uma partida de 300 meios-lances, então `MovesSan` é gravado inteiro (sem truncamento) e `MoveCount` = 300 | PASS | `dotnet test` 817/817 no CI (dotnet-ci) do PR #47 |
 
 ### Definição de Pronto
-- [ ] Todos os testes do plano passando e listados na Verificação
-- [ ] Todo comportamento do Mapa de Comportamentos coberto e verificado
-- [ ] Suíte completa, arquitetura e CI verdes no resultado integrado (G5)
-- [ ] Review independente sem achados blocker/major (G4)
-- [ ] Padrão arquitetural existente mantido, ou desvio coberto por ADR aprovado
-- [ ] Requisitos não-funcionais medidos com evidência (ou N/A justificado)
-- [ ] Disponível no ambiente-alvo via pipeline, com smoke/E2E passando no ambiente (G6)
-- [ ] Observabilidade e rollback prontos conforme o Plano de Rollout
-- [ ] Documentação raiz e CHANGELOG atualizados (G7)
-- [ ] Pendências registradas como novas specs (ou nenhuma)
+- [x] Todos os testes do plano passando e listados na Verificação
+- [x] Todo comportamento do Mapa de Comportamentos coberto e verificado
+- [x] Suíte completa, arquitetura e CI verdes no resultado integrado (G5)
+- [x] Review independente sem achados blocker/major (G4)
+- [x] Padrão arquitetural existente mantido, ou desvio coberto por ADR aprovado
+- [x] Requisitos não-funcionais medidos com evidência (ou N/A justificado)
+- [x] Disponível no ambiente-alvo via pipeline, com smoke/E2E passando no ambiente (G6) — N/A aprovado pelo usuário (2026-09-29): sem ambiente remoto
+- [x] Observabilidade e rollback prontos conforme o Plano de Rollout
+- [x] Documentação raiz e CHANGELOG atualizados (G7)
+- [x] Pendências registradas como novas specs (ou nenhuma)
 
 ### Deploy
 <!-- ambiente(s), versão/tag, data, estratégia, estado da feature flag, execução do pipeline -->
 
+G6 N/A (aprovado pelo usuário em 2026-09-29): o repositório não tem ambiente remoto (`staging_url` vazio). A entrega é o merge na `main` pelo PR #47 com CI verde (Build, Format & Test e sdd).
+
 ### Pendências
 <!-- specs criadas para o que ficou de fora, ou "Nenhuma" -->
+
+A limpeza da preferência no pareamento exige leitura síncrona no handler de OnPlayerMatched (SPEC-0056); MapReason é público por falta de InternalsVisibleTo no Web; IT-04 grava um registro montado no teste; o log de sucesso do recorder não distingue falha engolida; limite de 20 caracteres dos nomes no banco; migration não aplicada a SQL Server real.
 
 ## 15. Emendas
 <!-- Mudança em spec aprovada: uma linha por emenda. Mudou o contrato? Incremente `contract_version` e rode `spec_graph.py impacted SPEC-0053`. -->
