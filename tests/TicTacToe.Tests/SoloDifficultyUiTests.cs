@@ -45,9 +45,11 @@ public class SoloDifficultyUiTests
     public void HomeRazor_ShouldContainDifficultySelectorMarkup()
     {
         var homeRazorPath = System.IO.Path.GetFullPath(System.IO.Path.Combine(AppContext.BaseDirectory, "../../../../../src/TicTacToe/TicTacToe.Web/Components/Pages/Home.razor"));
-        if (System.IO.File.Exists(homeRazorPath))
+        var lobbyRazorPath = System.IO.Path.GetFullPath(System.IO.Path.Combine(AppContext.BaseDirectory, "../../../../../src/TicTacToe/TicTacToe.Web/Components/Game/Lobby.razor"));
+        var targetPath = System.IO.File.Exists(lobbyRazorPath) ? lobbyRazorPath : homeRazorPath;
+        if (System.IO.File.Exists(targetPath))
         {
-            var content = System.IO.File.ReadAllText(homeRazorPath);
+            var content = System.IO.File.ReadAllText(targetPath);
             Assert.Contains("difficulty-selector", content);
             Assert.Contains("SelectedDifficulty == AiDifficulty.Easy", content);
             Assert.Contains("SelectedDifficulty == AiDifficulty.Hard", content);

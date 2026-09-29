@@ -84,9 +84,11 @@ public class DeterministicPlayerAssignmentTests
     public void HomeRazor_ShouldConsumeDeterministicMatchPlayers()
     {
         var homeRazorPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../../src/TicTacToe/TicTacToe.Web/Components/Pages/Home.razor"));
-        if (File.Exists(homeRazorPath))
+        var homeCsPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../../src/TicTacToe/TicTacToe.Web/Components/Pages/Home.razor.cs"));
+        var targetPath = File.Exists(homeCsPath) ? homeCsPath : homeRazorPath;
+        if (File.Exists(targetPath))
         {
-            var content = File.ReadAllText(homeRazorPath);
+            var content = File.ReadAllText(targetPath);
             Assert.Contains("GetMatchPlayerNames", content);
         }
     }
