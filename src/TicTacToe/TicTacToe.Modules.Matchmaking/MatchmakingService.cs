@@ -11,6 +11,9 @@ public class MatchmakingService
     // playerConnectionId -> matchId
     public ConcurrentDictionary<string, Guid> ActiveMatches { get; } = new();
 
+    // matchId -> (PlayerXConnectionId, PlayerOConnectionId)
+    private readonly ConcurrentDictionary<Guid, (string PlayerX, string PlayerO)> _matchPlayers = new();
+
     public event Action<string, Guid>? OnPlayerMatched;
 
     public Guid? JoinQueue(string connectionId, string playerName = "")
@@ -25,6 +28,7 @@ public class MatchmakingService
                 var matchId = Guid.NewGuid();
                 ActiveMatches[player1] = matchId;
                 ActiveMatches[player2] = matchId;
+                _matchPlayers[matchId] = (player1, player2);
                 OnPlayerMatched?.Invoke(player1, matchId);
                 OnPlayerMatched?.Invoke(player2, matchId);
                 return matchId;
@@ -35,6 +39,20 @@ public class MatchmakingService
 
     public string? GetPlayerName(string connectionId) =>
         _playerNames.TryGetValue(connectionId, out var name) ? name : null;
+
+    public (string PlayerX, string PlayerO)? GetMatchPlayers(Guid matchId) =>
+        _matchPlayers.TryGetValue(matchId, out var pair) ? pair : null;
+
+    public (string PlayerXName, string PlayerOName)? GetMatchPlayerNames(Guid matchId)
+    {
+        if (_matchPlayers.TryGetValue(matchId, out var pair))
+        {
+            var xName = GetPlayerName(pair.PlayerX) ?? "X";
+            var oName = GetPlayerName(pair.PlayerO) ?? "O";
+            return (xName, oName);
+        }
+        return null;
+    }
 
     private readonly ConcurrentDictionary<string, string> _privateRooms = new();
 
@@ -57,6 +75,7 @@ public class MatchmakingService
             var matchId = Guid.NewGuid();
             ActiveMatches[hostConnectionId] = matchId;
             ActiveMatches[connectionId] = matchId;
+            _matchPlayers[matchId] = (hostConnectionId, connectionId);
             OnPlayerMatched?.Invoke(hostConnectionId, matchId);
             OnPlayerMatched?.Invoke(connectionId, matchId);
             return matchId;

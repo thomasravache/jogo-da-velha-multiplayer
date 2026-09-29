@@ -331,17 +331,17 @@
             existingGame.OnStateChanged -= OnGameStateChanged;
             existingGame.OnStateChanged += OnGameStateChanged;
 
-            var matchPlayers = Matchmaking.ActiveMatches
-                .Where(kvp => kvp.Value == MatchId.Value)
-                .Select(kvp => kvp.Key)
-                .ToList();
-
-            if (matchPlayers.Count == 2)
+            var matchPlayers = Matchmaking.GetMatchPlayers(MatchId.Value);
+            if (matchPlayers != null)
             {
-                var xName = Matchmaking.GetPlayerName(matchPlayers[0]) ?? "X";
-                var oName = Matchmaking.GetPlayerName(matchPlayers[1]) ?? "O";
-                existingGame.SetPlayerName(Player.X, xName);
-                existingGame.SetPlayerName(Player.O, oName);
+                MyPlayer = matchPlayers.Value.PlayerX == ConnectionId ? Player.X : Player.O;
+            }
+
+            var names = Matchmaking.GetMatchPlayerNames(MatchId.Value);
+            if (names != null)
+            {
+                existingGame.SetPlayerName(Player.X, names.Value.PlayerXName);
+                existingGame.SetPlayerName(Player.O, names.Value.PlayerOName);
             }
         }
 
