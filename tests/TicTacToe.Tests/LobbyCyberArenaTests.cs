@@ -22,7 +22,7 @@ public class LobbyCyberArenaTests
             "InputRoomCodeChanged:EventCallback`1", "IsWaiting:Boolean", "OnCreateRoom:EventCallback",
             "OnJoinRoom:EventCallback", "OnPlayOnline:EventCallback", "OnPlaySolo:EventCallback",
             "PlayerName:String", "PlayerNameChanged:EventCallback`1", "ReturningPlayerName:String", "RoomErrorMessage:String",
-            "SelectedDifficulty:AiDifficulty",
+            "SelectedDifficulty:AiDifficulty", "SelectedFormat:SeriesFormat", "FormatChanged:EventCallback`1",
         }.OrderBy(x => x, StringComparer.Ordinal).ToArray();
 
     [Fact(DisplayName = "SPEC-0030:CH-01 — API pública do Lobby (parâmetros) permanece a mesma")]
