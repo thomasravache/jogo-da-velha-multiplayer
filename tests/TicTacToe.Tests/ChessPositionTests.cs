@@ -74,7 +74,7 @@ public class ChessPositionTests
     [InlineData("P3k3/8/8/8/8/8/8/4K3 w - - 0 1")]
     [InlineData("4k3/8/8/8/8/8/8/p3K3 w - - 0 1")]
     [InlineData("4k4/8/8/8/8/8/8/4K3 w - - 0 1")]
-    [InlineData("3k4/8/8/8/8/8/8/4K3 w - - 0 1")]
+    [InlineData("3k3/8/8/8/8/8/8/4K3 w - - 0 1")]
     [InlineData("4k3/8/8/8/8/8/4K3 w - - 0 1")]
     [InlineData("4k3/8/8/8/8/8/8/8/4K3 w - - 0 1")]
     [InlineData("4k3/8/8/8/8/8/8/4K2X w - - 0 1")]
