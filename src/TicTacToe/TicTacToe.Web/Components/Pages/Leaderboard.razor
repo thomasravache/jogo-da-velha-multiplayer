@@ -2,8 +2,12 @@
 @using System.Globalization
 @using TicTacToe.Modules.Gameplay
 @using TicTacToe.Web.Components.Ui
+@using TicTacToe.Web.Services.PlayerIdentity
 @rendermode InteractiveServer
+@implements IDisposable
 @inject GameResultService GameResultService
+@inject PlayerIdentityService Identity
+@inject ILogger<Leaderboard> Logger
 
 <PageTitle>Ranking · XO Arena</PageTitle>
 
@@ -12,14 +16,22 @@
         <PillButton Href="/" Icon="play">Jogar agora</PillButton>
     </PageHeader>
 
-    @if (_loading)
+    @if (_error)
+    {
+        <NeonCard Class="flex flex-col items-center gap-4 p-8 text-center">
+            <Icon Name="warning" Size="24" />
+            <p role="alert" class="text-title-sm">Não foi possível carregar o ranking.</p>
+            <PillButton OnClick="LoadAsync" Icon="refresh">Tentar novamente</PillButton>
+        </NeonCard>
+    }
+    else if (_result is null)
     {
         <NeonCard Class="flex items-center justify-center gap-3 p-8">
             <span class="size-6 animate-spin motion-reduce:animate-none rounded-full border-2 border-secondary border-t-transparent" aria-hidden="true"></span>
             <p role="status" class="text-body-lg text-ink-muted">Carregando ranking…</p>
         </NeonCard>
     }
-    else if (_ranks.Count == 0)
+    else if (_result.Items.Count == 0)
     {
         <NeonCard Class="flex flex-col items-center gap-3 p-8 text-center">
             <Icon Name="trophy" Size="24" />
@@ -29,19 +41,48 @@
     }
     else
     {
-        <ol aria-label="Pódio" class="grid grid-cols-3 items-end gap-3">
-            @foreach (var i in PodiumOrder)
-            {
-                var rank = _ranks[i];
-                var first = i == 0;
-                <li data-podium="@(i + 1)" class="@PodiumCss(first)">
-                    <Icon Name="@(first ? "trophy" : "medal")" Size="24" />
-                    <span class="font-numeric text-label-badge uppercase text-gold">@(i + 1)º</span>
-                    <span class="w-full min-w-0 break-words text-title-sm">@rank.PlayerName</span>
-                    <span class="font-numeric text-label-numeric text-ink-muted">@rank.Wins @(rank.Wins == 1 ? "vitória" : "vitórias")</span>
-                </li>
-            }
-        </ol>
+        @if (_myId is not null)
+        {
+            <section aria-label="Sua posição">
+                <NeonCard Class="flex flex-wrap items-center justify-between gap-4 p-5">
+                    @if (_result.Me != null)
+                    {
+                        var me = _result.Me;
+                        <div class="flex flex-col">
+                            <span class="font-numeric text-label-badge uppercase text-ink-muted">Sua posição</span>
+                            <span class="font-numeric text-title-sm text-gold">@(me.Position)º</span>
+                        </div>
+                        <span class="font-numeric text-label-numeric text-ink-muted">
+                            @me.Wins @(me.Wins == 1 ? "vitória" : "vitórias") em @(me.Wins + me.Losses + me.Draws) partidas ·
+                            @Pct(me.WinRatePercent) · sequência @me.WinStreak
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="font-numeric text-label-badge uppercase text-ink-muted">Sua posição</span>
+                        <span class="text-body-md text-ink-muted">Vença uma partida para entrar no ranking</span>
+                    }
+                </NeonCard>
+            </section>
+        }
+
+        @if (_result.Page == 1)
+        {
+            <ol aria-label="Pódio" class="grid grid-cols-3 items-end gap-3">
+                @foreach (var i in PodiumOrder)
+                {
+                    var rank = _result.Items[i];
+                    var first = i == 0;
+                    <li data-podium="@(i + 1)" class="@PodiumCss(first)">
+                        <Icon Name="@(first ? "trophy" : "medal")" Size="24" />
+                        <span class="font-numeric text-label-badge uppercase text-gold">@(i + 1)º</span>
+                        <span class="w-full min-w-0 break-words text-title-sm">@rank.DisplayName</span>
+                        <span class="font-numeric text-label-numeric text-ink-muted">@rank.Wins @(rank.Wins == 1 ? "vitória" : "vitórias")</span>
+                        <span class="font-numeric text-label-numeric text-ink-muted">@Pct(rank.WinRatePercent) · sequência @rank.WinStreak</span>
+                    </li>
+                }
+            </ol>
+        }
 
         <NeonCard Class="overflow-hidden">
             <table class="w-full border-collapse text-left">
@@ -50,43 +91,109 @@
                         <th scope="col" class="w-20 px-4 py-3">Posição</th>
                         <th scope="col" class="px-4 py-3">Jogador</th>
                         <th scope="col" class="px-4 py-3">Vitórias</th>
+                        <th scope="col" class="hidden px-4 py-3 md:table-cell">Derrotas</th>
+                        <th scope="col" class="hidden px-4 py-3 md:table-cell">Empates</th>
+                        <th scope="col" class="px-4 py-3">Aproveitamento</th>
+                        <th scope="col" class="hidden px-4 py-3 md:table-cell">Sequência</th>
                         <th scope="col" class="hidden px-4 py-3 md:table-cell">Último triunfo</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @for (var i = 0; i < _ranks.Count; i++)
+                    @foreach (var rank in _result.Items)
                     {
-                        var rank = _ranks[i];
-                        <tr class="@(i < 3 ? "bg-gold/10 " : "")border-b border-stroke last:border-b-0">
-                            <td class="px-4 py-3 font-numeric text-label-numeric">@(i + 1)º</td>
-                            <td class="break-words px-4 py-3 text-body-lg">@rank.PlayerName</td>
+                        <tr data-me="@(rank.IsMe ? "true" : null)" class="@RowCss(rank)">
+                            <td class="px-4 py-3 font-numeric text-label-numeric">@(rank.Position)º</td>
+                            <td class="break-words px-4 py-3 text-body-lg">
+                                @rank.DisplayName
+                                @if (rank.IsMe)
+                                {
+                                    <StatusChip Tone="ChipTone.Waiting">Você</StatusChip>
+                                    <span class="sr-only">VOCÊ</span>
+                                }
+                            </td>
                             <td class="px-4 py-3 font-numeric text-label-numeric text-success">@rank.Wins</td>
-                            <td class="hidden px-4 py-3 font-numeric text-label-numeric text-ink-muted md:table-cell">@FormatDate(rank.LastWinAt)</td>
+                            <td class="hidden px-4 py-3 font-numeric text-label-numeric text-ink-muted md:table-cell">@rank.Losses</td>
+                            <td class="hidden px-4 py-3 font-numeric text-label-numeric text-ink-muted md:table-cell">@rank.Draws</td>
+                            <td class="px-4 py-3 font-numeric text-label-numeric">@Pct(rank.WinRatePercent)</td>
+                            <td class="hidden px-4 py-3 font-numeric text-label-numeric md:table-cell">@rank.WinStreak</td>
+                            <td class="hidden px-4 py-3 font-numeric text-label-numeric text-ink-muted md:table-cell">@FormatDate(rank.LastWinAtUtc)</td>
                         </tr>
                     }
                 </tbody>
             </table>
         </NeonCard>
+
+        <Pager Page="_result.Page" PageCount="_result.PageCount" PageChanged="SetPage" />
     }
 </div>
 
 @code {
-    private List<PlayerRank> _ranks = [];
-    private bool _loading = true;
+    private LeaderboardPage? _result;
+    private Guid? _myId;
+    private int _page = 1;
+    private int _sequence;
+    private bool _error;
+    private bool _disposed;
 
     // Ordem visual do pódio: 2º à esquerda, 1º ao centro, 3º à direita (só os que existem).
-    private IEnumerable<int> PodiumOrder => new[] { 1, 0, 2 }.Where(i => i < _ranks.Count);
+    private IEnumerable<int> PodiumOrder => new[] { 1, 0, 2 }.Where(i => i < _result!.Items.Count);
 
     private static string PodiumCss(bool first) =>
         "flex min-w-0 flex-col items-center gap-1 rounded-card border bg-surface/80 p-4 text-center backdrop-blur-md " +
         (first ? "min-h-56 border-gold shadow-[0_0_24px_rgb(243_156_18/0.35)]" : "min-h-44 border-stroke");
 
+    private static string RowCss(LeaderboardEntry rank) =>
+        (rank.Position <= 3 ? "bg-gold/10 " : "") + (rank.IsMe ? "outline outline-1 outline-secondary " : "") + "border-b border-stroke last:border-b-0";
+
+    private static string Pct(double value) =>
+        value.ToString("0.0", CultureInfo.InvariantCulture).Replace('.', ',') + "%";
+
     private static string FormatDate(DateTime lastWinUtc) =>
         DateTime.SpecifyKind(lastWinUtc, DateTimeKind.Utc).ToLocalTime().ToString("dd/MM HH:mm", CultureInfo.InvariantCulture);
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        _ranks = await GameResultService.GetLeaderboardAsync(10);
-        _loading = false;
+        if (!firstRender) return;
+
+        try
+        {
+            _myId = (await Identity.LoadAsync()).PlayerId;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Falha ao carregar a identidade do jogador para o ranking.");
+        }
+
+        await LoadAsync();
     }
+
+    private async Task LoadAsync()
+    {
+        if (_disposed) return;
+        var sequence = ++_sequence;
+        try
+        {
+            var page = await GameResultService.GetLeaderboardPageAsync(new LeaderboardQuery(_myId, _page));
+            if (sequence != _sequence || _disposed) return;
+            _result = page;
+            _page = page.Page;
+            _error = false;
+        }
+        catch (Exception ex)
+        {
+            if (sequence != _sequence || _disposed) return;
+            Logger.LogError(ex, "Falha ao consultar o ranking.");
+            _error = true;
+        }
+
+        StateHasChanged();
+    }
+
+    private Task SetPage(int page)
+    {
+        _page = page;
+        return LoadAsync();
+    }
+
+    public void Dispose() => _disposed = true;
 }
