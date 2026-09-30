@@ -9,8 +9,8 @@ created: 2026-09-29
 parent: SPEC-0046
 depends_on: [SPEC-0054, SPEC-0056, SPEC-0057]
 consumes_contract: []
-contract_version: 1
-touches: [src/TicTacToe/TicTacToe.Modules.Chess/Bots/ChessBotTurnRunner.cs, src/TicTacToe/TicTacToe.Web/Components/Chess/ChessLobby.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/ChessHome.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/ChessHome.razor.cs, src/TicTacToe/TicTacToe.Web/wwwroot/css/cyber-arena.css, tests/TicTacToe.Tests/ChessBotTurnRunnerTests.cs, tests/TicTacToe.Tests/ChessSoloTests.cs]
+contract_version: 2
+touches: [src/TicTacToe/TicTacToe.Modules.Chess/Bots/ChessBotTurnRunner.cs, src/TicTacToe/TicTacToe.Web/Components/Chess/ChessLobby.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/ChessHome.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/ChessHome.razor.cs, src/TicTacToe/TicTacToe.Web/wwwroot/css/cyber-arena.css, tests/TicTacToe.Tests/ChessBotTurnRunnerTests.cs, tests/TicTacToe.Tests/ChessSoloTests.cs, tests/TicTacToe.Tests/ChessLobbyTests.cs]
 adrs: [ADR-0008, ADR-0011]
 external: []
 size: M
@@ -216,3 +216,4 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 <!-- Mudança em spec aprovada: uma linha por emenda. Mudou o contrato? Incremente `contract_version` e rode `spec_graph.py impacted SPEC-0058`. -->
 | Versão do contrato | Data | Mudança | Motivo | Specs impactadas | Aprovado por |
 |---|---|---|---|---|---|
+| 2 | 2026-09-29 | `touches` inclui `ChessLobbyTests.cs` | O novo radiogrupo "Dificuldade do robô" no `ChessLobby` muda a contagem de radiogrupos que o `SPEC-0056:UT-07` fixa (de 3 para 4); ajuste justificado pela nova funcionalidade | SPEC-0056 (teste) | thomas (autorização permanente, 2026-09-29) |
