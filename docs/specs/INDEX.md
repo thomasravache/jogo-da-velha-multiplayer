@@ -5,18 +5,12 @@
 ## Saúde
 
 - Validação (G0): **0 erro(s), 0 aviso(s)**
-- Specs: in-progress 1, implemented 54
+- Specs: implemented 55
 - Impedimentos: **0 aberto(s)**, 0 resolvido(s)
 
 ## Plano de Execução
 
-**Em andamento:** SPEC-0062  
-**Paradas por impedimento:** —  
-**Próximo lote:** —
-
-| Onda | Spec | Título | Tier/Tam. | Status | Prontidão | Observação |
-|---|---|---|---|---|---|---|
-| 1 | SPEC-0062 | Tabuleiro de xadrez maior no desktop | lite/S | in-progress | 🔄 em andamento |  |
+Nenhuma spec aberta.
 
 ## Épicos
 
@@ -29,20 +23,6 @@
 | SPEC-0028 | Redesign Cyber Arena — migração da UI para Tailwind (Fase 1 visual) | implemented | 7/7 implementadas |
 | SPEC-0035 | Evolução funcional a partir do Stitch (Fase 2) | implemented | 9/9 implementadas |
 | SPEC-0046 | Xadrez multiplayer | implemented | 15/15 implementadas |
-
-## Grafo de Dependências
-
-Seta contínua: depende da implementação. Seta tracejada: consome contrato.
-
-```mermaid
-flowchart LR
-  S0062["SPEC-0062<br/>Tabuleiro de xadrez maior no desktop"]:::inprogress
-  classDef proposed fill:#fef3c7,stroke:#d97706,color:#111
-  classDef approved fill:#dbeafe,stroke:#2563eb,color:#111
-  classDef inprogress fill:#ede9fe,stroke:#7c3aed,color:#111
-  classDef implemented fill:#dcfce7,stroke:#16a34a,color:#111
-  classDef deprecated fill:#f3f4f6,stroke:#9ca3af,color:#6b7280
-```
 
 ## Todas as Specs
 
@@ -109,7 +89,7 @@ flowchart LR
 | [SPEC-0059](SPEC-0059-historico-e-ranking-do-xadrez.md) | Histórico e ranking do xadrez | full | feature | implemented | 2026-09-29 | SPEC-0046 | SPEC-0048, SPEC-0053 | — |
 | [SPEC-0060](SPEC-0060-abandono-revanche-e-desconexao-no-xadrez.md) | Abandono, revanche e desconexão no xadrez | full | feature | implemented | 2026-09-29 | SPEC-0046 | SPEC-0056, SPEC-0057, SPEC-0058, SPEC-0061 | — |
 | [SPEC-0061](SPEC-0061-ciclo-de-vida-da-sessao-de-xadrez-abandono-revanche-e-presen.md) | Ciclo de vida da sessão de xadrez: abandono, revanche e presença | full | feature | implemented | 2026-09-29 | SPEC-0046 | SPEC-0052 | — |
-| [SPEC-0062](SPEC-0062-tabuleiro-de-xadrez-maior-no-desktop.md) | Tabuleiro de xadrez maior no desktop | lite | fix | in-progress | 2026-09-29 | — | — | — |
+| [SPEC-0062](SPEC-0062-tabuleiro-de-xadrez-maior-no-desktop.md) | Tabuleiro de xadrez maior no desktop | lite | fix | implemented | 2026-09-29 | — | — | — |
 
 ## ADRs
 
