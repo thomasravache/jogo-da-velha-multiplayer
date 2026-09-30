@@ -5,18 +5,18 @@
 ## Saúde
 
 - Validação (G0): **0 erro(s), 0 aviso(s)**
-- Specs: approved 2, implemented 52
+- Specs: approved 1, in-progress 1, implemented 52
 - Impedimentos: **0 aberto(s)**, 0 resolvido(s)
 
 ## Plano de Execução
 
-**Em andamento:** —  
+**Em andamento:** SPEC-0048  
 **Paradas por impedimento:** —  
-**Próximo lote:** SPEC-0048
+**Próximo lote:** —
 
 | Onda | Spec | Título | Tier/Tam. | Status | Prontidão | Observação |
 |---|---|---|---|---|---|---|
-| 1 | SPEC-0048 | Seleção de jogos e navegação por jogo | full/S | approved | ✅ pronta |  |
+| 1 | SPEC-0048 | Seleção de jogos e navegação por jogo | full/S | in-progress | 🔄 em andamento |  |
 | 2 | SPEC-0059 | Histórico e ranking do xadrez | full/M | approved | ⛔ aguarda implementação de SPEC-0048 |  |
 
 ## Épicos
@@ -39,7 +39,7 @@ Seta contínua: depende da implementação. Seta tracejada: consome contrato.
 flowchart LR
   subgraph E0046["SPEC-0046 · Xadrez multiplayer"]
     S0047["SPEC-0047<br/>Generalização multi-jogo (GameType, fil…"]:::implemented
-    S0048["SPEC-0048<br/>Seleção de jogos e navegação por jogo"]:::approved
+    S0048["SPEC-0048<br/>Seleção de jogos e navegação por jogo"]:::inprogress
     S0053["SPEC-0053<br/>Pareamento e persistência do xadrez"]:::implemented
     S0058["SPEC-0058<br/>Treino solo de xadrez contra o robô"]:::implemented
     S0059["SPEC-0059<br/>Histórico e ranking do xadrez"]:::approved
@@ -110,7 +110,7 @@ flowchart LR
 | [SPEC-0045](SPEC-0045-gravacao-unica-do-resultado-da-partida.md) | Gravação única do resultado da partida | full | fix | implemented | 2026-09-29 | SPEC-0035 | — | — |
 | [SPEC-0046](SPEC-0046-xadrez-multiplayer.md) | Xadrez multiplayer | epic | feature | approved | 2026-09-29 | — | — | — |
 | [SPEC-0047](SPEC-0047-generalizacao-multi-jogo-gametype-filtros-e-fila-por-chave.md) | Generalização multi-jogo (GameType, filtros e fila por chave) | full | migration | implemented | 2026-09-29 | SPEC-0046 | — | — |
-| [SPEC-0048](SPEC-0048-selecao-de-jogos-e-navegacao-por-jogo.md) | Seleção de jogos e navegação por jogo | full | feature | approved | 2026-09-29 | SPEC-0046 | SPEC-0047, SPEC-0058, SPEC-0060 | — |
+| [SPEC-0048](SPEC-0048-selecao-de-jogos-e-navegacao-por-jogo.md) | Seleção de jogos e navegação por jogo | full | feature | in-progress | 2026-09-29 | SPEC-0046 | SPEC-0047, SPEC-0058, SPEC-0060 | — |
 | [SPEC-0049](SPEC-0049-motor-de-xadrez-tabuleiro-lances-legais-e-perft.md) | Motor de xadrez: tabuleiro, lances legais e perft | full | foundation | implemented | 2026-09-29 | SPEC-0046 | — | — |
 | [SPEC-0050](SPEC-0050-regras-de-partida-do-xadrez-lances-san-e-fim-de-jogo.md) | Regras de partida do xadrez: lances, SAN e fim de jogo | full | feature | implemented | 2026-09-29 | SPEC-0046 | SPEC-0049 | — |
 | [SPEC-0051](SPEC-0051-relogio-de-xadrez-com-incremento.md) | Relógio de xadrez com incremento | full | feature | implemented | 2026-09-29 | SPEC-0046 | SPEC-0049 | — |
