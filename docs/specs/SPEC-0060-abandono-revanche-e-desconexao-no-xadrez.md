@@ -166,10 +166,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | Gate | Status | Evidência | Data |
 |---|---|---|---|
 | G0 Spec | PASS | `spec_graph.py validate` limpo (0 erro, 0 aviso); checklist de julgamento do G0 feito pelo Architect | 2026-09-29 |
-| G1 Red | PENDING | | |
-| G2 Green | PENDING | | |
-| G3 Arquitetura | PENDING | | |
-| G4 Review | PENDING | | |
+| G1 Red | PASS | Red confirmado: 15 testes SPEC-0060 falharam pelo motivo certo (76e5c09); verify PASS | 2026-09-29 |
+| G2 Green | PASS | dotnet test: 879 total, 878 passam, 1 pulado, 0 falhas; format e tailwind --check limpos; 6 execuções da suíte e 30 dos testes novos sem falha | 2026-09-29 |
+| G3 Arquitetura | N/A | sem novas regras estruturais | 2026-09-29 |
+| G4 Review | PASS | Review independente PASS (0 bloqueantes/maiores); Emenda v2 registrada (RematchBar na ChessHome) | 2026-09-29 |
 | G5 Integração & CI | PENDING | | |
 | H2 Integração aprovada | PENDING | | |
 | G6 Deploy | PENDING | | |
