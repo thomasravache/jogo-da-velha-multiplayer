@@ -307,15 +307,31 @@ public class ChessHistoryTests
         {
             data.Add(new MatchResult
             {
-                PlayerXName = "VelhaRival", PlayerOName = "Eu", PlayerXId = velhaRival, PlayerOId = HistoryData.Me, WinnerSide = "X",
-                WinnerName = "VelhaRival", EndReason = EndReason.Line, WinningLine = "0,1,2", PlayedAt = Now.AddMinutes(-i), Mode = GameMode.Online,
+                PlayerXName = "VelhaRival",
+                PlayerOName = "Eu",
+                PlayerXId = velhaRival,
+                PlayerOId = HistoryData.Me,
+                WinnerSide = "X",
+                WinnerName = "VelhaRival",
+                EndReason = EndReason.Line,
+                WinningLine = "0,1,2",
+                PlayedAt = Now.AddMinutes(-i),
+                Mode = GameMode.Online,
             });
         }
 
         data.Add(new MatchResult
         {
-            PlayerXName = "Eu", PlayerOName = "VelhaRival", PlayerXId = HistoryData.Me, PlayerOId = velhaRival, WinnerSide = "X",
-            WinnerName = "Eu", EndReason = EndReason.Line, WinningLine = "0,1,2", PlayedAt = Now.AddMinutes(-5), Mode = GameMode.Online,
+            PlayerXName = "Eu",
+            PlayerOName = "VelhaRival",
+            PlayerXId = HistoryData.Me,
+            PlayerOId = velhaRival,
+            WinnerSide = "X",
+            WinnerName = "Eu",
+            EndReason = EndReason.Line,
+            WinningLine = "0,1,2",
+            PlayedAt = Now.AddMinutes(-5),
+            Mode = GameMode.Online,
         });
 
         var options = HistoryData.NewOptions();
