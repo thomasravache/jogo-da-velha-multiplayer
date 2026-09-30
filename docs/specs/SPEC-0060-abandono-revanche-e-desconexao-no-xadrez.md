@@ -9,7 +9,7 @@ created: 2026-09-29
 parent: SPEC-0046
 depends_on: [SPEC-0056, SPEC-0057, SPEC-0058, SPEC-0061]
 consumes_contract: []
-contract_version: 1
+contract_version: 2
 touches: [src/TicTacToe/TicTacToe.Web/Components/Chess/ChessArena.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/ChessHome.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/ChessHome.razor.cs, src/TicTacToe/TicTacToe.Web/Services/Presence/**, src/TicTacToe/TicTacToe.Web/wwwroot/css/cyber-arena.css, tests/TicTacToe.Tests/ChessLeaveAndRematchTests.cs, tests/TicTacToe.Tests/ChessDisconnectTests.cs]
 adrs: [ADR-0008]
 external: []
@@ -219,3 +219,6 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 <!-- Mudança em spec aprovada: uma linha por emenda. Mudou o contrato? Incremente `contract_version` e rode `spec_graph.py impacted SPEC-0060`. -->
 | Versão do contrato | Data | Mudança | Motivo | Specs impactadas | Aprovado por |
 |---|---|---|---|---|---|
+| Versão do contrato | Data | Mudança | Motivo | Specs impactadas | Aprovado por |
+|---|---|---|---|---|---|
+| 2 | 2026-09-29 | `RematchBar` hospedado pela `ChessHome` (abaixo da arena); aviso de queda dentro da região viva única da arena | `RematchBar` tem `aria-live` próprio e `ChessArenaTests` (SPEC-0057) exige uma única região viva na arena; textos e comportamento inalterados | SPEC-0057 (sem mudança) | thomas (autorização permanente, 2026-09-29) |
