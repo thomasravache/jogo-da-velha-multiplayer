@@ -407,13 +407,14 @@ public sealed class ChessSoloTests : IDisposable
         }
 
         Click(cut, "Abandonar");
-        Assert.NotNull(cut.Find("input#playerName"));
+        // O re-render pós-Leave é assíncrono (LeaveMatchCore agenda StateHasChanged no dispatcher): espera o lobby, sem Find imediato.
+        cut.WaitForAssertion(() => Assert.NotNull(cut.Find("input#playerName")), TimeSpan.FromSeconds(30));
         Assert.Empty(await RowsAsync());
 
         Choose(cut, "Médio");
         Choose(cut, "Brancas");
         Click(cut, "Iniciar partida solo");
-        cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindComponents<ChessArena>()));
+        cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindComponents<ChessArena>()), TimeSpan.FromSeconds(30));
         var second = SessionOf(cut);
         Assert.NotSame(session, second);
         Assert.True(second.Forfeit(PieceColor.White, ChessEndReason.Resignation));
