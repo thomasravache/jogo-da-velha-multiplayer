@@ -140,6 +140,10 @@
     [Parameter] public ColorPreference SelectedColor { get; set; } = ColorPreference.Random;
     [Parameter] public EventCallback<ColorPreference> ColorChanged { get; set; }
 
+    [Parameter] public ChessBotLevel SelectedLevel { get; set; } = ChessBotLevel.Easy;
+    [Parameter] public EventCallback<ChessBotLevel> LevelChanged { get; set; }
+    [Parameter] public EventCallback OnPlaySolo { get; set; }
+
     [Parameter] public bool IsWaiting { get; set; }
     [Parameter] public string? CreatedRoomCode { get; set; }
     [Parameter] public string InputRoomCode { get; set; } = "";
