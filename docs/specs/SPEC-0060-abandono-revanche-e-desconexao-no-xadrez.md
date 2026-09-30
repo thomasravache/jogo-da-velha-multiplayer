@@ -4,7 +4,7 @@ title: Abandono, revanche e desconexão no xadrez
 tier: full
 type: feature
 user_facing: true
-status: approved
+status: in-progress
 created: 2026-09-29
 parent: SPEC-0046
 depends_on: [SPEC-0056, SPEC-0057, SPEC-0058, SPEC-0061]
