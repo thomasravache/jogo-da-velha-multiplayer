@@ -37,13 +37,12 @@ public class ChessSessionSnapshotTests
             var inconsistent = 0;
             var reads = 0;
             Exception? failure = null;
-            using var started = new ManualResetEventSlim();
+            using var firstRead = new ManualResetEventSlim();
 
             var reader = Task.Run(() =>
             {
                 try
                 {
-                    started.Set();
                     while (!Volatile.Read(ref done))
                     {
                         var snap = session.Snapshot();
@@ -55,15 +54,19 @@ public class ChessSessionSnapshotTests
 
                         _ = snap.Moves.Count(m => m.IsCheck);
                         Interlocked.Increment(ref reads);
+                        firstRead.Set();
                     }
                 }
                 catch (Exception ex)
                 {
                     failure = ex;
+                    firstRead.Set();
                 }
             });
 
-            started.Wait();
+            // Só começa a jogar depois que o leitor já leu ao menos uma vez: sob carga o leitor pode demorar a ser
+            // agendado e as 40 jogadas terminariam sem nenhuma leitura concorrente (reads == 0).
+            Assert.True(firstRead.Wait(TimeSpan.FromSeconds(30)), "o leitor não fez nenhuma leitura em 30 s");
             var random = new Random(round);
             for (var i = 0; i < 40 && !session.IsOver; i++)
             {
