@@ -178,8 +178,8 @@ public class ChessHistoryTests
         Assert.Equal(["Xeque-mate", "Xeque-mate", "Afogamento"], Cells("motivo"));
 
         var duels = Cells("duelo");
-        Assert.Matches(@"Eu\s*Brancas.*Rival\s*Pretas", duels[0]);
-        Assert.Matches(@"Rival\s*Brancas.*Eu\s*Pretas", duels[1]);
+        Assert.Matches(@"(?s)Eu\s*Brancas.*Rival\s*Pretas", duels[0]);
+        Assert.Matches(@"(?s)Rival\s*Brancas.*Eu\s*Pretas", duels[1]);
         var rows = cut.FindAll("tbody tr");
         Assert.Contains("Vitória", rows[0].TextContent);
         Assert.Contains("Derrota", rows[1].TextContent);
