@@ -69,10 +69,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | Gate | Status | Evidência | Data |
 |---|---|---|---|
 | G0 Spec | PASS | `spec_graph.py validate SPEC-0062`: 0 erros, 0 avisos; causa raiz confirmada no código (frame 960px − colunas 2×18rem → ~352px) | 2026-09-29 |
-| G1 Red | PENDING | | |
-| G2 Green | PENDING | | |
-| G3 Arquitetura | PENDING | | |
-| G4 Review | PENDING | | |
+| G1 Red | PASS | Red confirmado: UT-01/02/03 falharam pelo motivo certo (99bd738); verify PASS | 2026-09-29 |
+| G2 Green | PASS | dotnet test: 913 total, 912 passam, 1 pulado, 0 falhas em 3 execuções; format e tailwind --check limpos | 2026-09-29 |
+| G3 Arquitetura | N/A | sem novas regras estruturais | 2026-09-29 |
+| G4 Review | PASS | Review do diff pelo Architect (que não implementou): 4 linhas de src + CSS gerado, dentro do touches e do contrato; sem achados | 2026-09-29 |
 | G5 Integração & CI | PENDING | | |
 | H2 Integração aprovada | PENDING | | |
 | G6 Deploy | PENDING | | |
