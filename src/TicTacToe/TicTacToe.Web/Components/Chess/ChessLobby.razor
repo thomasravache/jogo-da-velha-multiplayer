@@ -98,6 +98,18 @@
                 <p role="alert" class="rounded-cell bg-primary/15 px-4 py-2 text-body-md text-primary">@RoomErrorMessage</p>
             }
         </NeonCard>
+
+        <NeonCard Accent="CardAccent.X" Class="flex flex-col gap-4 p-5 lg:col-span-2">
+            <StatusChip Tone="ChipTone.Neutral">Treino solo</StatusChip>
+            <h2 class="text-headline-md">Duelo contra IA</h2>
+            <p class="text-body-md text-ink-muted">Treine contra o robô com o controle de tempo e a cor escolhidos acima. Sem ranking: a partida entra só no seu histórico.</p>
+            <div class="flex flex-col gap-3">
+                <span class="font-numeric text-label-badge uppercase text-ink-muted">Dificuldade do robô</span>
+                <SegmentedControl TValue="ChessBotLevel" AriaLabel="Dificuldade do robô" Items="_levelItems" Value="SelectedLevel" ValueChanged="SetLevel" />
+                <p data-level-description aria-live="polite" class="rounded-cell bg-surface-high/60 px-4 py-3 text-body-md text-ink-muted">@LevelDescription</p>
+            </div>
+            <PillButton Size="PillSize.Lg" Icon="robot" Class="mt-auto" Disabled="@(!HasName)" OnClick="OnPlaySolo">Iniciar partida solo</PillButton>
+        </NeonCard>
     </div>
 </div>
 
@@ -120,6 +132,12 @@
         (ColorPreference.Random, "Aleatória"),
     ];
 
+    private static readonly IReadOnlyList<(ChessBotLevel Value, string Label)> _levelItems =
+    [
+        (ChessBotLevel.Easy, "Fácil 🟢"),
+        (ChessBotLevel.Medium, "Médio 🟡"),
+    ];
+
     private static readonly IReadOnlyList<(RoomTab Value, string Label)> _roomItems =
     [
         (RoomTab.Create, "Criar sala"),
@@ -139,6 +157,10 @@
 
     [Parameter] public ColorPreference SelectedColor { get; set; } = ColorPreference.Random;
     [Parameter] public EventCallback<ColorPreference> ColorChanged { get; set; }
+
+    [Parameter] public ChessBotLevel SelectedLevel { get; set; } = ChessBotLevel.Easy;
+    [Parameter] public EventCallback<ChessBotLevel> LevelChanged { get; set; }
+    [Parameter] public EventCallback OnPlaySolo { get; set; }
 
     [Parameter] public bool IsWaiting { get; set; }
     [Parameter] public string? CreatedRoomCode { get; set; }
@@ -173,9 +195,13 @@
         : SelectedControl.Id == TimeControl.Rapid.Id ? "10 minutos para cada jogador, com 5 segundos por lance"
         : "5 minutos para cada jogador, sem acréscimo de tempo por lance";
 
+    private string LevelDescription => SelectedLevel == ChessBotLevel.Medium
+        ? "Enxerga algumas jogadas à frente, troca peças com critério e pune erros óbvios."
+        : "Joga lances legais com pouca estratégia. Ideal para aprender e relaxar.";
+
     private string ColorDescription => SelectedColor == ColorPreference.Random
         ? "O sorteio de cores ocorrerá automaticamente no início da partida"
-        : "Sua preferência é atendida quando possível; se os dois pedirem a mesma cor, as cores são sorteadas";
+        : "Sua preferência é atendida quando possível; se os dois pedirem a mesma cor, as cores são sorteadas. Contra o robô, sua cor sempre vale.";
 
     private async Task HandleNameInput(string value)
     {
@@ -199,6 +225,12 @@
     {
         SelectedColor = color;
         await ColorChanged.InvokeAsync(color);
+    }
+
+    private async Task SetLevel(ChessBotLevel level)
+    {
+        SelectedLevel = level;
+        await LevelChanged.InvokeAsync(level);
     }
 
     private void SetTab(RoomTab tab) => _tab = tab;

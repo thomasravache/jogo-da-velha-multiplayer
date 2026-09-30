@@ -9,8 +9,8 @@ created: 2026-09-29
 parent: SPEC-0046
 depends_on: [SPEC-0054, SPEC-0056, SPEC-0057]
 consumes_contract: []
-contract_version: 1
-touches: [src/TicTacToe/TicTacToe.Modules.Chess/Bots/ChessBotTurnRunner.cs, src/TicTacToe/TicTacToe.Web/Components/Chess/ChessLobby.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/ChessHome.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/ChessHome.razor.cs, src/TicTacToe/TicTacToe.Web/wwwroot/css/cyber-arena.css, tests/TicTacToe.Tests/ChessBotTurnRunnerTests.cs, tests/TicTacToe.Tests/ChessSoloTests.cs]
+contract_version: 2
+touches: [src/TicTacToe/TicTacToe.Modules.Chess/Bots/ChessBotTurnRunner.cs, src/TicTacToe/TicTacToe.Web/Components/Chess/ChessLobby.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/ChessHome.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/ChessHome.razor.cs, src/TicTacToe/TicTacToe.Web/wwwroot/css/cyber-arena.css, tests/TicTacToe.Tests/ChessBotTurnRunnerTests.cs, tests/TicTacToe.Tests/ChessSoloTests.cs, tests/TicTacToe.Tests/ChessLobbyTests.cs]
 adrs: [ADR-0008, ADR-0011]
 external: []
 size: M
@@ -163,10 +163,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | Gate | Status | Evidência | Data |
 |---|---|---|---|
 | G0 Spec | PASS | `spec_graph.py validate` limpo (0 erro, 0 aviso); checklist de julgamento do G0 feito pelo Architect | 2026-09-29 |
-| G1 Red | PENDING | | |
-| G2 Green | PENDING | | |
-| G3 Arquitetura | PENDING | | |
-| G4 Review | PENDING | | |
+| G1 Red | PASS | Red confirmado: testes SPEC-0058 falham antes do código (verify PASS); Red da revisão G4 (IT-02, UT-06) falhou antes do fix (934feaf) | 2026-09-29 |
+| G2 Green | PASS | dotnet test: 864 total, 863 passam, 1 pulado, 0 falhas; format e tailwind --check limpos | 2026-09-29 |
+| G3 Arquitetura | N/A | sem novas regras estruturais; ChessModuleBoundaryTests continua verde | 2026-09-29 |
+| G4 Review | PASS | Review independente PASS (HEAD 14ad830), achado maior (_botBusy) e menores corrigidos em 8545787; verify PASS | 2026-09-29 |
 | G5 Integração & CI | PENDING | | |
 | H2 Integração aprovada | PENDING | | |
 | G6 Deploy | PENDING | | |
@@ -216,3 +216,4 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 <!-- Mudança em spec aprovada: uma linha por emenda. Mudou o contrato? Incremente `contract_version` e rode `spec_graph.py impacted SPEC-0058`. -->
 | Versão do contrato | Data | Mudança | Motivo | Specs impactadas | Aprovado por |
 |---|---|---|---|---|---|
+| 2 | 2026-09-29 | `touches` inclui `ChessLobbyTests.cs` | O novo radiogrupo "Dificuldade do robô" no `ChessLobby` muda a contagem de radiogrupos que o `SPEC-0056:UT-07` fixa (de 3 para 4); ajuste justificado pela nova funcionalidade | SPEC-0056 (teste) | thomas (autorização permanente, 2026-09-29) |

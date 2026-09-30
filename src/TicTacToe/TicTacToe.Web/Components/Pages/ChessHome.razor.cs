@@ -8,12 +8,15 @@ using TicTacToe.Web.Services.PlayerIdentity;
 namespace TicTacToe.Web.Components.Pages;
 
 /// <summary>
-/// Página /xadrez (SPEC-0056): orquestra lobby, pareamento e arena. Abandono, revanche e solo entram
-/// nas SPEC-0058/0060, nos pontos marcados como gancho.
+/// Página /xadrez (SPEC-0056): orquestra lobby, pareamento e arena. O treino solo contra o robô é da SPEC-0058;
+/// abandono e revanche entre humanos e presença entram na SPEC-0060, nos pontos marcados como gancho.
 /// </summary>
 public partial class ChessHome : IDisposable
 {
     private const string QueuePrefix = "xadrez:";
+    private const int BotSeat = 1;
+
+    private static readonly TimeSpan BotDelay = TimeSpan.FromMilliseconds(600);
 
     private readonly Lock _gate = new();
     private readonly string _connectionId = Guid.NewGuid().ToString();
@@ -29,6 +32,12 @@ public partial class ChessHome : IDisposable
     private Guid? _matchId;
     private int _seat;
     private bool _disposed;
+    private ChessBotLevel _level = ChessBotLevel.Easy;
+    private bool _solo;
+    private IChessBot? _bot;
+    private CancellationTokenSource? _botCts;
+    private int _botGen; // invalida execuções do robô de partidas já encerradas
+    private int _botBusyGen; // geração da execução em andamento (0 = nenhuma)
 
     [Inject] private MatchmakingService Matchmaking { get; set; } = default!;
 
@@ -48,6 +57,10 @@ public partial class ChessHome : IDisposable
 
     // Serviços opcionais: relógio e cara-ou-coroa injetáveis (testes).
     private TimeProvider Clock => Services.GetService(typeof(TimeProvider)) as TimeProvider ?? TimeProvider.System;
+
+    // Fábrica do robô opcional (testes injetam robôs roteirizados).
+    private Func<ChessBotLevel, IChessBot> BotFactory =>
+        Services.GetService(typeof(Func<ChessBotLevel, IChessBot>)) as Func<ChessBotLevel, IChessBot> ?? (level => ChessBots.Create(level));
 
     private Func<bool> CoinFlip => Services.GetService(typeof(Func<bool>)) as Func<bool> ?? (() => Random.Shared.Next(2) == 0);
 
@@ -162,6 +175,208 @@ public partial class ChessHome : IDisposable
         _createdRoomCode = null;
     }
 
+    private void StartSolo()
+    {
+        if (!CanStart)
+        {
+            return;
+        }
+
+        // Fila e sala são exclusivas do solo: cancela o que estiver pendente (sem registrar preferência de cor).
+        Matchmaking.LeaveQueue(_connectionId);
+        Matchmaking.CancelPrivateRoom(_connectionId);
+        _isWaiting = false;
+        _createdRoomCode = null;
+        _roomError = null;
+        RememberNickname();
+
+        lock (_gate)
+        {
+            if (_disposed || _matchId is not null)
+            {
+                return;
+            }
+
+            var clock = Clock;
+            var control = _control;
+            var level = _level;
+            var name = TrimmedName;
+            var playerId = _profile?.PlayerId;
+            // O humano é o "primeiro" jogador; o robô nunca tem preferência (Aleatória sorteia uma vez).
+            var humanColor = ColorAssignment.AssignFirst(_color, ColorPreference.Random, CoinFlip);
+            var matchId = Guid.NewGuid();
+            var match = Registry.GetOrCreate(matchId, () =>
+            {
+                var session = new ChessSession(control, clock) { Mode = ChessMode.Solo };
+                session.SetSeat(0, name, playerId, humanColor);
+                session.SetSeat(BotSeat, ChessBots.NameOf(level), null, humanColor == PieceColor.White ? PieceColor.Black : PieceColor.White);
+                return new ChessMatch(session);
+            });
+
+            match.Seats[_connectionId] = 0;
+            _matchId = matchId;
+            _seat = 0;
+            Session = match.Session;
+            _solo = true;
+            _bot = BotFactory(level);
+            _botCts = new CancellationTokenSource();
+            _botGen++;
+            Session.OnStateChanged += OnSessionChanged;
+            if (Logger.IsEnabled(LogLevel.Information))
+            {
+                Logger.LogInformation("Partida solo de xadrez {SessionId} iniciada. Level={Level} Control={Control}", match.Session.Id, level, control.Id);
+            }
+        }
+
+        ScheduleBot(); // o robô abre a partida quando o humano joga de pretas
+    }
+
+    // Aciona o robô sempre que for a vez dele; a cor do assento é relida a cada estado (muda na revanche).
+    private void ScheduleBot()
+    {
+        ChessSession session;
+        IChessBot bot;
+        CancellationToken token;
+        int generation;
+        lock (_gate)
+        {
+            if (_disposed || !_solo || Session is null || _bot is null || _botCts is null)
+            {
+                return;
+            }
+
+            session = Session;
+            bot = _bot;
+            token = _botCts.Token;
+            generation = _botGen;
+        }
+
+        if (token.IsCancellationRequested)
+        {
+            return;
+        }
+
+        var snapshot = session.Snapshot();
+        var botColor = session.ColorOf(BotSeat);
+        if (snapshot.Result is not null || snapshot.SideToMove != botColor)
+        {
+            return;
+        }
+
+        lock (_gate)
+        {
+            // A trava é por geração: uma busca antiga (partida abandonada) não segura o robô da partida nova.
+            if (generation != _botGen || _botBusyGen == generation)
+            {
+                return; // já há uma jogada agendada; ao terminar ela reavalia o estado
+            }
+
+            _botBusyGen = generation;
+        }
+
+        var signature = (snapshot.Moves.Count, botColor);
+        var runner = new ChessBotTurnRunner(Clock);
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await runner.RunAsync(session, BotSeat, bot, BotDelay, token);
+            }
+            catch (OperationCanceledException)
+            {
+                // Página descartada ou partida abandonada durante o atraso: nada a fazer.
+            }
+            catch (Exception ex)
+            {
+                if (Logger.IsEnabled(LogLevel.Error))
+                {
+                    Logger.LogError(ex, "Falha na jogada do robô da partida de xadrez {SessionId}.", session.Id);
+                }
+            }
+            finally
+            {
+                lock (_gate)
+                {
+                    if (_botBusyGen == generation)
+                    {
+                        _botBusyGen = 0;
+                    }
+                }
+            }
+
+            // Se o estado mudou durante a espera (lance, revanche com troca de cores), reavalia de quem é a vez.
+            try
+            {
+                bool current;
+                lock (_gate)
+                {
+                    current = generation == _botGen;
+                }
+
+                if (current && !token.IsCancellationRequested && (session.Snapshot().Moves.Count, session.ColorOf(BotSeat)) != signature)
+                {
+                    ScheduleBot();
+                }
+            }
+            catch (Exception ex)
+            {
+                if (Logger.IsEnabled(LogLevel.Error))
+                {
+                    Logger.LogError(ex, "Falha ao reagendar o robô da partida de xadrez {SessionId}.", session.Id);
+                }
+            }
+        });
+    }
+
+    private async Task RematchSolo()
+    {
+        var session = Session;
+        if (session is null || !_solo)
+        {
+            return;
+        }
+
+        await Recorder.SaveOnceAsync(session); // grava antes da revanche, que zera a partida
+        session.RequestRematch(session.ColorOf(_seat));
+    }
+
+    // Abandonar partida solo em andamento descarta a sessão sem gravar; se a partida já tinha acabado
+    // (inclusive por bandeira no clique), grava o resultado antes de sair.
+    private async Task AbandonSolo()
+    {
+        ChessSession? toRecord = null;
+        lock (_gate)
+        {
+            if (Session is not { } session || !_solo)
+            {
+                return;
+            }
+
+            // Sem o handler, o aviso do Leave não reagenda o robô nem grava sozinho: por isso o registro abaixo.
+            session.OnStateChanged -= OnSessionChanged;
+            var result = session.Leave(session.ColorOf(_seat));
+            if (result == ChessLeaveResult.Rejected)
+            {
+                session.OnStateChanged += OnSessionChanged;
+                toRecord = session;
+            }
+            else
+            {
+                if (result == ChessLeaveResult.Left)
+                {
+                    toRecord = session;
+                }
+
+                LeaveMatchCore();
+            }
+        }
+
+        if (toRecord is not null)
+        {
+            await Recorder.SaveOnceAsync(toRecord);
+        }
+    }
+
     private void OnMatchedReceived(string connectionId, Guid matchId)
     {
         if (connectionId != _connectionId || _disposed)
@@ -266,6 +481,11 @@ public partial class ChessHome : IDisposable
             return;
         }
 
+        if (_solo)
+        {
+            ScheduleBot();
+        }
+
         try
         {
             _ = InvokeAsync(async () =>
@@ -317,6 +537,12 @@ public partial class ChessHome : IDisposable
             // Gancho SPEC-0060: abandono por saída da página entra aqui.
         }
 
+        // Sem lance do robô depois do descarte. O token só é cancelado (não há temporizador a liberar no CTS).
+        _botCts?.Cancel();
+        _botCts = null;
+        _botGen++;
+        _bot = null;
+        _solo = false;
         _matchId = null;
         Session = null;
         _isWaiting = false;
