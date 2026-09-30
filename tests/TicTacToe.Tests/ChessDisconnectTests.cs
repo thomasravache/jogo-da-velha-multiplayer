@@ -77,12 +77,12 @@ public sealed class ChessDisconnectTests : IDisposable
 
         await ChessDuoHarness.CircuitAsync(_h.Contexts[1], up: false); // o circuito da Bia cai
 
-        a.WaitForAssertion(() => Assert.Contains("Oponente desconectado. Aguardando reconexão…", ChessDuoHarness.Text(a), StringComparison.Ordinal));
+        ChessDuoHarness.Wait(a, () => Assert.Contains("Oponente desconectado. Aguardando reconexão…", ChessDuoHarness.Text(a), StringComparison.Ordinal));
         Assert.DoesNotContain("Oponente desconectado", ChessDuoHarness.Text(b), StringComparison.Ordinal);
         _h.Time.Advance(TimeSpan.FromSeconds(15));
 
-        a.WaitForAssertion(() => Assert.Contains("Oponente desconectou. Vitória por W.O.", ChessDuoHarness.Text(a), StringComparison.Ordinal), TimeSpan.FromSeconds(5));
-        b.WaitForAssertion(() => Assert.Contains("Você foi desconectado. Derrota por W.O.", ChessDuoHarness.Text(b), StringComparison.Ordinal), TimeSpan.FromSeconds(5));
+        ChessDuoHarness.Wait(a, () => Assert.Contains("Oponente desconectou. Vitória por W.O.", ChessDuoHarness.Text(a), StringComparison.Ordinal), TimeSpan.FromSeconds(5));
+        ChessDuoHarness.Wait(b, () => Assert.Contains("Você foi desconectado. Derrota por W.O.", ChessDuoHarness.Text(b), StringComparison.Ordinal), TimeSpan.FromSeconds(5));
         Assert.Equal(ChessEndReason.Disconnect, session.Result!.Reason);
         Assert.DoesNotContain("Aguardando reconexão", ChessDuoHarness.Text(a), StringComparison.Ordinal);
         await _h.WaitForRowsAsync(1);
@@ -100,16 +100,16 @@ public sealed class ChessDisconnectTests : IDisposable
         var session = ChessDuoHarness.SessionOf(a);
 
         await ChessDuoHarness.CircuitAsync(_h.Contexts[1], up: false);
-        a.WaitForAssertion(() => Assert.Contains("Aguardando reconexão", ChessDuoHarness.Text(a), StringComparison.Ordinal));
+        ChessDuoHarness.Wait(a, () => Assert.Contains("Aguardando reconexão", ChessDuoHarness.Text(a), StringComparison.Ordinal));
         _h.Time.Advance(TimeSpan.FromSeconds(5));
         await ChessDuoHarness.CircuitAsync(_h.Contexts[1], up: true);
 
-        a.WaitForAssertion(() => Assert.DoesNotContain("Aguardando reconexão", ChessDuoHarness.Text(a), StringComparison.Ordinal));
+        ChessDuoHarness.Wait(a, () => Assert.DoesNotContain("Aguardando reconexão", ChessDuoHarness.Text(a), StringComparison.Ordinal));
         _h.Time.Advance(TimeSpan.FromSeconds(30));
         session.Tick();
         Assert.False(session.IsOver);
         Assert.True(ChessSessionTests.Play(session, PieceColor.White, "e2", "e4"));
-        b.WaitForAssertion(() => Assert.Contains("Sua vez", ChessDuoHarness.Text(b), StringComparison.Ordinal));
+        ChessDuoHarness.Wait(b, () => Assert.Contains("Sua vez", ChessDuoHarness.Text(b), StringComparison.Ordinal));
         Assert.Empty(await _h.RowsAsync());
     }
 
@@ -122,9 +122,9 @@ public sealed class ChessDisconnectTests : IDisposable
 
         await _h.Contexts[1].DisposeComponentsAsync(); // Bia fecha a aba no meio da partida
         Assert.NotNull(session.DisconnectSecondsLeft(PieceColor.Black));
-        a.WaitForAssertion(() => Assert.Contains("Aguardando reconexão", ChessDuoHarness.Text(a), StringComparison.Ordinal));
+        ChessDuoHarness.Wait(a, () => Assert.Contains("Aguardando reconexão", ChessDuoHarness.Text(a), StringComparison.Ordinal));
         _h.Time.Advance(TimeSpan.FromSeconds(15));
-        a.WaitForAssertion(() => Assert.Contains("Oponente desconectou. Vitória por W.O.", ChessDuoHarness.Text(a), StringComparison.Ordinal), TimeSpan.FromSeconds(5));
+        ChessDuoHarness.Wait(a, () => Assert.Contains("Oponente desconectou. Vitória por W.O.", ChessDuoHarness.Text(a), StringComparison.Ordinal), TimeSpan.FromSeconds(5));
 
         var (c, _) = _h.Pair();
         var second = ChessDuoHarness.SessionOf(c);

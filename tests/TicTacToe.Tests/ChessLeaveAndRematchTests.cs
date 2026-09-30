@@ -70,7 +70,7 @@ internal sealed class ChessDuoHarness : IDisposable
     {
         var ctx = NewCircuit(nick);
         var cut = ctx.Render<ChessHome>();
-        cut.WaitForAssertion(() => Assert.Equal(nick, cut.Find("input#playerName").GetAttribute("value")));
+        ChessDuoHarness.Wait(cut, () => Assert.Equal(nick, cut.Find("input#playerName").GetAttribute("value")));
         return cut;
     }
 
@@ -81,8 +81,8 @@ internal sealed class ChessDuoHarness : IDisposable
         var b = Open("Bia");
         Search(a, "Brancas");
         Search(b, "Pretas");
-        a.WaitForAssertion(() => Assert.NotEmpty(a.FindComponents<ChessArena>()));
-        b.WaitForAssertion(() => Assert.NotEmpty(b.FindComponents<ChessArena>()));
+        ChessDuoHarness.Wait(a, () => Assert.NotEmpty(a.FindComponents<ChessArena>()));
+        ChessDuoHarness.Wait(b, () => Assert.NotEmpty(b.FindComponents<ChessArena>()));
         return (a, b);
     }
 
@@ -106,6 +106,11 @@ internal sealed class ChessDuoHarness : IDisposable
     public static PieceColor MyColor(IRenderedComponent<ChessHome> cut) => SessionOf(cut).ColorOf(SeatOf(cut));
 
     public static string Text(IRenderedComponent<ChessHome> cut) => cut.Markup;
+
+    /// <summary>Espera com folga: sob carga da suíte paralela a renderização pode passar de 1 s.</summary>
+    public static void Wait<T>(IRenderedComponent<T> cut, Action assertion, TimeSpan? timeout = null)
+        where T : IComponent =>
+        cut.WaitForAssertion(assertion, timeout ?? TimeSpan.FromSeconds(5));
 
     public static string FirstSquare(IRenderedComponent<ChessHome> cut) =>
         cut.FindAll("button[data-square]")[0].GetAttribute("data-square")!;
@@ -217,73 +222,63 @@ public sealed class ChessLeaveAndRematchTests : IDisposable
         var cut = Render(ctx, session);
         Assert.NotNull(Btn(cut, "Abandonar"));
         Assert.True(session.Forfeit(PieceColor.Black, ChessEndReason.Resignation));
-        cut.WaitForAssertion(() => Assert.Null(Btn(cut, "Abandonar")));
+        ChessDuoHarness.Wait(cut, () => Assert.Null(Btn(cut, "Abandonar")));
     }
 
     // ---------- UT-02 ----------
 
     [Fact(DisplayName = "SPEC-0060:UT-02 — A barra de revanche cobre pedido, recebido, recusada, expirada e oponente ausente")]
     [Trait("Category", "SPEC-0060:UT-02")]
-    public void Arena_ShouldMapRematchStatesToBar()
+    public void Home_ShouldShowRematchBarStates()
     {
-        var time = new ManualTime();
-        using var ctx = NewArenaContext();
-        using var session = ChessSessionTests.New(time);
-        int requests = 0, accepts = 0, declines = 0;
-        void Wire(ComponentParameterCollectionBuilder<ChessArena> p) => p
-            .Add(c => c.OnRequestRematch, Count(this, () => requests++))
-            .Add(c => c.OnAcceptRematch, Count(this, () => accepts++))
-            .Add(c => c.OnDeclineRematch, Count(this, () => declines++));
-        var white = Render(ctx, session, 0, Wire);
-        var black = Render(ctx, session, 1, Wire);
+        var (a, b) = _h.Pair();
+        var session = ChessDuoHarness.SessionOf(a);
+        Assert.False(ChessDuoHarness.HasButton(a, "Pedir revanche")); // partida em andamento: sem barra
+        ChessDuoHarness.FoolsMate(session); // desistir conta como sair da partida (SPEC-0061): usa xeque-mate
+        ChessDuoHarness.Wait(a, () => Assert.True(ChessDuoHarness.HasButton(a, "Pedir revanche")));
+        ChessDuoHarness.Wait(b, () => Assert.True(ChessDuoHarness.HasButton(b, "Pedir revanche")));
+        Assert.True(ChessDuoHarness.HasButton(a, "Voltar ao lobby"));
 
-        Assert.Null(Btn(white, "Pedir revanche")); // partida em andamento: sem barra
-        Assert.True(session.Forfeit(PieceColor.Black, ChessEndReason.Resignation));
-        white.WaitForAssertion(() => Assert.NotNull(Btn(white, "Pedir revanche")));
-        Btn(white, "Pedir revanche")!.Click();
-        Assert.Equal(1, requests);
+        ChessDuoHarness.Button(a, "Pedir revanche").Click();
+        ChessDuoHarness.Wait(a, () => Assert.Contains("Aguardando resposta…", a.Markup, StringComparison.Ordinal));
+        Assert.False(ChessDuoHarness.HasButton(a, "Pedir revanche"));
+        ChessDuoHarness.Wait(b, () => Assert.Contains("Ana pediu revanche", b.Markup, StringComparison.Ordinal));
+        Assert.True(ChessDuoHarness.HasButton(b, "Aceitar"));
+        Assert.True(ChessDuoHarness.HasButton(b, "Recusar"));
 
-        Assert.True(session.RequestRematch(PieceColor.White));
-        white.WaitForAssertion(() => Assert.Contains("Aguardando resposta…", white.Markup, StringComparison.Ordinal));
-        Assert.Null(Btn(white, "Pedir revanche"));
-        black.WaitForAssertion(() => Assert.Contains("Ana pediu revanche", black.Markup, StringComparison.Ordinal));
-        Btn(black, "Aceitar")!.Click();
-        Btn(black, "Recusar")!.Click();
-        Assert.Equal((1, 1), (accepts, declines));
+        ChessDuoHarness.Button(b, "Recusar").Click();
+        ChessDuoHarness.Wait(a, () => Assert.Contains("Oponente recusou a revanche", a.Markup, StringComparison.Ordinal));
+        Assert.True(ChessDuoHarness.HasButton(a, "Pedir revanche"));
 
-        Assert.True(session.DeclineRematch(PieceColor.Black));
-        white.WaitForAssertion(() => Assert.Contains("Oponente recusou a revanche", white.Markup, StringComparison.Ordinal));
-        Assert.NotNull(Btn(white, "Pedir revanche"));
+        ChessDuoHarness.Button(a, "Pedir revanche").Click();
+        _h.Time.Advance(TimeSpan.FromSeconds(31)); // dispara o pulso da sessão: o pedido expira
+        ChessDuoHarness.Wait(a, () => Assert.Contains("O pedido de revanche expirou", a.Markup, StringComparison.Ordinal), TimeSpan.FromSeconds(5));
+        Assert.True(ChessDuoHarness.HasButton(b, "Pedir revanche"));
 
-        Assert.True(session.RequestRematch(PieceColor.White));
-        time.Advance(TimeSpan.FromSeconds(31));
-        session.Tick();
-        white.WaitForAssertion(() => Assert.Contains("O pedido de revanche expirou", white.Markup, StringComparison.Ordinal));
-
-        session.Leave(PieceColor.Black);
-        white.WaitForAssertion(() => Assert.Contains("Oponente saiu da partida", white.Markup, StringComparison.Ordinal));
-        Assert.Null(Btn(white, "Pedir revanche"));
+        ChessDuoHarness.Button(b, "Voltar ao lobby").Click();
+        ChessDuoHarness.Wait(a, () => Assert.Contains("Oponente saiu da partida", a.Markup, StringComparison.Ordinal));
+        Assert.False(ChessDuoHarness.HasButton(a, "Pedir revanche"));
+        Assert.True(ChessDuoHarness.HasButton(a, "Voltar ao lobby"));
     }
 
-    [Fact(DisplayName = "SPEC-0060:UT-02 — Fim da partida oferece Voltar ao lobby; em solo o botão reinicia na hora sem consentimento")]
+    [Fact(DisplayName = "SPEC-0060:UT-02 — Em partida solo o botão reinicia na hora, sem pedir consentimento")]
     [Trait("Category", "SPEC-0060:UT-02")]
-    public void Arena_ShouldOfferBackToLobbyAndImmediateSoloRematch()
+    public void Home_ShouldKeepImmediateRematchInSolo()
     {
-        using var ctx = NewArenaContext();
-        using var solo = ChessSessionTests.New();
-        solo.Mode = ChessMode.Solo;
-        int rematches = 0, lobbies = 0;
-        var cut = Render(ctx, solo, more: p => p
-            .Add(c => c.OnRematch, Count(this, () => rematches++))
-            .Add(c => c.OnBackToLobby, Count(this, () => lobbies++)));
-        Assert.True(solo.Forfeit(PieceColor.Black, ChessEndReason.Resignation));
+        var cut = _h.Open("Ana");
+        cut.FindAll("[role='radio']").First(r => r.TextContent.Contains("Fácil", StringComparison.Ordinal)).Click();
+        cut.FindAll("[role='radio']").First(r => r.TextContent.Contains("Brancas", StringComparison.Ordinal)).Click();
+        ChessDuoHarness.Button(cut, "Iniciar partida solo").Click();
+        ChessDuoHarness.Wait(cut, () => Assert.NotEmpty(cut.FindComponents<ChessArena>()));
+        var session = ChessDuoHarness.SessionOf(cut);
+        Assert.True(session.Forfeit(PieceColor.White, ChessEndReason.Resignation));
 
-        cut.WaitForAssertion(() => Assert.NotNull(Btn(cut, "Jogar novamente")));
-        Assert.Null(Btn(cut, "Pedir revanche"));
-        Btn(cut, "Jogar novamente")!.Click();
-        Btn(cut, "Voltar ao lobby")!.Click();
+        ChessDuoHarness.Wait(cut, () => Assert.True(ChessDuoHarness.HasButton(cut, "Jogar novamente")));
+        Assert.False(ChessDuoHarness.HasButton(cut, "Pedir revanche"));
+        ChessDuoHarness.Button(cut, "Jogar novamente").Click();
 
-        Assert.Equal((1, 1), (rematches, lobbies));
+        ChessDuoHarness.Wait(cut, () => Assert.False(session.IsOver));
+        Assert.Equal(PieceColor.Black, session.ColorOf(0)); // cores trocadas
     }
 
     // ---------- UT-03 ----------
@@ -299,8 +294,8 @@ public sealed class ChessLeaveAndRematchTests : IDisposable
 
         Assert.Equal(ChessLeaveResult.Forfeited, session.Leave(PieceColor.Black));
 
-        white.WaitForAssertion(() => Assert.Contains("Oponente abandonou. Vitória por W.O.", Normalize(white.Find("[data-arena-notices]").TextContent), StringComparison.Ordinal));
-        black.WaitForAssertion(() => Assert.Contains("Você abandonou a partida", Normalize(black.Find("[data-arena-notices]").TextContent), StringComparison.Ordinal));
+        ChessDuoHarness.Wait(white, () => Assert.Contains("Oponente abandonou. Vitória por W.O.", Normalize(white.Find("[data-arena-notices]").TextContent), StringComparison.Ordinal));
+        ChessDuoHarness.Wait(black, () => Assert.Contains("Você abandonou a partida", Normalize(black.Find("[data-arena-notices]").TextContent), StringComparison.Ordinal));
         Assert.Equal("polite", white.Find("[data-arena-notices]").GetAttribute("aria-live"));
     }
 
@@ -314,27 +309,28 @@ public sealed class ChessLeaveAndRematchTests : IDisposable
         var white = Render(ctx, session, 0);
         var black = Render(ctx, session, 1);
         Assert.Empty(white.FindAll("[data-disconnect-notice]"));
+        Assert.Empty(white.FindAll("[data-disconnect-count]"));
 
         session.SetConnection(PieceColor.Black, false);
 
-        white.WaitForAssertion(() => Assert.Contains("Oponente desconectado. Aguardando reconexão…", Normalize(white.Find("[data-disconnect-notice]").TextContent), StringComparison.Ordinal));
-        var region = white.Find("[data-disconnect-notice]");
+        ChessDuoHarness.Wait(white, () => Assert.Contains("Oponente desconectado. Aguardando reconexão…", Normalize(white.Find("[data-arena-notices]").TextContent), StringComparison.Ordinal));
+        var region = white.Find("[data-arena-notices]"); // a única região viva da arena
         Assert.Equal("polite", region.GetAttribute("aria-live"));
+        Assert.Single(white.FindAll("[aria-live]"));
         var count = white.Find("[data-disconnect-count]");
         Assert.Equal("true", count.GetAttribute("aria-hidden"));
         Assert.Equal("15s", count.TextContent.Trim());
         Assert.False(region.Contains(count));
-        Assert.False(white.Find("[data-arena-notices]").Contains(count));
         Assert.DoesNotContain("15s", region.TextContent, StringComparison.Ordinal);
         Assert.Empty(black.FindAll("[data-disconnect-notice]")); // quem caiu não vê o aviso do oponente
 
         time.Advance(TimeSpan.FromSeconds(4)); // dispara o pulso de 1 s da arena
-        white.WaitForAssertion(() => Assert.Equal("11s", white.Find("[data-disconnect-count]").TextContent.Trim()));
+        ChessDuoHarness.Wait(white, () => Assert.Equal("11s", white.Find("[data-disconnect-count]").TextContent.Trim()));
 
         time.Advance(TimeSpan.FromSeconds(11));
         session.Tick();
-        white.WaitForAssertion(() => Assert.Contains("Oponente desconectou. Vitória por W.O.", Normalize(white.Find("[data-arena-notices]").TextContent), StringComparison.Ordinal));
-        black.WaitForAssertion(() => Assert.Contains("Você foi desconectado. Derrota por W.O.", Normalize(black.Find("[data-arena-notices]").TextContent), StringComparison.Ordinal));
+        ChessDuoHarness.Wait(white, () => Assert.Contains("Oponente desconectou. Vitória por W.O.", Normalize(white.Find("[data-arena-notices]").TextContent), StringComparison.Ordinal));
+        ChessDuoHarness.Wait(black, () => Assert.Contains("Você foi desconectado. Derrota por W.O.", Normalize(black.Find("[data-arena-notices]").TextContent), StringComparison.Ordinal));
         Assert.Empty(white.FindAll("[data-disconnect-notice]"));
         Assert.Empty(white.FindAll("[data-disconnect-count]"));
     }
@@ -348,18 +344,18 @@ public sealed class ChessLeaveAndRematchTests : IDisposable
         var (a, b) = _h.Pair();
         var session = ChessDuoHarness.SessionOf(a);
         var shellA = _h.Contexts[0].Services.GetRequiredService<ShellState>();
-        a.WaitForAssertion(() => Assert.True(shellA.Immersive));
+        ChessDuoHarness.Wait(a, () => Assert.True(shellA.Immersive));
 
         ChessDuoHarness.Button(a, "Abandonar").Click();
         ChessDuoHarness.Button(a, "Confirmar").Click();
 
-        a.WaitForAssertion(() => Assert.NotNull(a.Find("input#playerName")));
+        ChessDuoHarness.Wait(a, () => Assert.NotNull(a.Find("input#playerName")));
         Assert.Empty(a.FindComponents<ChessArena>());
         Assert.False(shellA.Immersive);
         Assert.True(_h.Registry.TryGet(FindMatchId(_h, session), out _)); // o outro ainda usa a sessão
         Assert.True(session.IsOver);
 
-        b.WaitForAssertion(() => Assert.True(ChessDuoHarness.HasButton(b, "Voltar ao lobby")));
+        ChessDuoHarness.Wait(b, () => Assert.True(ChessDuoHarness.HasButton(b, "Voltar ao lobby")));
         ChessDuoHarness.Button(b, "Voltar ao lobby").Click();
         Assert.NotNull(b.Find("input#playerName"));
         Assert.False(_h.Registry.TryGet(FindMatchId(_h, session), out _)); // os dois saíram: removida
@@ -395,8 +391,8 @@ public sealed class ChessLeaveAndRematchTests : IDisposable
         ChessDuoHarness.Button(a, "Abandonar").Click();
         ChessDuoHarness.Button(a, "Confirmar").Click();
 
-        Assert.NotNull(a.Find("input#playerName"));
-        b.WaitForAssertion(() => Assert.Contains("Oponente abandonou. Vitória por W.O.", ChessDuoHarness.Text(b), StringComparison.Ordinal));
+        ChessDuoHarness.Wait(a, () => Assert.NotNull(a.Find("input#playerName")));
+        ChessDuoHarness.Wait(b, () => Assert.Contains("Oponente abandonou. Vitória por W.O.", ChessDuoHarness.Text(b), StringComparison.Ordinal));
         await _h.WaitForRowsAsync(1);
         await Task.Delay(100);
         var row = Assert.Single(await _h.RowsAsync());
@@ -420,32 +416,32 @@ public sealed class ChessLeaveAndRematchTests : IDisposable
         Assert.Equal("a8", ChessDuoHarness.FirstSquare(a));
         Assert.Equal("h1", ChessDuoHarness.FirstSquare(b));
         ChessDuoHarness.FoolsMate(session);
-        a.WaitForAssertion(() => Assert.True(ChessDuoHarness.HasButton(a, "Pedir revanche")));
-        b.WaitForAssertion(() => Assert.True(ChessDuoHarness.HasButton(b, "Pedir revanche")));
+        ChessDuoHarness.Wait(a, () => Assert.True(ChessDuoHarness.HasButton(a, "Pedir revanche")));
+        ChessDuoHarness.Wait(b, () => Assert.True(ChessDuoHarness.HasButton(b, "Pedir revanche")));
 
         ChessDuoHarness.Button(a, "Pedir revanche").Click();
-        a.WaitForAssertion(() => Assert.Contains("Aguardando resposta…", ChessDuoHarness.Text(a), StringComparison.Ordinal));
-        b.WaitForAssertion(() => Assert.Contains("Ana pediu revanche", ChessDuoHarness.Text(b), StringComparison.Ordinal));
+        ChessDuoHarness.Wait(a, () => Assert.Contains("Aguardando resposta…", ChessDuoHarness.Text(a), StringComparison.Ordinal));
+        ChessDuoHarness.Wait(b, () => Assert.Contains("Ana pediu revanche", ChessDuoHarness.Text(b), StringComparison.Ordinal));
 
         ChessDuoHarness.Button(b, "Recusar").Click();
-        a.WaitForAssertion(() => Assert.Contains("Oponente recusou a revanche", ChessDuoHarness.Text(a), StringComparison.Ordinal));
+        ChessDuoHarness.Wait(a, () => Assert.Contains("Oponente recusou a revanche", ChessDuoHarness.Text(a), StringComparison.Ordinal));
 
         ChessDuoHarness.Button(b, "Pedir revanche").Click();
-        a.WaitForAssertion(() => Assert.Contains("Bia pediu revanche", ChessDuoHarness.Text(a), StringComparison.Ordinal));
+        ChessDuoHarness.Wait(a, () => Assert.Contains("Bia pediu revanche", ChessDuoHarness.Text(a), StringComparison.Ordinal));
         ChessDuoHarness.Button(a, "Aceitar").Click();
 
-        a.WaitForAssertion(() => Assert.False(session.IsOver));
+        ChessDuoHarness.Wait(a, () => Assert.False(session.IsOver));
         Assert.Equal(PieceColor.Black, ChessDuoHarness.MyColor(a));
         Assert.Equal(PieceColor.White, ChessDuoHarness.MyColor(b));
-        a.WaitForAssertion(() => Assert.Equal("h1", ChessDuoHarness.FirstSquare(a)));
-        b.WaitForAssertion(() => Assert.Equal("a8", ChessDuoHarness.FirstSquare(b)));
+        ChessDuoHarness.Wait(a, () => Assert.Equal("h1", ChessDuoHarness.FirstSquare(a)));
+        ChessDuoHarness.Wait(b, () => Assert.Equal("a8", ChessDuoHarness.FirstSquare(b)));
         await _h.WaitForRowsAsync(1);
         Assert.Single(await _h.RowsAsync()); // a primeira partida foi gravada antes da revanche
 
         // Um abandono logo depois é atribuído a quem abandonou (Ana, agora de pretas).
         ChessDuoHarness.Button(a, "Abandonar").Click();
         ChessDuoHarness.Button(a, "Confirmar").Click();
-        b.WaitForAssertion(() => Assert.Contains("Oponente abandonou. Vitória por W.O.", ChessDuoHarness.Text(b), StringComparison.Ordinal));
+        ChessDuoHarness.Wait(b, () => Assert.Contains("Oponente abandonou. Vitória por W.O.", ChessDuoHarness.Text(b), StringComparison.Ordinal));
         await _h.WaitForRowsAsync(2);
         var rows = await _h.RowsAsync();
         Assert.Equal(2, rows.Count);
@@ -464,16 +460,16 @@ public sealed class ChessLeaveAndRematchTests : IDisposable
         var (a, b) = _h.Pair();
         var session = ChessDuoHarness.SessionOf(a);
         ChessDuoHarness.FoolsMate(session);
-        b.WaitForAssertion(() => Assert.True(ChessDuoHarness.HasButton(b, "Pedir revanche")));
+        ChessDuoHarness.Wait(b, () => Assert.True(ChessDuoHarness.HasButton(b, "Pedir revanche")));
         ChessDuoHarness.Button(b, "Pedir revanche").Click();
-        a.WaitForAssertion(() => Assert.True(ChessDuoHarness.HasButton(a, "Aceitar")));
+        ChessDuoHarness.Wait(a, () => Assert.True(ChessDuoHarness.HasButton(a, "Aceitar")));
         ChessDuoHarness.Button(a, "Aceitar").Click();
-        a.WaitForAssertion(() => Assert.False(session.IsOver));
+        ChessDuoHarness.Wait(a, () => Assert.False(session.IsOver));
 
         Assert.True(ChessSessionTests.Play(session, PieceColor.White, "e2", "e4")); // Bia (brancas agora)
         ChessDuoHarness.Button(a, "Abandonar").Click();
         ChessDuoHarness.Button(a, "Confirmar").Click();
-        b.WaitForAssertion(() => Assert.Contains("Oponente abandonou. Vitória por W.O.", ChessDuoHarness.Text(b), StringComparison.Ordinal));
+        ChessDuoHarness.Wait(b, () => Assert.Contains("Oponente abandonou. Vitória por W.O.", ChessDuoHarness.Text(b), StringComparison.Ordinal));
         ChessDuoHarness.Button(b, "Voltar ao lobby").Click();
         await _h.WaitForRowsAsync(2);
 
@@ -486,12 +482,12 @@ public sealed class ChessLeaveAndRematchTests : IDisposable
             ChessDuoHarness.Button(cut, "Procurar oponente").Click();
         }
 
-        c.WaitForAssertion(() => Assert.NotEmpty(c.FindComponents<ChessArena>()));
-        d.WaitForAssertion(() => Assert.NotEmpty(d.FindComponents<ChessArena>()));
+        ChessDuoHarness.Wait(c, () => Assert.NotEmpty(c.FindComponents<ChessArena>()));
+        ChessDuoHarness.Wait(d, () => Assert.NotEmpty(d.FindComponents<ChessArena>()));
         await ChessDuoHarness.CircuitAsync(_h.Contexts[3], up: false);
-        c.WaitForAssertion(() => Assert.Contains("Oponente desconectado. Aguardando reconexão…", ChessDuoHarness.Text(c), StringComparison.Ordinal));
+        ChessDuoHarness.Wait(c, () => Assert.Contains("Oponente desconectado. Aguardando reconexão…", ChessDuoHarness.Text(c), StringComparison.Ordinal));
         _h.Time.Advance(TimeSpan.FromSeconds(15));
-        c.WaitForAssertion(() => Assert.Contains("Oponente desconectou. Vitória por W.O.", ChessDuoHarness.Text(c), StringComparison.Ordinal), TimeSpan.FromSeconds(5));
+        ChessDuoHarness.Wait(c, () => Assert.Contains("Oponente desconectou. Vitória por W.O.", ChessDuoHarness.Text(c), StringComparison.Ordinal), TimeSpan.FromSeconds(5));
         await _h.WaitForRowsAsync(3);
 
         await using var db = new GameplayDbContext(_h.Options);
