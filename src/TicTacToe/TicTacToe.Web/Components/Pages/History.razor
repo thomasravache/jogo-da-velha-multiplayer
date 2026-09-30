@@ -1,5 +1,6 @@
 @page "/history"
 @using System.Globalization
+@using Microsoft.AspNetCore.WebUtilities
 @using TicTacToe.Modules.Gameplay
 @using TicTacToe.Web.Components.Ui
 @using TicTacToe.Web.Services.PlayerIdentity
@@ -8,6 +9,7 @@
 @inject GameResultService GameResultService
 @inject PlayerIdentityService Identity
 @inject ILogger<History> Logger
+@inject NavigationManager Nav
 
 <PageTitle>Histórico de Partidas · XO Arena</PageTitle>
 
@@ -32,6 +34,7 @@
         }
 
         <NeonCard Class="flex flex-col gap-4 p-4">
+            <SegmentedControl TValue="GameType" AriaLabel="Jogo" Items="GameItems" Value="_game" ValueChanged="SetGame" />
             <SegmentedControl TValue="HistoryScope" AriaLabel="Escopo" Items="ScopeItems" Value="_scope" ValueChanged="SetScope" />
             <div class="overflow-x-auto">
                 <SegmentedControl TValue="HistoryFilter" AriaLabel="Filtrar por resultado" Items="FilterItems" Value="_filter" ValueChanged="SetFilter" />
@@ -77,13 +80,22 @@
     }
     else
     {
+        var chess = _shownGame == GameType.Chess;
         <NeonCard Class="overflow-hidden">
             <table role="table" aria-busy="@(_busy ? "true" : "false")" class="w-full border-collapse text-left">
                 <thead role="rowgroup" class="hidden md:table-header-group">
                     <tr role="row" class="border-b border-stroke font-numeric text-label-badge uppercase text-ink-muted">
                         <th role="columnheader" scope="col" class="px-5 py-3">Resultado</th>
-                        <th role="columnheader" scope="col" class="px-5 py-3">Duelo (✕ vs ◯)</th>
+                        <th role="columnheader" scope="col" class="px-5 py-3">@(chess ? "Duelo" : "Duelo (✕ vs ◯)")</th>
+                        @if (chess)
+                        {
+                            <th role="columnheader" scope="col" class="px-5 py-3">Controle</th>
+                        }
                         <th role="columnheader" scope="col" class="px-5 py-3">Motivo</th>
+                        @if (chess)
+                        {
+                            <th role="columnheader" scope="col" class="px-5 py-3">Lances</th>
+                        }
                         <th role="columnheader" scope="col" class="px-5 py-3">Duração</th>
                         <th role="columnheader" scope="col" class="px-5 py-3">Data e hora</th>
                     </tr>
@@ -99,7 +111,7 @@
                                     @if (r.Outcome is { } outcome)
                                     {
                                         <StatusChip Tone="@(outcome == HistoryOutcome.Win ? ChipTone.Gold : outcome == HistoryOutcome.Loss ? ChipTone.Danger : ChipTone.Neutral)">
-                                            @(outcome == HistoryOutcome.Win ? "Vitória" : outcome == HistoryOutcome.Loss ? "Derrota" : "Deu velha")
+                                            @(outcome == HistoryOutcome.Win ? "Vitória" : outcome == HistoryOutcome.Loss ? "Derrota" : DrawLabel)
                                         </StatusChip>
                                     }
                                     else if (r.WinnerName is not null)
@@ -108,7 +120,7 @@
                                     }
                                     else
                                     {
-                                        <StatusChip Tone="ChipTone.Neutral">Deu velha</StatusChip>
+                                        <StatusChip Tone="ChipTone.Neutral">@DrawLabel</StatusChip>
                                     }
                                     @if (r.WalkOver)
                                     {
@@ -119,15 +131,23 @@
                             <td role="cell" data-cell="duelo" class="block py-2 md:table-cell md:px-5 md:py-4">
                                 <span class="flex flex-wrap items-center gap-2 text-body-lg">
                                     <span class="min-w-0 break-words text-primary" data-winner="@(xWins ? "true" : null)">
-                                        ✕ @r.PlayerXName@if (xWins) {<Icon Name="trophy" Size="16" Label="Vencedor" />}
+                                        @(chess ? "" : "✕ ")@r.PlayerXName@if (chess) {<span class="font-numeric text-label-badge uppercase text-ink-muted"> Brancas</span>}@if (xWins) {<Icon Name="trophy" Size="16" Label="Vencedor" />}
                                     </span>
                                     <span class="text-ink-muted">vs</span>
                                     <span class="min-w-0 break-words text-secondary" data-winner="@(oWins ? "true" : null)">
-                                        ◯ @r.PlayerOName@if (oWins) {<Icon Name="trophy" Size="16" Label="Vencedor" />}
+                                        @(chess ? "" : "◯ ")@r.PlayerOName@if (chess) {<span class="font-numeric text-label-badge uppercase text-ink-muted"> Pretas</span>}@if (oWins) {<Icon Name="trophy" Size="16" Label="Vencedor" />}
                                     </span>
                                 </span>
                             </td>
+                            @if (chess)
+                            {
+                                <td role="cell" data-cell="controle" class="block font-numeric text-label-numeric text-ink-muted md:table-cell md:px-5 md:py-4">@ControlText(r.TimeControl)</td>
+                            }
                             <td role="cell" data-cell="motivo" class="block text-label-numeric text-ink-muted md:table-cell md:px-5 md:py-4">@r.Reason</td>
+                            @if (chess)
+                            {
+                                <td role="cell" data-cell="lances" class="block font-numeric text-label-numeric text-ink-muted md:table-cell md:px-5 md:py-4">@MovesText(r.MoveCount)</td>
+                            }
                             <td role="cell" data-cell="duracao" class="block font-numeric text-label-numeric text-ink-muted md:table-cell md:px-5 md:py-4">@HistoryAnalysis.FormatDuration(r.DurationSeconds)</td>
                             <td role="cell" data-cell="data" class="block font-numeric text-label-numeric text-ink-muted md:table-cell md:px-5 md:py-4">
                                 @HistoryDateFormatter.Format(r.PlayedAtUtc, _now)
@@ -151,9 +171,14 @@
     private static readonly IReadOnlyList<(HistorySort Value, string Label)> SortItems =
         [(HistorySort.Recent, "Mais recentes"), (HistorySort.ShortestDuration, "Mais rápidas"), (HistorySort.Result, "Resultado")];
 
+    private static readonly IReadOnlyList<(GameType Value, string Label)> GameItems =
+        [(GameType.TicTacToe, "Jogo da velha"), (GameType.Chess, "Xadrez")];
+
     private PlayerProfile? _profile;
     private PlayerSummary? _summary;
     private HistoryPage? _result;
+    private GameType _game = GameType.TicTacToe;
+    private GameType _shownGame = GameType.TicTacToe;
     private HistoryScope _scope = HistoryScope.Mine;
     private HistoryFilter _filter = HistoryFilter.All;
     private HistorySort _sort = HistorySort.Recent;
@@ -167,6 +192,25 @@
     private bool _disposed;
     private DateTime _now = DateTime.Now;
     private CancellationTokenSource? _debounce;
+
+    private string DrawLabel => _shownGame == GameType.Chess ? "Empate" : "Deu velha";
+
+    protected override void OnInitialized() => _game = _shownGame = ReadGame();
+
+    private GameType ReadGame()
+    {
+        var query = QueryHelpers.ParseQuery(new Uri(Nav.Uri).Query);
+        return query.TryGetValue("jogo", out var value) && string.Equals(value.ToString(), "xadrez", StringComparison.OrdinalIgnoreCase)
+            ? GameType.Chess
+            : GameType.TicTacToe;
+    }
+
+    private static string ControlText(string? id) =>
+        id is null ? "—" : TicTacToe.Modules.Chess.TimeControl.FromId(id)?.Name ?? id;
+
+    // MoveCount guarda meios-lances; a tela mostra lances completos.
+    private static string MovesText(int? halfMoves) =>
+        halfMoves is { } n ? ((n + 1) / 2).ToString(CultureInfo.InvariantCulture) : "—";
 
     private string? SubtitleText => _result is null || _result.Counts.All == 0
         ? null
@@ -198,7 +242,7 @@
         try
         {
             _profile = await Identity.LoadAsync();
-            _summary = await GameResultService.GetPlayerSummaryAsync(_profile.PlayerId);
+            _summary = await GameResultService.GetPlayerSummaryAsync(_profile.PlayerId, _game);
         }
         catch (Exception ex)
         {
@@ -223,11 +267,12 @@
         _busy = true;
         try
         {
-            var query = new HistoryQuery(_scope == HistoryScope.Mine ? _profile?.PlayerId : null, _scope, _filter, _opponent, _sort, _page);
+            var query = new HistoryQuery(_scope == HistoryScope.Mine ? _profile?.PlayerId : null, _scope, _filter, _opponent, _sort, _page, Game: _game);
             var page = await GameResultService.GetHistoryAsync(query);
             if (sequence != _sequence || _disposed) return; // uma consulta mais nova já foi disparada
 
             _result = page;
+            _shownGame = query.Game;
             _page = page.Page;
             _error = false;
             _now = DateTime.Now;
@@ -244,6 +289,29 @@
     }
 
     private Task Reload() => LoadAsync();
+
+    private async Task SetGame(GameType game)
+    {
+        if (game == _game) return;
+        _game = game;
+        _filter = HistoryFilter.All;
+        _page = 1;
+        Nav.NavigateTo(Nav.GetUriWithQueryParameter("jogo", game == GameType.Chess ? "xadrez" : "velha"), replace: true);
+        if (_profile is not null)
+        {
+            try
+            {
+                _summary = await GameResultService.GetPlayerSummaryAsync(_profile.PlayerId, game);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Falha ao carregar o resumo do histórico.");
+                _summary = null;
+            }
+        }
+
+        await LoadAsync();
+    }
 
     private Task SetScope(HistoryScope scope)
     {

@@ -1,5 +1,6 @@
 @page "/leaderboard"
 @using System.Globalization
+@using Microsoft.AspNetCore.WebUtilities
 @using TicTacToe.Modules.Gameplay
 @using TicTacToe.Web.Components.Ui
 @using TicTacToe.Web.Services.PlayerIdentity
@@ -8,6 +9,7 @@
 @inject GameResultService GameResultService
 @inject PlayerIdentityService Identity
 @inject ILogger<Leaderboard> Logger
+@inject NavigationManager Nav
 
 <PageTitle>Ranking · XO Arena</PageTitle>
 
@@ -15,6 +17,8 @@
     <PageHeader Eyebrow="Classificação" Title="Classificação Global" Subtitle="Os melhores por vitórias">
         <PillButton Href="/" Icon="play">Jogar agora</PillButton>
     </PageHeader>
+
+    <SegmentedControl TValue="GameType" AriaLabel="Jogo" Items="GameItems" Value="_game" ValueChanged="SetGame" />
 
     @if (_error)
     {
@@ -128,6 +132,10 @@
 </div>
 
 @code {
+    private static readonly IReadOnlyList<(GameType Value, string Label)> GameItems =
+        [(GameType.TicTacToe, "Jogo da velha"), (GameType.Chess, "Xadrez")];
+
+    private GameType _game = GameType.TicTacToe;
     private LeaderboardPage? _result;
     private Guid? _myId;
     private int _page = 1;
@@ -151,6 +159,14 @@
     private static string FormatDate(DateTime lastWinUtc) =>
         DateTime.SpecifyKind(lastWinUtc, DateTimeKind.Utc).ToLocalTime().ToString("dd/MM HH:mm", CultureInfo.InvariantCulture);
 
+    protected override void OnInitialized()
+    {
+        var query = QueryHelpers.ParseQuery(new Uri(Nav.Uri).Query);
+        _game = query.TryGetValue("jogo", out var value) && string.Equals(value.ToString(), "xadrez", StringComparison.OrdinalIgnoreCase)
+            ? GameType.Chess
+            : GameType.TicTacToe;
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
@@ -173,7 +189,7 @@
         var sequence = ++_sequence;
         try
         {
-            var page = await GameResultService.GetLeaderboardPageAsync(new LeaderboardQuery(_myId, _page));
+            var page = await GameResultService.GetLeaderboardPageAsync(new LeaderboardQuery(_myId, _page, Game: _game));
             if (sequence != _sequence || _disposed) return;
             _result = page;
             _page = page.Page;
@@ -187,6 +203,15 @@
         }
 
         StateHasChanged();
+    }
+
+    private Task SetGame(GameType game)
+    {
+        if (game == _game) return Task.CompletedTask;
+        _game = game;
+        _page = 1;
+        Nav.NavigateTo(Nav.GetUriWithQueryParameter("jogo", game == GameType.Chess ? "xadrez" : "velha"), replace: true);
+        return LoadAsync();
     }
 
     private Task SetPage(int page)

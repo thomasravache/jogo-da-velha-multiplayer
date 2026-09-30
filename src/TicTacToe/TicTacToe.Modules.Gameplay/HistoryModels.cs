@@ -32,7 +32,10 @@ public sealed record HistoryItem(
     DateTime PlayedAtUtc,
     bool? IAmX,
     string? WinnerSide,
-    string? WinnerName);
+    string? WinnerName,
+    GameType Game = GameType.TicTacToe,
+    string? TimeControl = null,
+    int? MoveCount = null);
 
 public sealed record HistoryCounts(int All, int Wins, int Losses, int Draws, int WalkOvers);
 

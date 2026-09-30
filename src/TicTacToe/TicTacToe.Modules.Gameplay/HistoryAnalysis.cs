@@ -16,6 +16,11 @@ public static class HistoryAnalysis
     {
         EndReason.Line => LineReason(winningLine),
         EndReason.Draw => "Grid completo sem vencedor",
+        EndReason.Checkmate => "Xeque-mate",
+        EndReason.Stalemate => "Afogamento",
+        EndReason.Insufficient => "Material insuficiente",
+        EndReason.FiftyMoves => "Regra dos 50 lances",
+        EndReason.Repetition => "Repetição de posição",
         EndReason.Timeout => "Tempo esgotado",
         EndReason.Abandon => "Abandono",
         EndReason.Disconnect => "Desconexão do oponente",
@@ -43,7 +48,7 @@ public static class HistoryAnalysis
         var draws = outcomes.Count - wins - losses;
         var streak = outcomes.TakeWhile(o => o == HistoryOutcome.Win).Count();
 
-        var lineWins = ordered.Where((g, i) => outcomes[i] == HistoryOutcome.Win && g.EndReason == EndReason.Line && g.DurationSeconds is not null)
+        var lineWins = ordered.Where((g, i) => outcomes[i] == HistoryOutcome.Win && g.EndReason is EndReason.Line or EndReason.Checkmate && g.DurationSeconds is not null)
             .Select(g => g.DurationSeconds!.Value).ToList();
         var perMove = ordered.Where(g => g.DurationSeconds is not null && g.MoveCount is > 0)
             .Select(g => (double)g.DurationSeconds!.Value / g.MoveCount!.Value).ToList();
