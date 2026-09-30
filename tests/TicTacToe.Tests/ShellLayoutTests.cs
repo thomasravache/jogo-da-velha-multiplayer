@@ -200,6 +200,27 @@ public class ShellLayoutTests
             Assert.True(Ratio(fg, bg) >= 4.5, $"{fg} sobre {bg} tem contraste {Ratio(fg, bg):F2}");
     }
 
+    [Theory(DisplayName = "SPEC-0048:UT-03 — 'Jogar' ativo em /, /velha e /xadrez; nunca em /xadrezfoo; 'Histórico' só em /history")]
+    [Trait("Category", "SPEC-0048:UT-03")]
+    [InlineData("/", "Jogar")]
+    [InlineData("/velha", "Jogar")]
+    [InlineData("/xadrez", "Jogar")]
+    [InlineData("/xadrezfoo", null)]
+    [InlineData("/velhafoo", null)]
+    [InlineData("/history", "Histórico")]
+    public async Task PlayItem_ShouldBeActiveOnAllGameRoutes(string path, string? expectedActive)
+    {
+        await using var ctx = NewContext(out _);
+        ctx.Services.GetRequiredService<NavigationManager>().NavigateTo(path);
+        var cut = RenderLayout(ctx);
+
+        foreach (var selector in new[] { "header nav a[aria-current='page']", "nav[aria-label='Principal (mobile)'] a[aria-current='page']" })
+        {
+            var active = cut.FindAll(selector).Select(a => a.TextContent.Trim()).ToArray();
+            Assert.Equal(expectedActive is null ? [] : new[] { expectedActive }, active);
+        }
+    }
+
     [Fact(DisplayName = "SPEC-0043:UT-03b — Rota parecida não ativa o link (/historyfoo)")]
     [Trait("Category", "SPEC-0043:UT-03")]
     public async Task SimilarRoute_ShouldNotActivateLink()
