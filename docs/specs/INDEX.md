@@ -5,18 +5,18 @@
 ## Saúde
 
 - Validação (G0): **0 erro(s), 0 aviso(s)**
-- Specs: proposed 1, implemented 54
+- Specs: in-progress 1, implemented 54
 - Impedimentos: **0 aberto(s)**, 0 resolvido(s)
 
 ## Plano de Execução
 
-**Em andamento:** —  
+**Em andamento:** SPEC-0062  
 **Paradas por impedimento:** —  
 **Próximo lote:** —
 
 | Onda | Spec | Título | Tier/Tam. | Status | Prontidão | Observação |
 |---|---|---|---|---|---|---|
-| 1 | SPEC-0062 | Tabuleiro de xadrez maior no desktop | lite/S | proposed | ⏳ aguardando aprovação (H1) |  |
+| 1 | SPEC-0062 | Tabuleiro de xadrez maior no desktop | lite/S | in-progress | 🔄 em andamento |  |
 
 ## Épicos
 
@@ -36,7 +36,7 @@ Seta contínua: depende da implementação. Seta tracejada: consome contrato.
 
 ```mermaid
 flowchart LR
-  S0062["SPEC-0062<br/>Tabuleiro de xadrez maior no desktop"]:::proposed
+  S0062["SPEC-0062<br/>Tabuleiro de xadrez maior no desktop"]:::inprogress
   classDef proposed fill:#fef3c7,stroke:#d97706,color:#111
   classDef approved fill:#dbeafe,stroke:#2563eb,color:#111
   classDef inprogress fill:#ede9fe,stroke:#7c3aed,color:#111
@@ -109,7 +109,7 @@ flowchart LR
 | [SPEC-0059](SPEC-0059-historico-e-ranking-do-xadrez.md) | Histórico e ranking do xadrez | full | feature | implemented | 2026-09-29 | SPEC-0046 | SPEC-0048, SPEC-0053 | — |
 | [SPEC-0060](SPEC-0060-abandono-revanche-e-desconexao-no-xadrez.md) | Abandono, revanche e desconexão no xadrez | full | feature | implemented | 2026-09-29 | SPEC-0046 | SPEC-0056, SPEC-0057, SPEC-0058, SPEC-0061 | — |
 | [SPEC-0061](SPEC-0061-ciclo-de-vida-da-sessao-de-xadrez-abandono-revanche-e-presen.md) | Ciclo de vida da sessão de xadrez: abandono, revanche e presença | full | feature | implemented | 2026-09-29 | SPEC-0046 | SPEC-0052 | — |
-| [SPEC-0062](SPEC-0062-tabuleiro-de-xadrez-maior-no-desktop.md) | Tabuleiro de xadrez maior no desktop | lite | fix | proposed | 2026-09-29 | — | — | — |
+| [SPEC-0062](SPEC-0062-tabuleiro-de-xadrez-maior-no-desktop.md) | Tabuleiro de xadrez maior no desktop | lite | fix | in-progress | 2026-09-29 | — | — | — |
 
 ## ADRs
 

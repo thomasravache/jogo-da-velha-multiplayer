@@ -4,7 +4,7 @@ title: Tabuleiro de xadrez maior no desktop
 tier: lite
 type: fix
 user_facing: false
-status: proposed
+status: in-progress
 created: 2026-09-29
 parent:
 depends_on: []
@@ -13,8 +13,8 @@ touches: [src/TicTacToe/TicTacToe.Web/Components/Chess/ChessBoard.razor, src/Tic
 adrs: []
 external: []
 size: S
-approved_by:
-approved_at:
+approved_by: thomas
+approved_at: 2026-09-29
 ---
 
 # SPEC-0062 — Tabuleiro de xadrez maior no desktop
@@ -53,6 +53,16 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 
 ## 7. Checklist de Implementação
 <!-- Preenchido na fase PLAN, após a aprovação. -->
+
+**Fase 1: Tokens e classes de tamanho**
+- [ ] Red: escrever UT-01, UT-02, UT-03 com a tag `SPEC-0062:<ID>` e confirmar que falham pelo motivo certo
+- [ ] Green: tokens em `cyber-arena.input.css`, `ChessBoard` e `ChessHome` usando-os; regenerar `cyber-arena.css`
+- [ ] Validar: build + suíte completa + `tools/tailwind/build.sh --check` (G2/G3)
+
+**Fase final: Integração, entrega e documentação**
+- [ ] Review independente (G4)
+- [ ] Integração + CI verde (G5) e aprovação (H2)
+- [ ] Relatório de Entrega e CHANGELOG (G7)
 
 ## 8. Registro de Gates
 <!-- Status: PENDING | PASS | FAIL | N/A. PASS e N/A exigem evidência. -->
