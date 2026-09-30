@@ -194,7 +194,8 @@ public class GameResultService(GameplayDbContext db, ILogger<GameResultService> 
             m.Id, m.PlayerXName, m.PlayerOName, outcome,
             HistoryAnalysis.IsWalkOver(m.EndReason),
             HistoryAnalysis.Reason(m.EndReason, m.WinningLine),
-            m.DurationSeconds, m.Mode, m.PlayedAt, iAmX, side, m.WinnerName);
+            m.DurationSeconds, m.Mode, m.PlayedAt, iAmX, side, m.WinnerName,
+            m.GameType, m.TimeControl, m.MoveCount);
     }
 
     public async Task<List<MatchResult>> GetRecentAsync(int count = 10) =>
