@@ -5,22 +5,21 @@
 ## Saúde
 
 - Validação (G0): **0 erro(s), 0 aviso(s)**
-- Specs: approved 4, in-progress 1, implemented 49
+- Specs: approved 4, implemented 50
 - Impedimentos: **0 aberto(s)**, 0 resolvido(s)
 
 ## Plano de Execução
 
-**Em andamento:** SPEC-0056  
+**Em andamento:** —  
 **Paradas por impedimento:** —  
-**Próximo lote:** —
+**Próximo lote:** SPEC-0058
 
 | Onda | Spec | Título | Tier/Tam. | Status | Prontidão | Observação |
 |---|---|---|---|---|---|---|
-| 1 | SPEC-0056 | Lobby de xadrez | full/M | in-progress | 🔄 em andamento |  |
-| 2 | SPEC-0058 | Treino solo de xadrez contra o robô | full/M | approved | ⛔ aguarda implementação de SPEC-0056 |  |
-| 3 | SPEC-0060 | Abandono, revanche e desconexão no xadrez | full/M | approved | ⛔ aguarda implementação de SPEC-0056; aguarda implementação de SPEC-0058 |  |
-| 4 | SPEC-0048 | Seleção de jogos e navegação por jogo | full/S | approved | ⛔ aguarda implementação de SPEC-0058; aguarda implementação de SPEC-0060 |  |
-| 5 | SPEC-0059 | Histórico e ranking do xadrez | full/M | approved | ⛔ aguarda implementação de SPEC-0048 |  |
+| 1 | SPEC-0058 | Treino solo de xadrez contra o robô | full/M | approved | ✅ pronta |  |
+| 2 | SPEC-0060 | Abandono, revanche e desconexão no xadrez | full/M | approved | ⛔ aguarda implementação de SPEC-0058 |  |
+| 3 | SPEC-0048 | Seleção de jogos e navegação por jogo | full/S | approved | ⛔ aguarda implementação de SPEC-0058; aguarda implementação de SPEC-0060 |  |
+| 4 | SPEC-0059 | Histórico e ranking do xadrez | full/M | approved | ⛔ aguarda implementação de SPEC-0048 |  |
 
 ## Épicos
 
@@ -32,7 +31,7 @@
 | SPEC-0021 | Engenharia de Qualidade e Refatoração Arquitetural | implemented | 4/4 implementadas |
 | SPEC-0028 | Redesign Cyber Arena — migração da UI para Tailwind (Fase 1 visual) | implemented | 7/7 implementadas |
 | SPEC-0035 | Evolução funcional a partir do Stitch (Fase 2) | implemented | 9/9 implementadas |
-| SPEC-0046 | Xadrez multiplayer | approved | 10/15 implementadas |
+| SPEC-0046 | Xadrez multiplayer | approved | 11/15 implementadas |
 
 ## Grafo de Dependências
 
@@ -45,7 +44,7 @@ flowchart LR
     S0048["SPEC-0048<br/>Seleção de jogos e navegação por jogo"]:::approved
     S0053["SPEC-0053<br/>Pareamento e persistência do xadrez"]:::implemented
     S0054["SPEC-0054<br/>Robô de xadrez com níveis de dificuldade"]:::implemented
-    S0056["SPEC-0056<br/>Lobby de xadrez"]:::inprogress
+    S0056["SPEC-0056<br/>Lobby de xadrez"]:::implemented
     S0057["SPEC-0057<br/>Arena de xadrez: relógios, lances e fim…"]:::implemented
     S0058["SPEC-0058<br/>Treino solo de xadrez contra o robô"]:::approved
     S0059["SPEC-0059<br/>Histórico e ranking do xadrez"]:::approved
@@ -134,7 +133,7 @@ flowchart LR
 | [SPEC-0053](SPEC-0053-pareamento-e-persistencia-do-xadrez.md) | Pareamento e persistência do xadrez | full | feature | implemented | 2026-09-29 | SPEC-0046 | SPEC-0047, SPEC-0052, SPEC-0055, SPEC-0061 | — |
 | [SPEC-0054](SPEC-0054-robo-de-xadrez-com-niveis-de-dificuldade.md) | Robô de xadrez com níveis de dificuldade | full | feature | implemented | 2026-09-29 | SPEC-0046 | SPEC-0050 | — |
 | [SPEC-0055](SPEC-0055-pecas-svg-e-tabuleiro-interativo.md) | Peças SVG e tabuleiro interativo | full | feature | implemented | 2026-09-29 | SPEC-0046 | SPEC-0050 | — |
-| [SPEC-0056](SPEC-0056-lobby-de-xadrez.md) | Lobby de xadrez | full | feature | in-progress | 2026-09-29 | SPEC-0046 | SPEC-0053, SPEC-0057 | — |
+| [SPEC-0056](SPEC-0056-lobby-de-xadrez.md) | Lobby de xadrez | full | feature | implemented | 2026-09-29 | SPEC-0046 | SPEC-0053, SPEC-0057 | — |
 | [SPEC-0057](SPEC-0057-arena-de-xadrez-relogios-lances-e-fim-de-partida.md) | Arena de xadrez: relógios, lances e fim de partida | full | feature | implemented | 2026-09-29 | SPEC-0046 | SPEC-0052, SPEC-0055 | — |
 | [SPEC-0058](SPEC-0058-treino-solo-de-xadrez-contra-o-robo.md) | Treino solo de xadrez contra o robô | full | feature | approved | 2026-09-29 | SPEC-0046 | SPEC-0054, SPEC-0056, SPEC-0057 | — |
 | [SPEC-0059](SPEC-0059-historico-e-ranking-do-xadrez.md) | Histórico e ranking do xadrez | full | feature | approved | 2026-09-29 | SPEC-0046 | SPEC-0048, SPEC-0053 | — |
