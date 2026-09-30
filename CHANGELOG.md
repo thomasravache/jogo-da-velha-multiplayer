@@ -9,6 +9,7 @@ Cada entrada cita a spec de origem (`SPEC-NNNN`); gere-as com `spec_graph.py rep
 ## [Unreleased]
 
 ### Added
+- Xadrez: treino solo contra o robô (Fácil/Médio) com revanche e abandono (SPEC-0058).
 - Lobby de xadrez em /xadrez: fila por controle de tempo, sala privada, cores e partida completa (SPEC-0056)
 - Pareamento por controle de tempo com preferência de cor e gravação das partidas de xadrez (SPEC-0053)
 - Arena de xadrez com relógios, lista de lances, capturas e fim de partida (SPEC-0057)
