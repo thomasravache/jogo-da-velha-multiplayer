@@ -33,6 +33,12 @@ public sealed class MatchPresenceContext
         }
     }
 
+    /// <summary>Associa um relator de conexão genérico (partidas de xadrez): recebe false na queda e true no retorno.</summary>
+    public void Attach(Action<bool> reportConnection)
+    {
+        ArgumentNullException.ThrowIfNull(reportConnection);
+    }
+
     public void Detach()
     {
         lock (_gate)

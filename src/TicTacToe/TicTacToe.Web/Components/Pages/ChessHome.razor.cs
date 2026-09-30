@@ -507,6 +507,16 @@ public partial class ChessHome : IDisposable
 
     private void BackToLobby() => LeaveMatch();
 
+    private Task LeaveGame() => Session is null ? Task.CompletedTask : Task.CompletedTask; // scaffold
+
+    private Task RequestRematch() => Session is null ? Task.CompletedTask : Task.CompletedTask; // scaffold
+
+    private Task AcceptRematch() => Session is null ? Task.CompletedTask : Task.CompletedTask; // scaffold
+
+    private Task DeclineRematch() => Session is null ? Task.CompletedTask : Task.CompletedTask; // scaffold
+
+    private void ReturnToLobby() => LeaveMatch();
+
     // Solta a partida; a última pessoa a sair remove a sessão do registro (e para o relógio).
     private void LeaveMatch()
     {

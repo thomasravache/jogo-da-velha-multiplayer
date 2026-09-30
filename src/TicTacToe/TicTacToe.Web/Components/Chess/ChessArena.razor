@@ -80,7 +80,15 @@
     [Parameter] public ChessSession Session { get; set; } = default!;
     [Parameter] public int MySeat { get; set; }
 
-    /// <summary>Usado pelo ciclo de vida da partida (SPEC-0060).</summary>
+    /// <summary>Abandono confirmado (partida humana em andamento).</summary>
+    [Parameter] public EventCallback OnLeave { get; set; }
+
+    /// <summary>Revanche imediata (só partida solo).</summary>
+    [Parameter] public EventCallback OnRematch { get; set; }
+
+    [Parameter] public EventCallback OnRequestRematch { get; set; }
+    [Parameter] public EventCallback OnAcceptRematch { get; set; }
+    [Parameter] public EventCallback OnDeclineRematch { get; set; }
     [Parameter] public EventCallback OnBackToLobby { get; set; }
 
     private TimeProvider Time { get; set; } = TimeProvider.System;
