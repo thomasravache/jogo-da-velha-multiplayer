@@ -189,7 +189,7 @@ public class ChessLobbyTests
         using var ctx = NewContext();
         var cut = Render(ctx, p => p.Add(l => l.PlayerName, "Ana").Add(l => l.RoomErrorMessage, "Sala inválida ou já iniciada!"));
 
-        Assert.Equal(3, cut.FindAll("[role='radiogroup']").Count); // controle, cor, ação da sala
+        Assert.Equal(4, cut.FindAll("[role='radiogroup']").Count); // controle, cor, dificuldade do robô, ação da sala
         Assert.All(cut.FindAll("[role='radiogroup']"), g => Assert.False(string.IsNullOrWhiteSpace(g.GetAttribute("aria-label"))));
         Assert.NotNull(cut.Find("label[for='playerName']"));
         Assert.Empty(cut.FindAll("style"));
