@@ -161,10 +161,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | Gate | Status | Evidência | Data |
 |---|---|---|---|
 | G0 Spec | PASS | `spec_graph.py validate` limpo (0 erro, 0 aviso); checklist de julgamento do G0 feito pelo Architect | 2026-09-29 |
-| G1 Red | PENDING | | |
-| G2 Green | PENDING | | |
-| G3 Arquitetura | PENDING | | |
-| G4 Review | PENDING | | |
+| G1 Red | PASS | Red confirmado: 15 dos 19 casos falharam pelo motivo certo (c9d94db); guardas/caracterização passaram já no Red; verify PASS | 2026-09-29 |
+| G2 Green | PASS | dotnet test: 910 total, 909 passam, 1 pulado, 0 falhas; format e tailwind --check limpos; 4 execuções no review sem falha | 2026-09-29 |
+| G3 Arquitetura | N/A | sem novas regras estruturais | 2026-09-29 |
+| G4 Review | PASS | Review independente PASS (0 bloqueantes/maiores; 3 menores registrados em Pendências) | 2026-09-29 |
 | G5 Integração & CI | PENDING | | |
 | H2 Integração aprovada | PENDING | | |
 | G6 Deploy | PENDING | | |
