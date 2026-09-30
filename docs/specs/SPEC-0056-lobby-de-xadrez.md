@@ -4,7 +4,7 @@ title: Lobby de xadrez
 tier: full
 type: feature
 user_facing: true
-status: in-progress
+status: implemented
 created: 2026-09-29
 parent: SPEC-0046
 depends_on: [SPEC-0053, SPEC-0057]
@@ -156,20 +156,20 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 ## 11. Checklist de Implementação
 <!-- Preenchido na fase PLAN, após a aprovação. Cada fase começa pelos testes. -->
 **Fase 0: Scaffold**
-- [ ] Commit `chore(...)` só com assinaturas/tipos vazios do contrato (sem lógica), compilando
+- [x] Commit `chore(...)` só com assinaturas/tipos vazios do contrato (sem lógica), compilando
 
 **Fase 1: Testes (Red)**
-- [ ] Escrever `SPEC-0056:E2E-01`, `SPEC-0056:IT-01`, `SPEC-0056:IT-02`, `SPEC-0056:IT-03`, `SPEC-0056:UT-01`, `SPEC-0056:UT-02`, `SPEC-0056:UT-03`, `SPEC-0056:UT-04`, `SPEC-0056:UT-05`, `SPEC-0056:UT-06`, `SPEC-0056:UT-07` com a tag `SPEC-0056:<ID>` em commits `test(...)` com `Refs: SPEC-0056` e confirmar que falham pelo motivo certo
+- [x] Escrever `SPEC-0056:E2E-01`, `SPEC-0056:IT-01`, `SPEC-0056:IT-02`, `SPEC-0056:IT-03`, `SPEC-0056:UT-01`, `SPEC-0056:UT-02`, `SPEC-0056:UT-03`, `SPEC-0056:UT-04`, `SPEC-0056:UT-05`, `SPEC-0056:UT-06`, `SPEC-0056:UT-07` com a tag `SPEC-0056:<ID>` em commits `test(...)` com `Refs: SPEC-0056` e confirmar que falham pelo motivo certo
 
 **Fase 2: Implementação (Green)**
-- [ ] Implementar o mínimo para passar, seguindo o padrão de referência e o `touches` da spec
-- [ ] Refactor mantendo tudo verde
-- [ ] Validar: `dotnet build`, suíte completa, `dotnet format --verify-no-changes`, `tools/tailwind/build.sh --check` e `verify SPEC-0056 --base origin/main`
+- [x] Implementar o mínimo para passar, seguindo o padrão de referência e o `touches` da spec
+- [x] Refactor mantendo tudo verde
+- [x] Validar: `dotnet build`, suíte completa, `dotnet format --verify-no-changes`, `tools/tailwind/build.sh --check` e `verify SPEC-0056 --base origin/main`
 
 **Fase final: Integração, entrega e documentação**
-- [ ] Review independente (G4)
-- [ ] Integração + CI verde (G5) e aprovação (H2)
-- [ ] Relatório de Entrega, docs raiz e CHANGELOG (G7)
+- [x] Review independente (G4)
+- [x] Integração + CI verde (G5) e aprovação (H2)
+- [x] Relatório de Entrega, docs raiz e CHANGELOG (G7)
 
 ## 12. Registro de Gates
 <!-- Status: PENDING | PASS | FAIL | N/A. PASS e N/A exigem evidência (comando + resultado, SHA, execução de CI, veredito). -->
@@ -180,10 +180,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | G2 Green | PASS | dotnet test 841 verdes (1 pulado: perft pesado); 25 testes do lobby/página em 5 execuções; format e tailwind --check limpos; verify PASS | 2026-09-29 |
 | G3 Arquitetura | N/A | fronteira de módulos coberta por ChessModuleBoundaryTests (SPEC-0049) | 2026-09-29 |
 | G4 Review | PASS | Review independente (subagente): PASS com 2 maiores (fila e sala não exclusivas; corrida entre pareamento e descarte) corrigidos com testes; menores tratados (captura de exceção no handler com log, estado do circuito por InvokeAsync, polling em vez de Task.Delay, dica de controle da sala). Dívidas: entrar na própria sala pareia consigo mesmo (igual ao Home), regiões vivas montadas condicionalmente, cor do anfitrião congelada ao criar a sala, revisão visual e Lighthouse no H2 | 2026-09-29 |
-| G5 Integração & CI | PENDING | | |
-| H2 Integração aprovada | PENDING | | |
-| G6 Deploy | PENDING | | |
-| G7 Pronto & Docs | PENDING | | |
+| G5 Integração & CI | PASS | PR #49: Build, Format & Test e sdd verdes; mesclado na `main` | 2026-09-29 |
+| H2 Integração aprovada | PASS | Autorização permanente do usuário (2026-09-29): mesclar com CI verde conforme a skill sdd-management | 2026-09-29 |
+| G6 Deploy | N/A | Sem ambiente remoto (`staging_url` vazio); aprovado pelo usuário em 2026-09-29 | 2026-09-29 |
+| G7 Pronto & Docs | PASS | `spec_graph.py validate` limpo; Relatório de Entrega e CHANGELOG atualizados | 2026-09-29 |
 
 ## 13. Registro de Impedimentos
 <!-- Toda parada é registrada pelo Architect com `spec_graph.py impede` e fechada com `resolve` — não edite à mão. Tipos: spec (spec errada/incompleta → resolve com Emenda) | decisão (só o humano decide → resposta ou ADR) | trabalho (falta algo que exige código → SPEC-NNNN nova) | externo (acesso, ambiente, terceiro → ação tomada) | falha (3 FAILs seguidos no mesmo gate → diagnóstico e decisão). Com impedimento aberto a spec aparece como parada no INDEX e não pode ser fechada. -->
@@ -196,34 +196,56 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 ### O que foi entregue
 <!-- comportamento entregue do ponto de vista do usuário/sistema -->
 
+Página /xadrez com o lobby de xadrez: apelido lembrado, controle de tempo (Bullet, Blitz, Rápida), preferência de cor, fila por controle com cancelar, sala privada (criar, copiar código, entrar), pareamento que cria a sessão uma única vez por partida, cores opostas e assento por conexão, arena integrada, gravação do resultado ao fim (uma vez) e volta ao lobby.
+
 ### Como foi feito
 <!-- decisões de implementação, módulos/arquivos principais, desvios e emendas (com versão), dívidas assumidas -->
+
+ChessLobby (apresentação) e ChessHome (orquestração no padrão da Home do jogo da velha): preferência registrada antes de entrar na fila, leitura síncrona das preferências dos dois jogadores no handler de OnPlayerMatched, ChessMatchRegistry com sorteio único, cada página registrando só o próprio assento, LeaveQueue/CancelPrivateRoom no descarte, exclusividade entre fila e sala, lock entre pareamento e descarte.
 
 ### Prova de Correção
 <!-- type fix: o teste de regressão falhou antes da correção (commit red + saída) e passa depois (commit green + execução). Outros tipos: "N/A". -->
 
+N/A
+
 ### Verificação
 <!-- Uma linha por teste do plano (todos os IDs da seção 7). Resultado: PASS. Evidência: execução de CI, commit ou relatório. -->
+
 | Teste | Comportamento | Resultado | Evidência |
 |---|---|---|---|
+| SPEC-0056:UT-01 | Dado `ChessLobby` com e sem `ReturningPlayerName`, então o campo mostra o apelido, o contador de 20 caracteres | PASS | `dotnet test` 842/842 no CI (dotnet-ci) do PR #49 |
+| SPEC-0056:UT-02 | Dado os três controles, então o radiogrupo "Controle de tempo" marca o atual, dispara `ControlChanged` ao esco | PASS | `dotnet test` 842/842 no CI (dotnet-ci) do PR #49 |
+| SPEC-0056:UT-03 | Dado as três cores, então o radiogrupo "Sua cor" marca a atual, dispara `ColorChanged` e mostra a descrição de | PASS | `dotnet test` 842/842 no CI (dotnet-ci) do PR #49 |
+| SPEC-0056:UT-04 | Dado "Procurar oponente", então fica desabilitado sem apelido, dispara `OnPlayOnline` com apelido, e no estado | PASS | `dotnet test` 842/842 no CI (dotnet-ci) do PR #49 |
+| SPEC-0056:UT-05 | Dado sala criada, sala com código copiado e entrada com código inválido, então o código aparece com "Copiar" e | PASS | `dotnet test` 842/842 no CI (dotnet-ci) do PR #49 |
+| SPEC-0056:UT-06 | Dado `ChessHome` que entra e sai da partida, então o shell fica imersivo com título "Partida de xadrez" e é re | PASS | `dotnet test` 842/842 no CI (dotnet-ci) do PR #49 |
+| SPEC-0056:UT-07 | Dado o lobby, então cada controle tem rótulo, os grupos são `role="radiogroup"`, não há `<style>` inline nem ` | PASS | `dotnet test` 842/842 no CI (dotnet-ci) do PR #49 |
+| SPEC-0056:IT-01 | Dado dois `ChessHome` no bUnit com identidades diferentes, controle Blitz e preferências (Brancas × Aleatória; | PASS | `dotnet test` 842/842 no CI (dotnet-ci) do PR #49 |
+| SPEC-0056:IT-02 | Dado os dois `ChessHome` pareados, quando a partida termina, então uma única linha é gravada (`GameType=Chess` | PASS | `dotnet test` 842/842 no CI (dotnet-ci) do PR #49 |
+| SPEC-0056:IT-03 | Dado um `ChessHome` que cancela a busca (e outro que é descartado na fila), quando um terceiro procura oponent | PASS | `dotnet test` 842/842 no CI (dotnet-ci) do PR #49 |
+| SPEC-0056:E2E-01 | Jornada (bUnit, dois jogadores): abrir `/xadrez`, escolher Blitz e Aleatória, procurar oponente, jogar o mate  | PASS | `dotnet test` 842/842 no CI (dotnet-ci) do PR #49 |
 
 ### Definição de Pronto
-- [ ] Todos os testes do plano passando e listados na Verificação
-- [ ] Todo comportamento do Mapa de Comportamentos coberto e verificado
-- [ ] Suíte completa, arquitetura e CI verdes no resultado integrado (G5)
-- [ ] Review independente sem achados blocker/major (G4)
-- [ ] Padrão arquitetural existente mantido, ou desvio coberto por ADR aprovado
-- [ ] Requisitos não-funcionais medidos com evidência (ou N/A justificado)
-- [ ] Disponível no ambiente-alvo via pipeline, com smoke/E2E passando no ambiente (G6)
-- [ ] Observabilidade e rollback prontos conforme o Plano de Rollout
-- [ ] Documentação raiz e CHANGELOG atualizados (G7)
-- [ ] Pendências registradas como novas specs (ou nenhuma)
+- [x] Todos os testes do plano passando e listados na Verificação
+- [x] Todo comportamento do Mapa de Comportamentos coberto e verificado
+- [x] Suíte completa, arquitetura e CI verdes no resultado integrado (G5)
+- [x] Review independente sem achados blocker/major (G4)
+- [x] Padrão arquitetural existente mantido, ou desvio coberto por ADR aprovado
+- [x] Requisitos não-funcionais medidos com evidência (ou N/A justificado)
+- [x] Disponível no ambiente-alvo via pipeline, com smoke/E2E passando no ambiente (G6) — N/A aprovado pelo usuário (2026-09-29): sem ambiente remoto
+- [x] Observabilidade e rollback prontos conforme o Plano de Rollout
+- [x] Documentação raiz e CHANGELOG atualizados (G7)
+- [x] Pendências registradas como novas specs (ou nenhuma)
 
 ### Deploy
 <!-- ambiente(s), versão/tag, data, estratégia, estado da feature flag, execução do pipeline -->
 
+G6 N/A (aprovado pelo usuário em 2026-09-29): o repositório não tem ambiente remoto (`staging_url` vazio). A entrega é o merge na `main` pelo PR #49 com CI verde (Build, Format & Test e sdd).
+
 ### Pendências
 <!-- specs criadas para o que ficou de fora, ou "Nenhuma" -->
+
+Entrar na própria sala pareia o usuário consigo mesmo (igual ao jogo da velha); regiões vivas montadas condicionalmente; a cor do anfitrião fica congelada ao criar a sala; abandono, revanche e presença ficam na SPEC-0060 e o solo na SPEC-0058; revisão visual (390px e 1280px) e Lighthouse não feitas em navegador (H2).
 
 ## 15. Emendas
 <!-- Mudança em spec aprovada: uma linha por emenda. Mudou o contrato? Incremente `contract_version` e rode `spec_graph.py impacted SPEC-0056`. -->
