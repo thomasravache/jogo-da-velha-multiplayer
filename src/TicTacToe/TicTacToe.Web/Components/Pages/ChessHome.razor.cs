@@ -36,7 +36,8 @@ public partial class ChessHome : IDisposable
     private bool _solo;
     private IChessBot? _bot;
     private CancellationTokenSource? _botCts;
-    private int _botBusy;
+    private int _botGen; // invalida execuções do robô de partidas já encerradas
+    private int _botBusyGen; // geração da execução em andamento (0 = nenhuma)
 
     [Inject] private MatchmakingService Matchmaking { get; set; } = default!;
 
@@ -219,6 +220,7 @@ public partial class ChessHome : IDisposable
             _solo = true;
             _bot = BotFactory(level);
             _botCts = new CancellationTokenSource();
+            _botGen++;
             Session.OnStateChanged += OnSessionChanged;
             if (Logger.IsEnabled(LogLevel.Information))
             {
@@ -235,6 +237,7 @@ public partial class ChessHome : IDisposable
         ChessSession session;
         IChessBot bot;
         CancellationToken token;
+        int generation;
         lock (_gate)
         {
             if (_disposed || !_solo || Session is null || _bot is null || _botCts is null)
@@ -245,6 +248,7 @@ public partial class ChessHome : IDisposable
             session = Session;
             bot = _bot;
             token = _botCts.Token;
+            generation = _botGen;
         }
 
         if (token.IsCancellationRequested)
@@ -259,9 +263,15 @@ public partial class ChessHome : IDisposable
             return;
         }
 
-        if (Interlocked.CompareExchange(ref _botBusy, 1, 0) != 0)
+        lock (_gate)
         {
-            return; // já há uma jogada agendada; ao terminar ela reavalia o estado
+            // A trava é por geração: uma busca antiga (partida abandonada) não segura o robô da partida nova.
+            if (generation != _botGen || _botBusyGen == generation)
+            {
+                return; // já há uma jogada agendada; ao terminar ela reavalia o estado
+            }
+
+            _botBusyGen = generation;
         }
 
         var signature = (snapshot.Moves.Count, botColor);
@@ -285,13 +295,35 @@ public partial class ChessHome : IDisposable
             }
             finally
             {
-                Volatile.Write(ref _botBusy, 0);
+                lock (_gate)
+                {
+                    if (_botBusyGen == generation)
+                    {
+                        _botBusyGen = 0;
+                    }
+                }
             }
 
             // Se o estado mudou durante a espera (lance, revanche com troca de cores), reavalia de quem é a vez.
-            if (!token.IsCancellationRequested && (session.Snapshot().Moves.Count, session.ColorOf(BotSeat)) != signature)
+            try
             {
-                ScheduleBot();
+                bool current;
+                lock (_gate)
+                {
+                    current = generation == _botGen;
+                }
+
+                if (current && !token.IsCancellationRequested && (session.Snapshot().Moves.Count, session.ColorOf(BotSeat)) != signature)
+                {
+                    ScheduleBot();
+                }
+            }
+            catch (Exception ex)
+            {
+                if (Logger.IsEnabled(LogLevel.Error))
+                {
+                    Logger.LogError(ex, "Falha ao reagendar o robô da partida de xadrez {SessionId}.", session.Id);
+                }
             }
         });
     }
@@ -308,9 +340,11 @@ public partial class ChessHome : IDisposable
         session.RequestRematch(session.ColorOf(_seat));
     }
 
-    // Abandonar partida solo em andamento descarta a sessão sem gravar.
-    private void AbandonSolo()
+    // Abandonar partida solo em andamento descarta a sessão sem gravar; se a partida já tinha acabado
+    // (inclusive por bandeira no clique), grava o resultado antes de sair.
+    private async Task AbandonSolo()
     {
+        ChessSession? toRecord = null;
         lock (_gate)
         {
             if (Session is not { } session || !_solo)
@@ -318,15 +352,28 @@ public partial class ChessHome : IDisposable
                 return;
             }
 
-            // Sem o handler, o aviso do Leave não reagenda o robô.
+            // Sem o handler, o aviso do Leave não reagenda o robô nem grava sozinho: por isso o registro abaixo.
             session.OnStateChanged -= OnSessionChanged;
-            if (session.Leave(session.ColorOf(_seat)) == ChessLeaveResult.Rejected)
+            var result = session.Leave(session.ColorOf(_seat));
+            if (result == ChessLeaveResult.Rejected)
             {
                 session.OnStateChanged += OnSessionChanged;
-                return;
+                toRecord = session;
             }
+            else
+            {
+                if (result == ChessLeaveResult.Left)
+                {
+                    toRecord = session;
+                }
 
-            LeaveMatchCore();
+                LeaveMatchCore();
+            }
+        }
+
+        if (toRecord is not null)
+        {
+            await Recorder.SaveOnceAsync(toRecord);
         }
     }
 
@@ -493,6 +540,7 @@ public partial class ChessHome : IDisposable
         // Sem lance do robô depois do descarte. O token só é cancelado (não há temporizador a liberar no CTS).
         _botCts?.Cancel();
         _botCts = null;
+        _botGen++;
         _bot = null;
         _solo = false;
         _matchId = null;
