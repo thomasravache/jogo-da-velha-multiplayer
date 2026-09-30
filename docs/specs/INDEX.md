@@ -4,19 +4,13 @@
 
 ## Saúde
 
-- Validação (G0): **0 erro(s), 0 aviso(s)**
-- Specs: in-progress 1, implemented 53
+- Validação (G0): **0 erro(s), 1 aviso(s)** — rode `spec_graph.py validate`
+- Specs: implemented 54
 - Impedimentos: **0 aberto(s)**, 0 resolvido(s)
 
 ## Plano de Execução
 
-**Em andamento:** SPEC-0059  
-**Paradas por impedimento:** —  
-**Próximo lote:** —
-
-| Onda | Spec | Título | Tier/Tam. | Status | Prontidão | Observação |
-|---|---|---|---|---|---|---|
-| 1 | SPEC-0059 | Histórico e ranking do xadrez | full/M | in-progress | 🔄 em andamento |  |
+Nenhuma spec aberta.
 
 ## Épicos
 
@@ -28,27 +22,7 @@
 | SPEC-0021 | Engenharia de Qualidade e Refatoração Arquitetural | implemented | 4/4 implementadas |
 | SPEC-0028 | Redesign Cyber Arena — migração da UI para Tailwind (Fase 1 visual) | implemented | 7/7 implementadas |
 | SPEC-0035 | Evolução funcional a partir do Stitch (Fase 2) | implemented | 9/9 implementadas |
-| SPEC-0046 | Xadrez multiplayer | approved | 14/15 implementadas |
-
-## Grafo de Dependências
-
-Seta contínua: depende da implementação. Seta tracejada: consome contrato.
-
-```mermaid
-flowchart LR
-  subgraph E0046["SPEC-0046 · Xadrez multiplayer"]
-    S0048["SPEC-0048<br/>Seleção de jogos e navegação por jogo"]:::implemented
-    S0053["SPEC-0053<br/>Pareamento e persistência do xadrez"]:::implemented
-    S0059["SPEC-0059<br/>Histórico e ranking do xadrez"]:::inprogress
-  end
-  S0048 --> S0059
-  S0053 --> S0059
-  classDef proposed fill:#fef3c7,stroke:#d97706,color:#111
-  classDef approved fill:#dbeafe,stroke:#2563eb,color:#111
-  classDef inprogress fill:#ede9fe,stroke:#7c3aed,color:#111
-  classDef implemented fill:#dcfce7,stroke:#16a34a,color:#111
-  classDef deprecated fill:#f3f4f6,stroke:#9ca3af,color:#6b7280
-```
+| SPEC-0046 | Xadrez multiplayer | approved | 15/15 implementadas |
 
 ## Todas as Specs
 
@@ -112,7 +86,7 @@ flowchart LR
 | [SPEC-0056](SPEC-0056-lobby-de-xadrez.md) | Lobby de xadrez | full | feature | implemented | 2026-09-29 | SPEC-0046 | SPEC-0053, SPEC-0057 | — |
 | [SPEC-0057](SPEC-0057-arena-de-xadrez-relogios-lances-e-fim-de-partida.md) | Arena de xadrez: relógios, lances e fim de partida | full | feature | implemented | 2026-09-29 | SPEC-0046 | SPEC-0052, SPEC-0055 | — |
 | [SPEC-0058](SPEC-0058-treino-solo-de-xadrez-contra-o-robo.md) | Treino solo de xadrez contra o robô | full | feature | implemented | 2026-09-29 | SPEC-0046 | SPEC-0054, SPEC-0056, SPEC-0057 | — |
-| [SPEC-0059](SPEC-0059-historico-e-ranking-do-xadrez.md) | Histórico e ranking do xadrez | full | feature | in-progress | 2026-09-29 | SPEC-0046 | SPEC-0048, SPEC-0053 | — |
+| [SPEC-0059](SPEC-0059-historico-e-ranking-do-xadrez.md) | Histórico e ranking do xadrez | full | feature | implemented | 2026-09-29 | SPEC-0046 | SPEC-0048, SPEC-0053 | — |
 | [SPEC-0060](SPEC-0060-abandono-revanche-e-desconexao-no-xadrez.md) | Abandono, revanche e desconexão no xadrez | full | feature | implemented | 2026-09-29 | SPEC-0046 | SPEC-0056, SPEC-0057, SPEC-0058, SPEC-0061 | — |
 | [SPEC-0061](SPEC-0061-ciclo-de-vida-da-sessao-de-xadrez-abandono-revanche-e-presen.md) | Ciclo de vida da sessão de xadrez: abandono, revanche e presença | full | feature | implemented | 2026-09-29 | SPEC-0046 | SPEC-0052 | — |
 

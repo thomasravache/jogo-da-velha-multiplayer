@@ -9,6 +9,7 @@ Cada entrada cita a spec de origem (`SPEC-NNNN`); gere-as com `spec_graph.py rep
 ## [Unreleased]
 
 ### Added
+- Histórico e ranking do xadrez com seletor de jogo (SPEC-0059).
 - Tela de seleção de jogos em / e lobby do jogo da velha em /velha (SPEC-0048).
 - Xadrez: abandono com confirmação, revanche com aceite e W.O. por desconexão (SPEC-0060).
 - Xadrez: treino solo contra o robô (Fácil/Médio) com revanche e abandono (SPEC-0058).
