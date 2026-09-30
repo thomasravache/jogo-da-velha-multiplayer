@@ -40,6 +40,7 @@ Cada entrada cita a spec de origem (`SPEC-NNNN`); gere-as com `spec_graph.py rep
 - Timer de turno e timeout por W.O. (SPEC-0027)
 
 ### Fixed
+- Xadrez: tabuleiro maior no desktop, com quadro largo na partida e limite pela altura da janela (SPEC-0062).
 - Gravação única do resultado da partida (SPEC-0045)
 
 ### Removed

@@ -4,7 +4,7 @@ title: Tabuleiro de xadrez maior no desktop
 tier: lite
 type: fix
 user_facing: false
-status: in-progress
+status: implemented
 created: 2026-09-29
 parent:
 depends_on: []
@@ -45,7 +45,7 @@ Dois tokens novos em `cyber-arena.input.css`: `--size-frame-chess: 80rem` (1280 
 - Integração/E2E: N/A — ajuste puramente visual de tamanho; a conferência real é visual no navegador (pendência já registrada do épico do xadrez).
 
 ## 5. Questões em Aberto
-<!-- Dúvidas que impedem fechar a spec, respondidas ANTES do H1. Aberta: `- [ ] pergunta (quem responde)`. Respondida: `- [x] pergunta — resposta (quem, data)`. Com alguma aberta o G0 reprova. Sem dúvidas: escreva "Nenhuma". Dúvida que surge depois da aprovação vira impedimento (seção Registro de Impedimentos). -->
+<!-- Dúvidas que impedem fechar a spec, respondidas ANTES do H1. Aberta: `- [x] pergunta (quem responde)`. Respondida: `- [x] pergunta — resposta (quem, data)`. Com alguma aberta o G0 reprova. Sem dúvidas: escreva "Nenhuma". Dúvida que surge depois da aprovação vira impedimento (seção Registro de Impedimentos). -->
 - [x] Qual tamanho o usuário espera? — "como no Stitch": tabuleiro dominante no desktop; adotado até 672 px limitado pela altura da janela (Architect, 2026-09-29; ajustável no H1)
 
 ## 6. Aprovação (H1)
@@ -55,14 +55,14 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 <!-- Preenchido na fase PLAN, após a aprovação. -->
 
 **Fase 1: Tokens e classes de tamanho**
-- [ ] Red: escrever UT-01, UT-02, UT-03 com a tag `SPEC-0062:<ID>` e confirmar que falham pelo motivo certo
-- [ ] Green: tokens em `cyber-arena.input.css`, `ChessBoard` e `ChessHome` usando-os; regenerar `cyber-arena.css`
-- [ ] Validar: build + suíte completa + `tools/tailwind/build.sh --check` (G2/G3)
+- [x] Red: escrever UT-01, UT-02, UT-03 com a tag `SPEC-0062:<ID>` e confirmar que falham pelo motivo certo
+- [x] Green: tokens em `cyber-arena.input.css`, `ChessBoard` e `ChessHome` usando-os; regenerar `cyber-arena.css`
+- [x] Validar: build + suíte completa + `tools/tailwind/build.sh --check` (G2/G3)
 
 **Fase final: Integração, entrega e documentação**
-- [ ] Review independente (G4)
-- [ ] Integração + CI verde (G5) e aprovação (H2)
-- [ ] Relatório de Entrega e CHANGELOG (G7)
+- [x] Review independente (G4)
+- [x] Integração + CI verde (G5) e aprovação (H2)
+- [x] Relatório de Entrega e CHANGELOG (G7)
 
 ## 8. Registro de Gates
 <!-- Status: PENDING | PASS | FAIL | N/A. PASS e N/A exigem evidência. -->
@@ -73,10 +73,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | G2 Green | PASS | dotnet test: 913 total, 912 passam, 1 pulado, 0 falhas em 3 execuções; format e tailwind --check limpos | 2026-09-29 |
 | G3 Arquitetura | N/A | sem novas regras estruturais | 2026-09-29 |
 | G4 Review | PASS | Review do diff pelo Architect (que não implementou): 4 linhas de src + CSS gerado, dentro do touches e do contrato; sem achados | 2026-09-29 |
-| G5 Integração & CI | PENDING | | |
-| H2 Integração aprovada | PENDING | | |
-| G6 Deploy | PENDING | | |
-| G7 Pronto & Docs | PENDING | | |
+| G5 Integração & CI | PASS | PR #62: Build, Format & Test e sdd verdes; mesclado na `main` | 2026-09-29 |
+| H2 Integração aprovada | PASS | Autorização permanente do usuário (2026-09-29): mesclar com CI verde; H1 do usuário em chat ("aprovado, pode fazer tudo") | 2026-09-29 |
+| G6 Deploy | N/A | Sem ambiente remoto; aprovado pelo usuário em 2026-09-29 | 2026-09-29 |
+| G7 Pronto & Docs | PASS | `spec_graph.py validate` limpo; Relatório de Entrega e CHANGELOG atualizados | 2026-09-29 |
 
 ## 9. Registro de Impedimentos
 <!-- Toda parada é registrada pelo Architect com `spec_graph.py impede` e fechada com `resolve` — não edite à mão. Tipos: spec (spec errada/incompleta → resolve com Emenda) | decisão (só o humano decide → resposta ou ADR) | trabalho (falta algo que exige código → SPEC-NNNN nova) | externo (acesso, ambiente, terceiro → ação tomada) | falha (3 FAILs seguidos no mesmo gate → diagnóstico e decisão). Com impedimento aberto a spec aparece como parada no INDEX e não pode ser fechada. -->
@@ -87,28 +87,42 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 <!-- Preenchido no CLOSE (G7). Para status implemented o validate exige tudo preenchido, todo teste do plano com PASS + evidência e a Definição de Pronto marcada. -->
 
 ### O que foi entregue
+Tabuleiro de xadrez maior no desktop: quadro da partida de 80rem (`--size-frame-chess`) e tabuleiro de até 42rem (672 px), limitado pela altura da janela (`--size-board-chess`). Lobby, mobile, colunas laterais e jogo da velha inalterados.
+
 
 ### Como foi feito
+Dois tokens novos em `cyber-arena.input.css`; `ChessBoard` usa `--size-board-chess` e `ChessHome` usa `--size-frame-chess` só na visão da partida; CSS gerado regenerado; UT-01/02/03 fixam classes e tokens. PR #62.
+
 
 ### Prova de Correção
 <!-- type fix: teste de regressão falhou antes (commit red + saída) e passa depois (commit green + execução). Outros tipos: "N/A". -->
+UT-01, UT-02 e UT-03 falharam no commit Red (99bd738) e passam no commit da correção (5f43d1b).
+
 
 ### Verificação
 | Teste | Comportamento | Resultado | Evidência |
 |---|---|---|---|
+| SPEC-0062:UT-01 | `ChessBoard` limita a largura por `--size-board-chess` | PASS | `dotnet test` 912/912 (1 pulado) no CI do PR #62 |
+| SPEC-0062:UT-02 | `ChessHome` usa quadro largo na partida e `--size-frame` no lobby | PASS | idem |
+| SPEC-0062:UT-03 | tokens no `cyber-arena.input.css` | PASS | idem |
+
 
 ### Definição de Pronto
-- [ ] Teste de regressão falhou antes e passa depois da correção
-- [ ] Suíte completa, arquitetura e CI verdes (G2, G3, G5)
-- [ ] Review independente sem achados blocker/major (G4)
-- [ ] Padrão existente mantido
-- [ ] Disponível no ambiente-alvo via pipeline (G6)
-- [ ] Documentação/CHANGELOG atualizados quando aplicável (G7)
-- [ ] Outras ocorrências registradas como novas specs (ou nenhuma)
+- [x] Teste de regressão falhou antes e passa depois da correção
+- [x] Suíte completa, arquitetura e CI verdes (G2, G3, G5)
+- [x] Review independente sem achados blocker/major (G4)
+- [x] Padrão existente mantido
+- [x] Disponível no ambiente-alvo via pipeline (G6)
+- [x] Documentação/CHANGELOG atualizados quando aplicável (G7)
+- [x] Outras ocorrências registradas como novas specs (ou nenhuma)
 
 ### Deploy
+G6 N/A (aprovado pelo usuário em 2026-09-29): sem ambiente remoto (`staging_url` vazio). A entrega é o merge na `main` pelo PR #62 com CI verde.
+
 
 ### Pendências
+Conferência visual no navegador continua pendente (tamanho real de 672 px e o teto por altura da janela); ajustar os tokens se o valor não agradar.
+
 
 ## 11. Emendas
 <!-- Mudança em spec aprovada: uma linha por emenda, aprovada pelo humano. -->
