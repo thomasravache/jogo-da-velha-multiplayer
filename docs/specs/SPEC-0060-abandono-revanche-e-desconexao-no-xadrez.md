@@ -4,7 +4,7 @@ title: Abandono, revanche e desconexão no xadrez
 tier: full
 type: feature
 user_facing: true
-status: in-progress
+status: implemented
 created: 2026-09-29
 parent: SPEC-0046
 depends_on: [SPEC-0056, SPEC-0057, SPEC-0058, SPEC-0061]
@@ -146,20 +146,20 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 ## 11. Checklist de Implementação
 <!-- Preenchido na fase PLAN, após a aprovação. Cada fase começa pelos testes. -->
 **Fase 0: Scaffold**
-- [ ] Commit `chore(...)` só com assinaturas/tipos vazios do contrato (sem lógica), compilando
+- [x] Commit `chore(...)` só com assinaturas/tipos vazios do contrato (sem lógica), compilando
 
 **Fase 1: Testes (Red)**
-- [ ] Escrever `SPEC-0060:E2E-01`, `SPEC-0060:IT-01`, `SPEC-0060:IT-02`, `SPEC-0060:IT-03`, `SPEC-0060:UT-01`, `SPEC-0060:UT-02`, `SPEC-0060:UT-03`, `SPEC-0060:UT-04`, `SPEC-0060:UT-05` com a tag `SPEC-0060:<ID>` em commits `test(...)` com `Refs: SPEC-0060` e confirmar que falham pelo motivo certo
+- [x] Escrever `SPEC-0060:E2E-01`, `SPEC-0060:IT-01`, `SPEC-0060:IT-02`, `SPEC-0060:IT-03`, `SPEC-0060:UT-01`, `SPEC-0060:UT-02`, `SPEC-0060:UT-03`, `SPEC-0060:UT-04`, `SPEC-0060:UT-05` com a tag `SPEC-0060:<ID>` em commits `test(...)` com `Refs: SPEC-0060` e confirmar que falham pelo motivo certo
 
 **Fase 2: Implementação (Green)**
-- [ ] Implementar o mínimo para passar, seguindo o padrão de referência e o `touches` da spec
-- [ ] Refactor mantendo tudo verde
-- [ ] Validar: `dotnet build`, suíte completa, `dotnet format --verify-no-changes`, `tools/tailwind/build.sh --check` e `verify SPEC-0060 --base origin/main`
+- [x] Implementar o mínimo para passar, seguindo o padrão de referência e o `touches` da spec
+- [x] Refactor mantendo tudo verde
+- [x] Validar: `dotnet build`, suíte completa, `dotnet format --verify-no-changes`, `tools/tailwind/build.sh --check` e `verify SPEC-0060 --base origin/main`
 
 **Fase final: Integração, entrega e documentação**
-- [ ] Review independente (G4)
-- [ ] Integração + CI verde (G5) e aprovação (H2)
-- [ ] Relatório de Entrega, docs raiz e CHANGELOG (G7)
+- [x] Review independente (G4)
+- [x] Integração + CI verde (G5) e aprovação (H2)
+- [x] Relatório de Entrega, docs raiz e CHANGELOG (G7)
 
 ## 12. Registro de Gates
 <!-- Status: PENDING | PASS | FAIL | N/A. PASS e N/A exigem evidência (comando + resultado, SHA, execução de CI, veredito). -->
@@ -170,10 +170,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | G2 Green | PASS | dotnet test: 879 total, 878 passam, 1 pulado, 0 falhas; format e tailwind --check limpos; 6 execuções da suíte e 30 dos testes novos sem falha | 2026-09-29 |
 | G3 Arquitetura | N/A | sem novas regras estruturais | 2026-09-29 |
 | G4 Review | PASS | Review independente PASS (0 bloqueantes/maiores); Emenda v2 registrada (RematchBar na ChessHome) | 2026-09-29 |
-| G5 Integração & CI | PENDING | | |
-| H2 Integração aprovada | PENDING | | |
-| G6 Deploy | PENDING | | |
-| G7 Pronto & Docs | PENDING | | |
+| G5 Integração & CI | PASS | PR #54: Build, Format & Test e sdd verdes; mesclado na `main` | 2026-09-29 |
+| H2 Integração aprovada | PASS | Autorização permanente do usuário (2026-09-29): mesclar com CI verde conforme a skill sdd-management | 2026-09-29 |
+| G6 Deploy | N/A | Sem ambiente remoto (`staging_url` vazio); aprovado pelo usuário em 2026-09-29 | 2026-09-29 |
+| G7 Pronto & Docs | PASS | `spec_graph.py validate` limpo; Relatório de Entrega e CHANGELOG atualizados | 2026-09-29 |
 
 ## 13. Registro de Impedimentos
 <!-- Toda parada é registrada pelo Architect com `spec_graph.py impede` e fechada com `resolve` — não edite à mão. Tipos: spec (spec errada/incompleta → resolve com Emenda) | decisão (só o humano decide → resposta ou ADR) | trabalho (falta algo que exige código → SPEC-NNNN nova) | externo (acesso, ambiente, terceiro → ação tomada) | falha (3 FAILs seguidos no mesmo gate → diagnóstico e decisão). Com impedimento aberto a spec aparece como parada no INDEX e não pode ser fechada. -->
@@ -186,34 +186,54 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 ### O que foi entregue
 <!-- comportamento entregue do ponto de vista do usuário/sistema -->
 
+Abandono com confirmação em duas etapas (ArenaActions), voltar ao lobby, revanche com aceite (pedir/aceitar/recusar, cores trocadas) e W.O. por desconexão com aviso e contagem no xadrez humano; presença por circuito generalizada (MatchPresenceContext.Attach(Action<bool>)).
+
 ### Como foi feito
 <!-- decisões de implementação, módulos/arquivos principais, desvios e emendas (com versão), dívidas assumidas -->
+
+ChessHome com LeaveGame/RequestRematch/AcceptRematch/DeclineRematch/BackToLobby gravando o resultado antes de agir; ChessArena com ArenaActions e avisos na região viva única; MatchPresenceContext/CircuitHandler com relator genérico sem alterar o jogo da velha; Emenda v2 (RematchBar hospedado pela ChessHome).
 
 ### Prova de Correção
 <!-- type fix: o teste de regressão falhou antes da correção (commit red + saída) e passa depois (commit green + execução). Outros tipos: "N/A". -->
 
+N/A
+
 ### Verificação
 <!-- Uma linha por teste do plano (todos os IDs da seção 7). Resultado: PASS. Evidência: execução de CI, commit ou relatório. -->
+
 | Teste | Comportamento | Resultado | Evidência |
 |---|---|---|---|
+| SPEC-0060:UT-01 | Dado `ChessArena` com a partida em andamento, então "Abandonar" abre a confirmação, Cancelar/Esc fecham e devo | PASS | `dotnet test` 878/878 no CI (dotnet-ci) do PR #54 |
+| SPEC-0060:UT-02 | Dado uma partida encerrada humana, então a barra mostra "Pedir revanche", "Aguardando resposta…", "{nome} pedi | PASS | `dotnet test` 878/878 no CI (dotnet-ci) do PR #54 |
+| SPEC-0060:UT-03 | Dado abandono do oponente, desconexão em contagem e W.O. por desconexão, então os textos do contrato aparecem  | PASS | `dotnet test` 878/878 no CI (dotnet-ci) do PR #54 |
+| SPEC-0060:UT-04 | Dado `MatchPresenceContext.Attach(Action<bool>)` e o handler, então queda e retorno chamam o relator com `fals | PASS | `dotnet test` 878/878 no CI (dotnet-ci) do PR #54 |
+| SPEC-0060:UT-05 | Dado "Voltar ao lobby" e "Abandonar", então a `ChessHome` volta ao lobby, restaura o shell, e a sessão só é re | PASS | `dotnet test` 878/878 no CI (dotnet-ci) do PR #54 |
+| SPEC-0060:IT-01 | Dado dois `ChessHome` na mesma partida, quando um abandona, então volta ao lobby, o outro vê "Oponente abandon | PASS | `dotnet test` 878/878 no CI (dotnet-ci) do PR #54 |
+| SPEC-0060:IT-02 | Dado dois `ChessHome` na mesma partida encerrada, quando um pede revanche, o outro recusa e depois pede, e o p | PASS | `dotnet test` 878/878 no CI (dotnet-ci) do PR #54 |
+| SPEC-0060:IT-03 | Dado dois `ChessHome` na mesma partida, quando um circuito "cai" e o relógio avança 15 s, então o outro vê o a | PASS | `dotnet test` 878/878 no CI (dotnet-ci) do PR #54 |
+| SPEC-0060:E2E-01 | Jornada (bUnit, dois jogadores): terminar uma partida, pedir e aceitar a revanche, jogar um lance e abandonar  | PASS | `dotnet test` 878/878 no CI (dotnet-ci) do PR #54 |
 
 ### Definição de Pronto
-- [ ] Todos os testes do plano passando e listados na Verificação
-- [ ] Todo comportamento do Mapa de Comportamentos coberto e verificado
-- [ ] Suíte completa, arquitetura e CI verdes no resultado integrado (G5)
-- [ ] Review independente sem achados blocker/major (G4)
-- [ ] Padrão arquitetural existente mantido, ou desvio coberto por ADR aprovado
-- [ ] Requisitos não-funcionais medidos com evidência (ou N/A justificado)
-- [ ] Disponível no ambiente-alvo via pipeline, com smoke/E2E passando no ambiente (G6)
-- [ ] Observabilidade e rollback prontos conforme o Plano de Rollout
-- [ ] Documentação raiz e CHANGELOG atualizados (G7)
-- [ ] Pendências registradas como novas specs (ou nenhuma)
+- [x] Todos os testes do plano passando e listados na Verificação
+- [x] Todo comportamento do Mapa de Comportamentos coberto e verificado
+- [x] Suíte completa, arquitetura e CI verdes no resultado integrado (G5)
+- [x] Review independente sem achados blocker/major (G4)
+- [x] Padrão arquitetural existente mantido, ou desvio coberto por ADR aprovado
+- [x] Requisitos não-funcionais medidos com evidência (ou N/A justificado)
+- [x] Disponível no ambiente-alvo via pipeline, com smoke/E2E passando no ambiente (G6) — N/A aprovado pelo usuário (2026-09-29): sem ambiente remoto
+- [x] Observabilidade e rollback prontos conforme o Plano de Rollout
+- [x] Documentação raiz e CHANGELOG atualizados (G7)
+- [x] Pendências registradas como novas specs (ou nenhuma)
 
 ### Deploy
 <!-- ambiente(s), versão/tag, data, estratégia, estado da feature flag, execução do pipeline -->
 
+G6 N/A (aprovado pelo usuário em 2026-09-29): o repositório não tem ambiente remoto (`staging_url` vazio). A entrega é o merge na `main` pelo PR #54 com CI verde (Build, Format & Test e sdd).
+
 ### Pendências
 <!-- specs criadas para o que ficou de fora, ou "Nenhuma" -->
+
+Não verificado em navegador (app nunca aberto). Desistir (Resignation) marca o perdedor como ausente, então não há revanche depois dela. Queda de circuito durante espera de revanche em partida encerrada é ignorada (mesma regra do jogo da velha): oponente espera a expiração de 30 s. Solo mantém Abandonar direto sem confirmação.
 
 ## 15. Emendas
 <!-- Mudança em spec aprovada: uma linha por emenda. Mudou o contrato? Incremente `contract_version` e rode `spec_graph.py impacted SPEC-0060`. -->
