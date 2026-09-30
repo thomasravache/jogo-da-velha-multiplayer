@@ -125,6 +125,8 @@
   --size-board-mobile: min(90vw, 360px);
   --size-board-desktop: 480px;
   --size-frame: 960px;
+  --size-frame-chess: 80rem;
+  --size-board-chess: min(100%, 42rem, calc(100dvh - 14rem));
 
   /* animações */
   --animate-win-pulse: win-pulse 1.5s ease-in-out infinite;

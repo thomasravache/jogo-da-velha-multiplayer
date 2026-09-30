@@ -31,7 +31,7 @@
 }
 else
 {
-    <div class="mx-auto flex w-full max-w-[var(--size-frame)] flex-col gap-4">
+    <div class="mx-auto flex w-full max-w-[var(--size-frame-chess)] flex-col gap-4">
         <ChessArena Session="Session" MySeat="_seat" OnLeave="LeaveGame" />
         <RematchBar Finished="Session.IsOver" Kind="RematchBar.RematchKind.Rematch" Consent="!_solo"
                     State="@RematchStateOf(Session)" RequestedByMe="@(Session.RematchRequestedBy == MyColor)"
