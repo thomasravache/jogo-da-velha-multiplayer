@@ -4,7 +4,7 @@ title: Histórico e ranking do xadrez
 tier: full
 type: feature
 user_facing: true
-status: approved
+status: in-progress
 created: 2026-09-29
 parent: SPEC-0046
 depends_on: [SPEC-0048, SPEC-0053]
