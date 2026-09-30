@@ -1,15 +1,17 @@
 using Microsoft.AspNetCore.Components;
 using TicTacToe.Modules.Chess;
+using TicTacToe.Modules.Gameplay;
 using TicTacToe.Modules.Matchmaking;
 using TicTacToe.Web.Components.Ui;
 using TicTacToe.Web.Services.Chess;
 using TicTacToe.Web.Services.PlayerIdentity;
+using TicTacToe.Web.Services.Presence;
 
 namespace TicTacToe.Web.Components.Pages;
 
 /// <summary>
 /// Página /xadrez (SPEC-0056): orquestra lobby, pareamento e arena. O treino solo contra o robô é da SPEC-0058;
-/// abandono e revanche entre humanos e presença entram na SPEC-0060, nos pontos marcados como gancho.
+/// abandono, revanche entre humanos e presença por circuito são da SPEC-0060.
 /// </summary>
 public partial class ChessHome : IDisposable
 {
@@ -38,6 +40,7 @@ public partial class ChessHome : IDisposable
     private CancellationTokenSource? _botCts;
     private int _botGen; // invalida execuções do robô de partidas já encerradas
     private int _botBusyGen; // geração da execução em andamento (0 = nenhuma)
+    private MatchPresenceContext? _presence; // opcional: só existe com circuito (testes sem presença não registram)
 
     [Inject] private MatchmakingService Matchmaking { get; set; } = default!;
 
@@ -55,6 +58,17 @@ public partial class ChessHome : IDisposable
 
     private ChessSession? Session { get; set; }
 
+    // A cor do assento é relida a cada renderização (troca na revanche).
+    private PieceColor MyColor => Session?.ColorOf(_seat) ?? PieceColor.White;
+
+    private static RematchState RematchStateOf(ChessSession session) => session.RematchState switch
+    {
+        ChessRematchState.Requested => RematchState.Requested,
+        ChessRematchState.Declined => RematchState.Declined,
+        ChessRematchState.Expired => RematchState.Expired,
+        _ => RematchState.None,
+    };
+
     // Serviços opcionais: relógio e cara-ou-coroa injetáveis (testes).
     private TimeProvider Clock => Services.GetService(typeof(TimeProvider)) as TimeProvider ?? TimeProvider.System;
 
@@ -64,7 +78,11 @@ public partial class ChessHome : IDisposable
 
     private Func<bool> CoinFlip => Services.GetService(typeof(Func<bool>)) as Func<bool> ?? (() => Random.Shared.Next(2) == 0);
 
-    protected override void OnInitialized() => Matchmaking.OnPlayerMatched += OnMatchedReceived;
+    protected override void OnInitialized()
+    {
+        _presence = Services.GetService(typeof(MatchPresenceContext)) as MatchPresenceContext;
+        Matchmaking.OnPlayerMatched += OnMatchedReceived;
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -460,7 +478,10 @@ public partial class ChessHome : IDisposable
             _isWaiting = false;
             _createdRoomCode = null;
             Session.OnStateChanged += OnSessionChanged;
-            // Gancho SPEC-0060: presença, abandono e revanche entram aqui.
+
+            // Presença: queda e retorno do circuito viram SetConnection com a cor corrente do assento.
+            var session = match.Session;
+            _presence?.Attach(connected => session.SetConnection(session.ColorOf(seat), connected));
         }
     }
 
@@ -505,16 +526,68 @@ public partial class ChessHome : IDisposable
         }
     }
 
-    private void BackToLobby() => LeaveMatch();
+    // Volta ao lobby: em partida humana sai da sessão antes (encerrada: avisa o oponente; em andamento: abandona).
+    private void BackToLobby()
+    {
+        if (Session is { } session && !_solo)
+        {
+            session.Leave(session.ColorOf(_seat));
+        }
 
-    private Task LeaveGame() => Session is null ? Task.CompletedTask : Task.CompletedTask; // scaffold
+        ReturnToLobby();
+    }
 
-    private Task RequestRematch() => Session is null ? Task.CompletedTask : Task.CompletedTask; // scaffold
+    // Abandono confirmado: o resultado é gravado uma vez e o jogador volta ao lobby de qualquer jeito.
+    private async Task LeaveGame()
+    {
+        if (Session is not { } session || _solo)
+        {
+            return;
+        }
 
-    private Task AcceptRematch() => Session is null ? Task.CompletedTask : Task.CompletedTask; // scaffold
+        try
+        {
+            var result = session.Leave(session.ColorOf(_seat));
+            if (result is ChessLeaveResult.Forfeited or ChessLeaveResult.Left)
+            {
+                await Recorder.SaveOnceAsync(session);
+            }
+        }
+        finally
+        {
+            ReturnToLobby();
+        }
+    }
 
-    private Task DeclineRematch() => Session is null ? Task.CompletedTask : Task.CompletedTask; // scaffold
+    private async Task RequestRematch()
+    {
+        if (Session is { } session && !_solo)
+        {
+            await Recorder.SaveOnceAsync(session); // grava antes: um pedido simultâneo reinicia a partida
+            session.RequestRematch(session.ColorOf(_seat));
+        }
+    }
 
+    private async Task AcceptRematch()
+    {
+        if (Session is { } session && !_solo)
+        {
+            await Recorder.SaveOnceAsync(session);
+            session.AcceptRematch(session.ColorOf(_seat));
+        }
+    }
+
+    private Task DeclineRematch()
+    {
+        if (Session is { } session && !_solo)
+        {
+            session.DeclineRematch(session.ColorOf(_seat));
+        }
+
+        return Task.CompletedTask;
+    }
+
+    // Solta o evento e a presença; a última pessoa a sair remove e descarta a sessão.
     private void ReturnToLobby() => LeaveMatch();
 
     // Solta a partida; a última pessoa a sair remove a sessão do registro (e para o relógio).
@@ -544,8 +617,9 @@ public partial class ChessHome : IDisposable
                 }
             }
 
-            // Gancho SPEC-0060: abandono por saída da página entra aqui.
         }
+
+        _presence?.Detach();
 
         // Sem lance do robô depois do descarte. O token só é cancelado (não há temporizador a liberar no CTS).
         _botCts?.Cancel();
@@ -561,11 +635,23 @@ public partial class ChessHome : IDisposable
 
     public void Dispose()
     {
+        ChessSession? dropped = null;
+        var droppedColor = PieceColor.White;
         lock (_gate)
         {
             _disposed = true;
+
+            // Sair da tela em partida humana em andamento conta como queda (mesma regra do jogo da velha).
+            if (Session is { IsOver: false } session && !_solo)
+            {
+                dropped = session;
+                droppedColor = session.ColorOf(_seat);
+            }
+
             LeaveMatchCore();
         }
+
+        dropped?.SetConnection(droppedColor, false);
 
         Shell.Reset();
         Matchmaking.OnPlayerMatched -= OnMatchedReceived;

@@ -28,6 +28,12 @@ public sealed class MatchPresenceCircuitHandler(MatchPresenceContext context, IL
 
     private void Report(bool connected)
     {
+        if (context.Reporter is { } reporter)
+        {
+            reporter(connected); // partidas de xadrez: o relator conhece a sessão e o assento
+            return;
+        }
+
         var (session, player) = context.Current;
         if (session is null) return;
 

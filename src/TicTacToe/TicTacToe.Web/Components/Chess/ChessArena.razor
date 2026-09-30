@@ -1,5 +1,6 @@
 @implements IDisposable
 @using Microsoft.Extensions.DependencyInjection
+@using TicTacToe.Web.Components.Game
 @inject IServiceProvider Services
 
 @if (_snap is not null)
@@ -23,11 +24,20 @@
                 {
                     <p data-notice="low-time" class="text-body-md text-warning">Pouco tempo, @low!</p>
                 }
+                @if (DisconnectNotice() is { } disconnect)
+                {
+                    <p data-notice="disconnect" data-disconnect-notice class="text-body-md text-warning">@disconnect</p>
+                }
                 @if (_message is not null)
                 {
                     <p data-notice="error" class="text-body-md text-warning">@_message</p>
                 }
             </div>
+            @if (DisconnectNotice() is not null && _opponentSecondsLeft is { } left)
+            {
+                @* A contagem fica fora da região viva (e escondida do leitor de tela) para não ser lida a cada segundo. *@
+                <p data-disconnect-count aria-hidden="true" class="font-numeric text-label-numeric text-warning">@(left)s</p>
+            }
         </div>
 
         <div class="order-3 flex flex-col gap-2 lg:col-start-2 lg:row-span-3 lg:row-start-1">
@@ -60,6 +70,13 @@
                 <ChessEndCard Result="result" WinnerName="@WinnerName(result)" MoveCount="_snap.Moves.Count" Duration="@Elapsed()" ViewerWon="@ViewerWon(result)" />
             </div>
         }
+
+        @if (!Solo && !Over)
+        {
+            <div class="order-7 flex justify-center lg:col-start-1 lg:row-start-3">
+                <ArenaActions InProgress="true" OnLeave="OnLeave" />
+            </div>
+        }
     </div>
 }
 
@@ -76,6 +93,7 @@
     private (Square From, Square To)? _pending;
     private string? _message;
     private bool _disposed;
+    private int? _opponentSecondsLeft;
 
     [Parameter] public ChessSession Session { get; set; } = default!;
     [Parameter] public int MySeat { get; set; }
@@ -83,15 +101,14 @@
     /// <summary>Abandono confirmado (partida humana em andamento).</summary>
     [Parameter] public EventCallback OnLeave { get; set; }
 
-    /// <summary>Revanche imediata (só partida solo).</summary>
-    [Parameter] public EventCallback OnRematch { get; set; }
-
-    [Parameter] public EventCallback OnRequestRematch { get; set; }
-    [Parameter] public EventCallback OnAcceptRematch { get; set; }
-    [Parameter] public EventCallback OnDeclineRematch { get; set; }
-    [Parameter] public EventCallback OnBackToLobby { get; set; }
 
     private TimeProvider Time { get; set; } = TimeProvider.System;
+
+    private bool Solo => _snap?.Mode == ChessMode.Solo;
+
+    // Texto estático: a região viva só muda ao começar e ao terminar a queda.
+    private string? DisconnectNotice() =>
+        _opponentSecondsLeft is not null && !Over ? "Oponente desconectado. Aguardando reconexão…" : null;
 
     private bool Over => _snap?.Result is not null;
 
@@ -167,7 +184,7 @@
 
     private void OnTick()
     {
-        if (_snap is { ClockRunning: not null })
+        if (_snap is { ClockRunning: not null } || _opponentSecondsLeft is not null)
         {
             Update(clearMessage: false);
         }
@@ -194,6 +211,7 @@
     {
         _color = Session.ColorOf(MySeat);
         _snap = Session.Snapshot();
+        _opponentSecondsLeft = Session.DisconnectSecondsLeft(Opposite(_color));
         _legal = Interactive ? _snap.Position.LegalMoves() : [];
         if (!Interactive || (_selected is { } from && !_legal.Any(m => m.From == from)))
         {
@@ -292,7 +310,14 @@
     {
         if (Over)
         {
-            return ChessEndCard.TitleFor(_snap!.Result!, WinnerName(_snap.Result!));
+            var result = _snap!.Result!;
+            var won = ViewerWon(result) == true;
+            return result.Reason switch
+            {
+                ChessEndReason.Abandon => won ? "Oponente abandonou. Vitória por W.O." : "Você abandonou a partida",
+                ChessEndReason.Disconnect => won ? "Oponente desconectou. Vitória por W.O." : "Você foi desconectado. Derrota por W.O.",
+                _ => ChessEndCard.TitleFor(result, WinnerName(result)),
+            };
         }
 
         return _snap!.SideToMove == _color

@@ -8,6 +8,7 @@ public sealed class MatchPresenceContext
     private readonly object _gate = new();
     private GameSession? _session;
     private Player _player;
+    private Action<bool>? _report;
 
     public GameSession? Session
     {
@@ -24,12 +25,19 @@ public sealed class MatchPresenceContext
         get { lock (_gate) { return (_session, _player); } }
     }
 
+    /// <summary>Relator de conexão genérico (partidas de xadrez), quando houver.</summary>
+    public Action<bool>? Reporter
+    {
+        get { lock (_gate) { return _report; } }
+    }
+
     public void Attach(GameSession session, Player player)
     {
         lock (_gate)
         {
             _session = session;
             _player = player;
+            _report = null;
         }
     }
 
@@ -37,6 +45,12 @@ public sealed class MatchPresenceContext
     public void Attach(Action<bool> reportConnection)
     {
         ArgumentNullException.ThrowIfNull(reportConnection);
+        lock (_gate)
+        {
+            _report = reportConnection;
+            _session = null;
+            _player = Player.None;
+        }
     }
 
     public void Detach()
@@ -45,6 +59,7 @@ public sealed class MatchPresenceContext
         {
             _session = null;
             _player = Player.None;
+            _report = null;
         }
     }
 }
