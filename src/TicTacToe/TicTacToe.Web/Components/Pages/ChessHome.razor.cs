@@ -57,6 +57,10 @@ public partial class ChessHome : IDisposable
     // Serviços opcionais: relógio e cara-ou-coroa injetáveis (testes).
     private TimeProvider Clock => Services.GetService(typeof(TimeProvider)) as TimeProvider ?? TimeProvider.System;
 
+    // Fábrica do robô opcional (testes injetam robôs roteirizados).
+    private Func<ChessBotLevel, IChessBot> BotFactory =>
+        Services.GetService(typeof(Func<ChessBotLevel, IChessBot>)) as Func<ChessBotLevel, IChessBot> ?? (level => ChessBots.Create(level));
+
     private Func<bool> CoinFlip => Services.GetService(typeof(Func<bool>)) as Func<bool> ?? (() => Random.Shared.Next(2) == 0);
 
     protected override void OnInitialized() => Matchmaking.OnPlayerMatched += OnMatchedReceived;
@@ -213,7 +217,7 @@ public partial class ChessHome : IDisposable
             _seat = 0;
             Session = match.Session;
             _solo = true;
-            _bot = ChessBots.Create(level);
+            _bot = BotFactory(level);
             _botCts = new CancellationTokenSource();
             Session.OnStateChanged += OnSessionChanged;
             if (Logger.IsEnabled(LogLevel.Information))
