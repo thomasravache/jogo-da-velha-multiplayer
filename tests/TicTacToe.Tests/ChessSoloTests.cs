@@ -21,13 +21,18 @@ namespace TicTacToe.Tests;
 public sealed class ChessSoloTests : IDisposable
 {
     private readonly ChessMatchRegistry _registry = new();
-    private readonly ManualTime _time = new();
+    private static readonly TimeSpan BotDelay = TimeSpan.FromMilliseconds(600);
+
+    private readonly ProbeTime _time = new(new ManualTime());
+    private readonly MatchmakingService _matchmaking = new();
     private readonly DbContextOptions<GameplayDbContext> _options =
         new DbContextOptionsBuilder<GameplayDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options;
 
     private readonly List<BunitContext> _contexts = [];
     private readonly Guid _playerId = Guid.NewGuid();
     private int _flips;
+    private int _fired;
+    private Func<ChessBotLevel, IChessBot> _botFactory = level => ChessBots.Create(level);
 
     public void Dispose()
     {
@@ -45,7 +50,8 @@ public sealed class ChessSoloTests : IDisposable
         storage.Data["xo.player"] = JsonSerializer.Serialize(new { id = _playerId, nick });
         var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-        ctx.Services.AddSingleton(new MatchmakingService());
+        ctx.Services.AddSingleton(_matchmaking);
+        ctx.Services.AddSingleton<Func<ChessBotLevel, IChessBot>>(level => _botFactory(level));
         ctx.Services.AddSingleton(_registry);
         ctx.Services.AddSingleton<TimeProvider>(_time);
         ctx.Services.AddSingleton<Func<bool>>(CoinFlip);
@@ -81,16 +87,77 @@ public sealed class ChessSoloTests : IDisposable
 
     private static int MoveCount(ChessSession session) => session.Snapshot().Moves.Count;
 
-    // A busca do robô roda em segundo plano: avança o relógio manual em passos até a condição valer.
+    // Cada execução do robô cria exatamente um temporizador de 600 ms: espera ele existir, avança só esse atraso
+    // (sem escoar o relógio da partida) e o resto é polling até o prazo.
     private void AdvanceUntil(Func<bool> condition)
     {
-        var deadline = DateTime.UtcNow.AddSeconds(10);
+        var deadline = DateTime.UtcNow.AddSeconds(30);
         while (!condition())
         {
             Assert.True(DateTime.UtcNow < deadline, "O robô não jogou no prazo.");
-            _time.Advance(TimeSpan.FromMilliseconds(100));
-            Thread.Sleep(10);
+            var timers = _time.BotTimers;
+            if (timers > _fired)
+            {
+                _fired = timers;
+                _time.Advance(BotDelay);
+            }
+
+            Thread.Sleep(5);
         }
+    }
+
+    // Robô que trava na busca (ignora o token) até o teste liberar.
+    private sealed class BlockingBot : IChessBot
+    {
+        private readonly TaskCompletionSource _release = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public string Name => "Trava";
+
+        public void Release() => _release.TrySetResult();
+
+        public async Task<Move?> ChooseMoveAsync(Position position, CancellationToken ct)
+        {
+            Started.TrySetResult();
+            await _release.Task;
+            return null;
+        }
+    }
+
+    // Relógio manual que conta os atrasos do robô (temporizadores de 600 ms).
+    private sealed class ProbeTime(ManualTime inner) : TimeProvider
+    {
+        private int _botTimers;
+
+        public int BotTimers => Volatile.Read(ref _botTimers);
+
+        public override DateTimeOffset GetUtcNow() => inner.GetUtcNow();
+
+        public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period)
+        {
+            if (dueTime == BotDelay)
+            {
+                Interlocked.Increment(ref _botTimers);
+            }
+
+            return inner.CreateTimer(callback, state, dueTime, period);
+        }
+
+        public void Advance(TimeSpan by) => inner.Advance(by);
+    }
+
+    private static async Task Invoke(IRenderedComponent<ChessHome> cut, string method)
+    {
+        await cut.InvokeAsync(async () =>
+        {
+            var result = typeof(ChessHome).GetMethod(method, System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.Invoke(cut.Instance, null);
+            if (result is Task task)
+            {
+                await task;
+            }
+        });
+        cut.Render();
     }
 
     private static void HumanPlaysFirstLegal(ChessSession session, int humanSeat)
@@ -358,5 +425,99 @@ public sealed class ChessSoloTests : IDisposable
         var service = new GameResultService(db, NullLogger<GameResultService>.Instance);
         var history = await service.GetHistoryAsync(new HistoryQuery(null, HistoryScope.All, HistoryFilter.All, null, HistorySort.Recent, 1, 10, GameType.Chess));
         Assert.Equal(1, history.TotalItems);
+    }
+
+    // ---------- Revisão G4 ----------
+
+    [Fact(DisplayName = "SPEC-0058:IT-02 — abandonar durante a busca e iniciar novo solo de pretas: o robô de brancas abre")]
+    [Trait("Category", "SPEC-0058:IT-02")]
+    public void NewSolo_ShouldNotInheritBusyBotFromAbandonedMatch()
+    {
+        var stuck = new BlockingBot();
+        var calls = 0;
+        _botFactory = level => Interlocked.Increment(ref calls) == 1 ? stuck : ChessBots.Create(level);
+        var cut = StartSolo("Fácil", "Pretas");
+        AdvanceUntil(() => stuck.Started.Task.IsCompleted); // o primeiro robô está preso na busca
+
+        Click(cut, "Abandonar");
+        Choose(cut, "Pretas");
+        Click(cut, "Iniciar partida solo");
+        cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindComponents<ChessArena>()));
+        var second = SessionOf(cut);
+
+        AdvanceUntil(() => MoveCount(second) == 1);
+
+        Assert.Equal(PieceColor.Black, second.Snapshot().SideToMove);
+        stuck.Release();
+    }
+
+    [Fact(DisplayName = "SPEC-0058:UT-06 — Abandonar quando a bandeira caiu no clique grava a partida encerrada")]
+    [Trait("Category", "SPEC-0058:UT-06")]
+    public async Task Abandon_ShouldRecordWhenFlagFellAtClick()
+    {
+        var stuck = new BlockingBot();
+        _botFactory = _ => stuck;
+        var cut = StartSolo("Fácil", "Brancas");
+        var session = SessionOf(cut);
+        Assert.True(ChessSessionTests.Play(session, PieceColor.White, "e2", "e4"));
+        AdvanceUntil(() => stuck.Started.Task.IsCompleted);
+        _time.Advance(TimeSpan.FromMilliseconds(500)); // consome o pulso de 1 s da sessão antes de a bandeira cair
+        _time.Advance(TimeSpan.FromMinutes(6)); // a bandeira das pretas cai sem nenhum aviso da sessão
+
+        await Invoke(cut, "AbandonSolo");
+
+        Assert.NotNull(cut.Find("input#playerName"));
+        await WaitForRowsAsync(1);
+        var row = Assert.Single(await RowsAsync());
+        Assert.Equal(GameMode.Solo, row.Mode);
+        Assert.Equal(EndReason.Timeout, row.EndReason);
+        stuck.Release();
+    }
+
+    [Fact(DisplayName = "SPEC-0058:UT-02 — descrição da cor informa que contra o robô a cor escolhida sempre vale")]
+    [Trait("Category", "SPEC-0058:UT-02")]
+    public void Lobby_ShouldExplainColorInSolo()
+    {
+        using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        var cut = ctx.Render<ChessLobby>(p => p.Add(c => c.PlayerName, "Ana").Add(c => c.SelectedColor, ColorPreference.White));
+
+        Assert.Contains("Contra o robô, sua cor sempre vale", cut.Find("[data-color-description]").TextContent, StringComparison.Ordinal);
+    }
+
+    [Fact(DisplayName = "SPEC-0058:UT-03 — iniciar solo cancela a busca de oponente pendente")]
+    [Trait("Category", "SPEC-0058:UT-03")]
+    public void StartSolo_ShouldCancelPendingQueue()
+    {
+        var a = Open("Ana");
+        Click(a, "Procurar oponente");
+        Click(a, "Iniciar partida solo");
+        a.WaitForAssertion(() => Assert.NotEmpty(a.FindComponents<ChessArena>()));
+
+        var b = Open("Bia");
+        Click(b, "Procurar oponente");
+
+        Assert.Empty(b.FindComponents<ChessArena>()); // não pareou com a fila fantasma da Ana
+        Assert.Contains("Na fila", b.Markup, StringComparison.Ordinal);
+        Assert.Equal(ChessMode.Solo, SessionOf(a).Mode);
+    }
+
+    [Fact(DisplayName = "SPEC-0058:UT-03 — iniciar solo cancela a sala privada pendente")]
+    [Trait("Category", "SPEC-0058:UT-03")]
+    public void StartSolo_ShouldCancelPendingRoom()
+    {
+        var a = Open("Ana");
+        Click(a, "Criar sala");
+        var code = a.Find("[aria-label='Código da sala']").TextContent.Trim();
+        Click(a, "Iniciar partida solo");
+        a.WaitForAssertion(() => Assert.NotEmpty(a.FindComponents<ChessArena>()));
+
+        var b = Open("Bia");
+        Choose(b, "Entrar com código");
+        b.Find("input#roomCode").Input(code);
+        Click(b, "Entrar");
+
+        Assert.Empty(b.FindComponents<ChessArena>());
+        Assert.Contains("Sala inválida ou já iniciada!", b.Markup, StringComparison.Ordinal);
     }
 }
