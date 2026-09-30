@@ -19,6 +19,9 @@
                 IsWaiting="@_isWaiting"
                 CreatedRoomCode="@_createdRoomCode"
                 RoomErrorMessage="@_roomError"
+                SelectedLevel="@_level"
+                LevelChanged="l => _level = l"
+                OnPlaySolo="StartSolo"
                 OnPlayOnline="FindMatch"
                 OnCancelSearch="CancelSearch"
                 OnCreateRoom="CreateRoom"
@@ -30,8 +33,18 @@ else
         <ChessArena Session="Session" MySeat="_seat" />
         @if (Session.IsOver)
         {
-            <div class="flex justify-center">
+            <div class="flex flex-wrap justify-center gap-3">
+                @if (_solo)
+                {
+                    <PillButton Icon="refresh" OnClick="RematchSolo">Jogar novamente</PillButton>
+                }
                 <PillButton Variant="PillVariant.Outline" Icon="play" OnClick="BackToLobby">Voltar ao lobby</PillButton>
+            </div>
+        }
+        else if (_solo)
+        {
+            <div class="flex justify-center">
+                <PillButton Variant="PillVariant.Outline" Icon="close" OnClick="AbandonSolo">Abandonar</PillButton>
             </div>
         }
     </div>
