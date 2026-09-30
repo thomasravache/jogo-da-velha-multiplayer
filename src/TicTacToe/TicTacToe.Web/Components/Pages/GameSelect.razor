@@ -1,1 +1,44 @@
-@* SPEC-0048: seleção de jogos (scaffold, sem rota nem conteúdo) *@
+@page "/"
+@using TicTacToe.Web.Components.Ui
+
+<PageTitle>Escolha seu jogo · XO Arena</PageTitle>
+
+<div class="mx-auto flex w-full max-w-[var(--size-frame)] flex-col gap-8 py-4">
+    <PageHeader Eyebrow="Hub de batalhas" Title="Escolha seu desafio" Subtitle="Partidas em tempo real contra outros jogadores ou contra o robô" />
+
+    <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+        @foreach (var game in Games)
+        {
+            <a href="@game.Href" aria-label="@game.Label"
+               class="group block rounded-card text-ink! no-underline! focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-secondary">
+                <NeonCard Accent="@game.Accent" Class="flex h-full flex-col gap-4 p-6 transition group-hover:brightness-110">
+                    <div>
+                        <StatusChip Tone="ChipTone.Online" Dot="true">Online</StatusChip>
+                    </div>
+                    <h2 class="text-headline-md text-ink">@game.Title</h2>
+                    <p class="flex-1 text-body-md text-ink-muted">@game.Description</p>
+                    <span aria-hidden="true" class="@game.ButtonCss">Jogar</span>
+                </NeonCard>
+            </a>
+        }
+    </div>
+</div>
+
+@code {
+    private sealed record GameCard(string Href, string Label, string Title, string Description, CardAccent Accent, string ButtonCss);
+
+    private const string ButtonBase =
+        "inline-flex min-h-12 items-center justify-center rounded-pill px-8 py-4 font-numeric text-body-lg font-semibold uppercase tracking-[0.08em] ";
+
+    private static readonly GameCard[] Games =
+    [
+        new("/velha", "Jogar Jogo da Velha", "Jogo da Velha",
+            "Duelos rápidos em grade 3×3, com séries melhor de 3 ou 5 e turnos cronometrados.",
+            CardAccent.X,
+            ButtonBase + "bg-linear-to-br from-primary to-[#e74c3c] text-canvas shadow-[0_4px_16px_rgb(255_71_87/0.4)]"),
+        new("/xadrez", "Jogar Xadrez", "Xadrez",
+            "Xadrez clássico 8×8, humano contra humano ou contra o robô, com relógio e revanche.",
+            CardAccent.O,
+            ButtonBase + "bg-secondary text-canvas shadow-[0_4px_16px_rgb(0_210_211/0.4)]"),
+    ];
+}

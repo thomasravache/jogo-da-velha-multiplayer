@@ -54,11 +54,11 @@
 </div>
 
 @code {
-    private sealed record NavItem(string Href, string Label, string Icon);
+    private sealed record NavItem(string Href, string Label, string Icon, string[]? Paths = null);
 
     private static readonly NavItem[] Items =
     [
-        new("/", "Jogar", "play"),
+        new("/", "Jogar", "play", ["/", "/velha", "/xadrez"]),
         new("/history", "Histórico", "history"),
         new("/leaderboard", "Ranking", "leaderboard"),
     ];
@@ -72,9 +72,13 @@
     private bool IsActive(string href)
     {
         var path = new Uri(Navigation.Uri).AbsolutePath;
-        return href == "/"
-            ? path == "/"
-            : path.Equals(href, StringComparison.OrdinalIgnoreCase) || path.StartsWith(href + "/", StringComparison.OrdinalIgnoreCase);
+        var item = Items.First(i => i.Href == href);
+        if (item.Paths is not null)
+        {
+            return item.Paths.Any(p => path.TrimEnd('/').Equals(p.TrimEnd('/'), StringComparison.OrdinalIgnoreCase));
+        }
+
+        return path.Equals(href, StringComparison.OrdinalIgnoreCase) || path.StartsWith(href + "/", StringComparison.OrdinalIgnoreCase);
     }
 
     private string DesktopLinkCss(string href) =>
