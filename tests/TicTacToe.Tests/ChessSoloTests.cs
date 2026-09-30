@@ -82,14 +82,16 @@ public sealed class ChessSoloTests : IDisposable
     private static int MoveCount(ChessSession session) => session.Snapshot().Moves.Count;
 
     // A busca do robô roda em segundo plano: avança o relógio manual em passos até a condição valer.
-    private void AdvanceUntil(IRenderedComponent<ChessHome> cut, Func<bool> condition) =>
-        cut.WaitForAssertion(
-            () =>
-            {
-                _time.Advance(TimeSpan.FromMilliseconds(100));
-                Assert.True(condition());
-            },
-            TimeSpan.FromSeconds(10));
+    private void AdvanceUntil(Func<bool> condition)
+    {
+        var deadline = DateTime.UtcNow.AddSeconds(10);
+        while (!condition())
+        {
+            Assert.True(DateTime.UtcNow < deadline, "O robô não jogou no prazo.");
+            _time.Advance(TimeSpan.FromMilliseconds(100));
+            Thread.Sleep(10);
+        }
+    }
 
     private static void HumanPlaysFirstLegal(ChessSession session, int humanSeat)
     {
@@ -197,7 +199,7 @@ public sealed class ChessSoloTests : IDisposable
         Assert.Null(session.GetSeatPlayerId(1));
         Assert.Equal(0, MoveCount(session));
 
-        AdvanceUntil(cut, () => MoveCount(session) == 1);
+        AdvanceUntil(() => MoveCount(session) == 1);
 
         Assert.Equal(PieceColor.Black, session.Snapshot().SideToMove);
     }
@@ -225,7 +227,7 @@ public sealed class ChessSoloTests : IDisposable
         cut.WaitForAssertion(() => Assert.Contains("Vez de Robô", cut.Find("[data-notice='turn']").TextContent, StringComparison.Ordinal));
         Assert.Equal(1, MoveCount(session));
 
-        AdvanceUntil(cut, () => MoveCount(session) == 2);
+        AdvanceUntil(() => MoveCount(session) == 2);
 
         var snapshot = session.Snapshot();
         Assert.Equal(PieceColor.White, snapshot.SideToMove); // TryMove só aceita lance legal
@@ -254,7 +256,7 @@ public sealed class ChessSoloTests : IDisposable
         Assert.Equal(0, MoveCount(session));
         Assert.Single(await RowsAsync()); // a partida encerrada foi gravada antes da revanche
 
-        AdvanceUntil(cut, () => MoveCount(session) == 1);
+        AdvanceUntil(() => MoveCount(session) == 1);
         Assert.Equal(PieceColor.Black, session.Snapshot().SideToMove);
     }
 
@@ -288,7 +290,7 @@ public sealed class ChessSoloTests : IDisposable
         var cut = StartSolo("Fácil", "Brancas");
         var session = SessionOf(cut);
         ChessSessionTests.Line(session, "f2f3");
-        AdvanceUntil(cut, () => MoveCount(session) == 2);
+        AdvanceUntil(() => MoveCount(session) == 2);
         Assert.True(session.Forfeit(PieceColor.White, ChessEndReason.Resignation));
 
         await WaitForRowsAsync(1);
@@ -316,7 +318,7 @@ public sealed class ChessSoloTests : IDisposable
         var session = SessionOf(cut);
         Assert.Equal(0, MoveCount(session));
 
-        cut.Dispose();
+        await _contexts[^1].DisposeComponentsAsync(); // sai da página
         _time.Advance(TimeSpan.FromSeconds(2));
         await Task.Delay(150);
 
@@ -334,7 +336,7 @@ public sealed class ChessSoloTests : IDisposable
         for (var i = 1; i <= 3; i++)
         {
             HumanPlaysFirstLegal(session, 0);
-            AdvanceUntil(cut, () => MoveCount(session) == i * 2);
+            AdvanceUntil(() => MoveCount(session) == i * 2);
         }
 
         Click(cut, "Abandonar");
