@@ -4,12 +4,12 @@ title: Abandono, revanche e desconexão no xadrez
 tier: full
 type: feature
 user_facing: true
-status: approved
+status: in-progress
 created: 2026-09-29
 parent: SPEC-0046
 depends_on: [SPEC-0056, SPEC-0057, SPEC-0058, SPEC-0061]
 consumes_contract: []
-contract_version: 1
+contract_version: 2
 touches: [src/TicTacToe/TicTacToe.Web/Components/Chess/ChessArena.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/ChessHome.razor, src/TicTacToe/TicTacToe.Web/Components/Pages/ChessHome.razor.cs, src/TicTacToe/TicTacToe.Web/Services/Presence/**, src/TicTacToe/TicTacToe.Web/wwwroot/css/cyber-arena.css, tests/TicTacToe.Tests/ChessLeaveAndRematchTests.cs, tests/TicTacToe.Tests/ChessDisconnectTests.cs]
 adrs: [ADR-0008]
 external: []
@@ -166,10 +166,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | Gate | Status | Evidência | Data |
 |---|---|---|---|
 | G0 Spec | PASS | `spec_graph.py validate` limpo (0 erro, 0 aviso); checklist de julgamento do G0 feito pelo Architect | 2026-09-29 |
-| G1 Red | PENDING | | |
-| G2 Green | PENDING | | |
-| G3 Arquitetura | PENDING | | |
-| G4 Review | PENDING | | |
+| G1 Red | PASS | Red confirmado: 15 testes SPEC-0060 falharam pelo motivo certo (76e5c09); verify PASS | 2026-09-29 |
+| G2 Green | PASS | dotnet test: 879 total, 878 passam, 1 pulado, 0 falhas; format e tailwind --check limpos; 6 execuções da suíte e 30 dos testes novos sem falha | 2026-09-29 |
+| G3 Arquitetura | N/A | sem novas regras estruturais | 2026-09-29 |
+| G4 Review | PASS | Review independente PASS (0 bloqueantes/maiores); Emenda v2 registrada (RematchBar na ChessHome) | 2026-09-29 |
 | G5 Integração & CI | PENDING | | |
 | H2 Integração aprovada | PENDING | | |
 | G6 Deploy | PENDING | | |
@@ -219,3 +219,6 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 <!-- Mudança em spec aprovada: uma linha por emenda. Mudou o contrato? Incremente `contract_version` e rode `spec_graph.py impacted SPEC-0060`. -->
 | Versão do contrato | Data | Mudança | Motivo | Specs impactadas | Aprovado por |
 |---|---|---|---|---|---|
+| Versão do contrato | Data | Mudança | Motivo | Specs impactadas | Aprovado por |
+|---|---|---|---|---|---|
+| 2 | 2026-09-29 | `RematchBar` hospedado pela `ChessHome` (abaixo da arena); aviso de queda dentro da região viva única da arena | `RematchBar` tem `aria-live` próprio e `ChessArenaTests` (SPEC-0057) exige uma única região viva na arena; textos e comportamento inalterados | SPEC-0057 (sem mudança) | thomas (autorização permanente, 2026-09-29) |

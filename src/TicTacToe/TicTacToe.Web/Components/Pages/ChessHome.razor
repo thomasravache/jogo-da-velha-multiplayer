@@ -1,5 +1,7 @@
 @page "/xadrez"
+@using TicTacToe.Modules.Gameplay
 @using TicTacToe.Web.Components.Chess
+@using TicTacToe.Web.Components.Game
 @using TicTacToe.Web.Components.Ui
 @rendermode InteractiveServer
 
@@ -30,18 +32,14 @@
 else
 {
     <div class="mx-auto flex w-full max-w-[var(--size-frame)] flex-col gap-4">
-        <ChessArena Session="Session" MySeat="_seat" />
-        @if (Session.IsOver)
-        {
-            <div class="flex flex-wrap justify-center gap-3">
-                @if (_solo)
-                {
-                    <PillButton Icon="refresh" OnClick="RematchSolo">Jogar novamente</PillButton>
-                }
-                <PillButton Variant="PillVariant.Outline" Icon="play" OnClick="BackToLobby">Voltar ao lobby</PillButton>
-            </div>
-        }
-        else if (_solo)
+        <ChessArena Session="Session" MySeat="_seat" OnLeave="LeaveGame" />
+        <RematchBar Finished="Session.IsOver" Kind="RematchBar.RematchKind.Rematch" Consent="!_solo"
+                    State="@RematchStateOf(Session)" RequestedByMe="@(Session.RematchRequestedBy == MyColor)"
+                    RequesterName="@(Session.RematchRequestedBy is { } requester ? Session.GetPlayerName(requester) : null)"
+                    OpponentLeft="@Session.HasLeft(MyColor == PieceColor.White ? PieceColor.Black : PieceColor.White)"
+                    OnRematch="RematchSolo" OnRequest="RequestRematch" OnAccept="AcceptRematch" OnDecline="DeclineRematch"
+                    OnBackToLobby="BackToLobby" />
+        @if (_solo && !Session.IsOver)
         {
             <div class="flex justify-center">
                 <PillButton Variant="PillVariant.Outline" Icon="close" OnClick="AbandonSolo">Abandonar</PillButton>
