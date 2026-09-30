@@ -3,7 +3,7 @@ id: SPEC-0046
 title: Xadrez multiplayer
 tier: epic
 type: feature
-status: approved
+status: implemented
 created: 2026-09-29
 depends_on: []
 adrs: [ADR-0010, ADR-0011, ADR-0012]
@@ -114,21 +114,21 @@ Legenda: **SPEC-NNNN** = coberto · **Descartado** = dado de protótipo ou fora 
 - **Crescimento de escopo** (variantes, empate, ELO, espectador) — fora do escopo até nova spec.
 
 ## 7. Critérios de Aceite do Épico
-- [ ] O motor gera os lances legais corretos nas posições de referência — SPEC-0049:IT-01
-- [ ] Uma partida jogada em SAN até o resultado dá o resultado e o texto esperados — SPEC-0050:IT-01
-- [ ] O relógio desconta o tempo, soma o incremento e derruba a bandeira — SPEC-0051:IT-01
-- [ ] Uma partida completa com relógio e W.O. por tempo funciona no domínio — SPEC-0052:IT-01
-- [ ] Abandono, desconexão e revanche com troca de cores funcionam no domínio — SPEC-0061:IT-01
-- [ ] A partida de xadrez é gravada uma única vez com jogo, cores, controle, lances e motivo — SPEC-0053:IT-01
-- [ ] O robô Médio vence o Fácil e sempre joga lances legais — SPEC-0054:IT-01
-- [ ] O tabuleiro é jogável por clique, teclado e arrastar, com promoção e contraste verificado — SPEC-0055:E2E-01
-- [ ] Dois jogadores jogam uma partida até o mate pela arena — SPEC-0057:E2E-01
-- [ ] Dois jogadores se pareiam pelo lobby de xadrez e jogam até o resultado gravado — SPEC-0056:E2E-01
-- [ ] Abandonar, revanche com aceite e W.O. por desconexão funcionam na arena — SPEC-0060:E2E-01
-- [ ] O jogador treina contra o robô e a partida solo é gravada e fica fora do ranking — SPEC-0058:E2E-01
-- [ ] Partidas antigas continuam sendo jogo da velha e o filtro por jogo separa os resultados — SPEC-0047:IT-02
-- [ ] O usuário escolhe o jogo na seleção e chega ao lobby certo — SPEC-0048:E2E-01
-- [ ] Histórico e ranking mostram cada jogo separadamente, com as colunas do xadrez — SPEC-0059:E2E-01
+- [x] O motor gera os lances legais corretos nas posições de referência — SPEC-0049:IT-01
+- [x] Uma partida jogada em SAN até o resultado dá o resultado e o texto esperados — SPEC-0050:IT-01
+- [x] O relógio desconta o tempo, soma o incremento e derruba a bandeira — SPEC-0051:IT-01
+- [x] Uma partida completa com relógio e W.O. por tempo funciona no domínio — SPEC-0052:IT-01
+- [x] Abandono, desconexão e revanche com troca de cores funcionam no domínio — SPEC-0061:IT-01
+- [x] A partida de xadrez é gravada uma única vez com jogo, cores, controle, lances e motivo — SPEC-0053:IT-01
+- [x] O robô Médio vence o Fácil e sempre joga lances legais — SPEC-0054:IT-01
+- [x] O tabuleiro é jogável por clique, teclado e arrastar, com promoção e contraste verificado — SPEC-0055:E2E-01
+- [x] Dois jogadores jogam uma partida até o mate pela arena — SPEC-0057:E2E-01
+- [x] Dois jogadores se pareiam pelo lobby de xadrez e jogam até o resultado gravado — SPEC-0056:E2E-01
+- [x] Abandonar, revanche com aceite e W.O. por desconexão funcionam na arena — SPEC-0060:E2E-01
+- [x] O jogador treina contra o robô e a partida solo é gravada e fica fora do ranking — SPEC-0058:E2E-01
+- [x] Partidas antigas continuam sendo jogo da velha e o filtro por jogo separa os resultados — SPEC-0047:IT-02
+- [x] O usuário escolhe o jogo na seleção e chega ao lobby certo — SPEC-0048:E2E-01
+- [x] Histórico e ranking mostram cada jogo separadamente, com as colunas do xadrez — SPEC-0059:E2E-01
 
 ## 8. Questões em Aberto
 - [x] Quer jogar contra um robô com dificuldades? — Sim, se possível; se precisar de tela nova o Architect fornece o prompt do Stitch (thomas, 2026-09-29). O Architect avaliou opções (ADR-0011): motor próprio com Fácil e Médio agora, Stockfish depois; o cartão de solo reaproveita o padrão do lobby do jogo da velha.
@@ -146,7 +146,26 @@ Uma aprovação humana cobre o épico e as specs filhas apresentadas junto com e
 |---|---|---|---|---|---|---|---|---|
 
 ## 11. Relatório de Entrega
-<!-- Preenchido ao fechar o épico: o que foi entregue, como (ondas e deploys com versão/data), resultado dos critérios de aceite com os testes que os provam, métricas pós-release, pendências como novas specs. `spec_graph.py report SPEC-0046` ajuda a montar. -->
+### O que foi entregue
+Xadrez multiplayer completo ao lado do jogo da velha: módulo `TicTacToe.Modules.Chess` (regras validadas por perft, SAN, relógio Blitz/Rápida, sessão com assentos, revanche e desconexão, robô Fácil/Médio); persistência enriquecida com `GameType` e colunas de xadrez; lobby de xadrez com pareamento e sala privada; arena jogável por clique, teclado e arrastar com promoção; treino solo contra o robô (fora do ranking); abandono, revanche com aceite e W.O. por desconexão; tela de seleção de jogos em `/` (lobby da velha em `/velha`); histórico e ranking por jogo com as colunas do xadrez. 15 specs filhas (0047–0061) e os ADR-0010 (motor próprio), ADR-0011 (robô próprio) e ADR-0012 (`GameType` e chaves de fila).
+
+### Como foi feito
+Ondas 1–10 pelo grafo de dependências, cada spec com Red, Green, review independente (G4) e PR com CI verde (Build, Format & Test e sdd) antes do merge; fechamento documental em PR próprio. Emendas de `touches`/contrato: 0058 (v2) e 0060 (v2). A suíte foi endurecida contra testes sensíveis a tempo (PR de estabilização do debounce e do E2E do treino solo).
+
+### Critérios de aceite
+Todos marcados em §7 e provados pelos testes das filhas (SPEC-0049:IT-01, 0050:IT-01, 0051:IT-01, 0052:IT-01, 0061:IT-01, 0053:IT-01, 0054:IT-01, 0055:E2E-01, 0057:E2E-01, 0056:E2E-01, 0060:E2E-01, 0058:E2E-01, 0047:IT-02, 0048:E2E-01, 0059:E2E-01), todos verdes no CI da `main`.
+
+### Métricas pós-release
+Sem ambiente remoto (`staging_url` vazio; G6 N/A aprovado pelo usuário): suíte com 910 testes (909 passam, 1 pulado: perft pesado atrás de `CHESS_SLOW`) verdes no CI.
+
+### Pendências
+- **Nunca executado no navegador:** o app não foi aberto (Aspire exige contêiner de SQL Server); revisão visual a 390/1280 px contra o Stitch e Lighthouse ≥ 90 não foram feitas em nenhuma tela do xadrez.
+- **Migrações EF escritas à mão** (`AddGameType`, `AddChessInfo`) e nunca aplicadas a um SQL Server real.
+- Setas/Espaço rolam a página na arena (herdado); arrastar dentro de `button` pode falhar no Firefox.
+- Desistir (Resignation) marca o perdedor como ausente, então não há revanche depois dela; queda de circuito durante a espera de revanche em partida encerrada é ignorada (30 s de expiração).
+- 0059: resumo do histórico sem guarda de sequência em trocas rápidas de jogo; `?jogo=` lido só na inicialização; links `Href="/"` de Histórico/Ranking caem na seleção de jogos.
+- Cartão do robô no lobby sem tela Stitch dedicada; rating/temporada/badges do mock não implementados; Chess960, empate por acordo e níveis além de Fácil/Médio ficaram fora do escopo.
+- Teste sensível a tempo remanescente: `SPEC-0057:IT-01` apareceu em 1 de 8 execuções sob carga (não reproduzido nas execuções de review).
 
 ## 12. Emendas
 <!-- Mudança em spec aprovada: uma linha por emenda, aprovada pelo humano. -->

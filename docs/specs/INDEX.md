@@ -4,7 +4,7 @@
 
 ## Saúde
 
-- Validação (G0): **0 erro(s), 1 aviso(s)** — rode `spec_graph.py validate`
+- Validação (G0): **0 erro(s), 0 aviso(s)**
 - Specs: implemented 54
 - Impedimentos: **0 aberto(s)**, 0 resolvido(s)
 
@@ -22,7 +22,7 @@ Nenhuma spec aberta.
 | SPEC-0021 | Engenharia de Qualidade e Refatoração Arquitetural | implemented | 4/4 implementadas |
 | SPEC-0028 | Redesign Cyber Arena — migração da UI para Tailwind (Fase 1 visual) | implemented | 7/7 implementadas |
 | SPEC-0035 | Evolução funcional a partir do Stitch (Fase 2) | implemented | 9/9 implementadas |
-| SPEC-0046 | Xadrez multiplayer | approved | 15/15 implementadas |
+| SPEC-0046 | Xadrez multiplayer | implemented | 15/15 implementadas |
 
 ## Todas as Specs
 
@@ -73,7 +73,7 @@ Nenhuma spec aberta.
 | [SPEC-0043](SPEC-0043-shell-e-primitivos-de-ui-cyber-arena.md) | Shell e primitivos de UI Cyber Arena | full | feature | implemented | 2026-09-29 | SPEC-0028 | SPEC-0029 | — |
 | [SPEC-0044](SPEC-0044-serie-melhor-de-5-interface-no-lobby-e-na-arena.md) | Série melhor de 5: interface no lobby e na arena | full | feature | implemented | 2026-09-29 | SPEC-0035 | SPEC-0030, SPEC-0040 | — |
 | [SPEC-0045](SPEC-0045-gravacao-unica-do-resultado-da-partida.md) | Gravação única do resultado da partida | full | fix | implemented | 2026-09-29 | SPEC-0035 | — | — |
-| [SPEC-0046](SPEC-0046-xadrez-multiplayer.md) | Xadrez multiplayer | epic | feature | approved | 2026-09-29 | — | — | — |
+| [SPEC-0046](SPEC-0046-xadrez-multiplayer.md) | Xadrez multiplayer | epic | feature | implemented | 2026-09-29 | — | — | — |
 | [SPEC-0047](SPEC-0047-generalizacao-multi-jogo-gametype-filtros-e-fila-por-chave.md) | Generalização multi-jogo (GameType, filtros e fila por chave) | full | migration | implemented | 2026-09-29 | SPEC-0046 | — | — |
 | [SPEC-0048](SPEC-0048-selecao-de-jogos-e-navegacao-por-jogo.md) | Seleção de jogos e navegação por jogo | full | feature | implemented | 2026-09-29 | SPEC-0046 | SPEC-0047, SPEC-0058, SPEC-0060 | — |
 | [SPEC-0049](SPEC-0049-motor-de-xadrez-tabuleiro-lances-legais-e-perft.md) | Motor de xadrez: tabuleiro, lances legais e perft | full | foundation | implemented | 2026-09-29 | SPEC-0046 | — | — |
