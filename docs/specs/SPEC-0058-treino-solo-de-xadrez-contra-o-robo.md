@@ -163,10 +163,10 @@ Registrada no frontmatter (`approved_by`, `approved_at`) somente depois que o hu
 | Gate | Status | Evidência | Data |
 |---|---|---|---|
 | G0 Spec | PASS | `spec_graph.py validate` limpo (0 erro, 0 aviso); checklist de julgamento do G0 feito pelo Architect | 2026-09-29 |
-| G1 Red | PENDING | | |
-| G2 Green | PENDING | | |
-| G3 Arquitetura | PENDING | | |
-| G4 Review | PENDING | | |
+| G1 Red | PASS | Red confirmado: testes SPEC-0058 falham antes do código (verify PASS); Red da revisão G4 (IT-02, UT-06) falhou antes do fix (934feaf) | 2026-09-29 |
+| G2 Green | PASS | dotnet test: 864 total, 863 passam, 1 pulado, 0 falhas; format e tailwind --check limpos | 2026-09-29 |
+| G3 Arquitetura | N/A | sem novas regras estruturais; ChessModuleBoundaryTests continua verde | 2026-09-29 |
+| G4 Review | PASS | Review independente PASS (HEAD 14ad830), achado maior (_botBusy) e menores corrigidos em 8545787; verify PASS | 2026-09-29 |
 | G5 Integração & CI | PENDING | | |
 | H2 Integração aprovada | PENDING | | |
 | G6 Deploy | PENDING | | |
